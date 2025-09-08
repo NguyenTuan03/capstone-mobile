@@ -1,15 +1,18 @@
-import { useJWTAuth, useJWTAuthActions } from "@/services/jwt-auth/JWTAuthProvider";
+import {
+  useJWTAuth,
+  useJWTAuthActions,
+} from "@/services/jwt-auth/JWTAuthProvider";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 export default function AuthScreen() {
@@ -78,11 +81,17 @@ export default function AuthScreen() {
             </Text>
 
             {error ? (
-              <View style={{ backgroundColor: "#fee2e2", padding: 12, borderRadius: 8 }}>
+              <View
+                style={{
+                  backgroundColor: "#fee2e2",
+                  padding: 12,
+                  borderRadius: 8,
+                }}
+              >
                 <Text style={{ color: "#b91c1c" }}>{error}</Text>
               </View>
             ) : null}
-
+            {/* Email */}
             <View style={{ gap: 8 }}>
               <Text style={{ fontWeight: "600" }}>Email</Text>
               <TextInput
@@ -103,7 +112,7 @@ export default function AuthScreen() {
                 returnKeyType="next"
               />
             </View>
-
+            {/* Password */}
             <View style={{ gap: 8 }}>
               <Text style={{ fontWeight: "600" }}>Password</Text>
               <TextInput
@@ -124,7 +133,7 @@ export default function AuthScreen() {
                 onSubmitEditing={onSubmit}
               />
             </View>
-
+            {/* Submit Button */}
             <Pressable
               onPress={onSubmit}
               disabled={submitting}
@@ -139,10 +148,12 @@ export default function AuthScreen() {
               {submitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={{ color: "#fff", fontWeight: "700" }}>Sign in</Text>
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  Sign in
+                </Text>
               )}
             </Pressable>
-
+            {/* Forgot Password */}
             <View style={{ alignItems: "center", marginTop: 12 }}>
               <Text style={{ color: "#6b7280" }}>Forgot your password?</Text>
             </View>
