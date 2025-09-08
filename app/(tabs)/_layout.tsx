@@ -32,6 +32,7 @@ export default function TabLayout() {
         }),
       }}
     >
+      {/* Home */}
       <Tabs.Screen
         name="index"
         options={{
