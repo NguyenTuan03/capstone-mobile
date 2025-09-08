@@ -8,8 +8,8 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
+import AppAuthProvider from "@/context/AppAuthProvider";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import AppContextProvider from "@/context/AppContextProvider";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -24,13 +24,16 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AppContextProvider>
+      {/* <AppContextProvider> */}
+      <AppAuthProvider>
         <Stack>
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
-      </AppContextProvider>
+      </AppAuthProvider>
+      {/* </AppContextProvider>  */}
     </ThemeProvider>
   );
 }
