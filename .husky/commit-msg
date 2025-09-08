@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+npx --no -- commitlint --edit "$1"
+status=$?
+echo ""
+echo "ℹ️  Conventional Commits:"
+echo "   Format: type(scope?): subject"
+echo "   Types:  feat | fix | chore | docs | style | refactor | perf | test | ci"
+echo "   Ví dụ:  feat: add refresh token"
+exit $STATUS
