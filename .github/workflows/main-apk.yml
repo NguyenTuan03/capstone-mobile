@@ -7,35 +7,45 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_VERSION: ${{ secrets.EXPO_PUBLIC_VERSION }}
+
     steps:
       - name: ⬇️ Checkout
         uses: actions/checkout@v4
+
       - name: 🔧 Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
+
       - name: 📦 Install deps
         run: npm ci
-      - name: 🔑 Login Expo (token)
-        run: npx expo login --token $EXPO_TOKEN
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      - name: 📲 EAS build (APK, preview channel)
+
+      # (optional) kiểm tra token EAS
+      - name: 🔑 Verify EAS auth
+        run: npx eas whoami || true
+
+      - name: 🧩 Write .env
+        run: |
+          echo "EXPO_PUBLIC_API_BASE_URL=${EXPO_PUBLIC_API_BASE_URL}" >> .env
+          echo "EXPO_PUBLIC_VERSION=${EXPO_PUBLIC_VERSION}" >> .env
+
+      - name: 📲 EAS build (APK, preview profile)
         run: npx eas build --platform android --profile preview --non-interactive --no-wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: ⏳ Wait for build
         run: npx eas build:wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: ⬇️ Download latest APK
         run: npx eas build:download --latest --platform android --profile preview -o app-main.apk
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: 📤 Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-main
           path: app-main.apk
-          retention-days: 14
+          retention-days: 30
