@@ -34,7 +34,7 @@ jobs:
           echo "EXPO_PUBLIC_VERSION=${EXPO_PUBLIC_VERSION}" >> .env
 
       - name: 📲 EAS build (APK, preview)
-        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --no-wait
+        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait
 
       - name: ⏳ Wait for build
         run: npx --yes eas-cli@latest build:wait
