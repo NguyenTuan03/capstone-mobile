@@ -1,0 +1,75 @@
+name: Preview APK (PR)
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 📦 Install deps
+        run: npm ci
+
+      - name: 🔑 Login Expo (token)
+        run: npx expo login --token $EXPO_TOKEN
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      # (tùy chọn) nếu bạn có ENV_FILE để build thử nghiệm
+      - name: 🔐 Write .env (optional)
+        if: ${{ secrets.ENV_FILE != '' }}
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: 📲 EAS build (APK, preview)
+        run: npx eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: ⏳ Wait for build
+        run: npx eas build:wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: ⬇️ Download latest APK
+        run: npx eas build:download --latest --platform android --profile preview -o app-preview.apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📤 Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-preview
+          path: app-preview.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: 💬 Comment PR with instructions
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              "✅ **APK built** and attached as workflow artifact.",
+              "",
+              "➡️ Download from the workflow’s **Artifacts** section:",
+              runUrl
+            ].join("\n");
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body
+            });
