@@ -2,17 +2,19 @@ name: Preview APK (PR)
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
 
 jobs:
   build-apk:
     runs-on: ubuntu-latest
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      ENV_FILE: ${{ secrets.ENV_FILE }}
     permissions:
       contents: read
       pull-requests: write
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
+      EXPO_PUBLIC_VERSION: ${{ secrets.EXPO_PUBLIC_VERSION }}
+
     steps:
       - name: ⬇️ Checkout
         uses: actions/checkout@v4
@@ -21,53 +23,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
 
-      - name: 📦 Install deps
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 🔑 Login Expo (token)
-        run: npx expo login --token $EXPO_TOKEN
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: 🔑 Verify EAS auth
+        run: npx eas whoami || true
 
-      # (tùy chọn) nếu bạn có ENV_FILE để build thử nghiệm
-      - name: 🔐 Write .env (optional)
-        if: env.ENV_FILE != ''
-        run: echo "$ENV_FILE" > .env
+      - name: 🧩 Write .env
+        run: |
+          echo "EXPO_PUBLIC_API_BASE_URL=${EXPO_PUBLIC_API_BASE_URL}" >> .env
+          echo "EXPO_PUBLIC_VERSION=${EXPO_PUBLIC_VERSION}" >> .env
 
-      - name: 📲 EAS build (APK, preview)
+      - name: 📲 EAS build (APK, preview profile)
         run: npx eas build --platform android --profile preview --non-interactive --no-wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: ⏳ Wait for build
         run: npx eas build:wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: ⬇️ Download latest APK
         run: npx eas build:download --latest --platform android --profile preview -o app-preview.apk
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📤 Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-preview
           path: app-preview.apk
-          if-no-files-found: error
           retention-days: 14
 
-      - name: 💬 Comment PR with instructions
+      - name: 💬 Comment PR with download instructions
         uses: actions/github-script@v7
         with:
           script: |
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
-              "✅ **APK built** and attached as workflow artifact.",
+              "✅ **APK built successfully**",
               "",
-              "➡️ Download from the workflow’s **Artifacts** section:",
+              "➡️ Download it from the workflow’s **Artifacts** section:",
               runUrl,
             ].join("\n");
             github.rest.issues.createComment({
