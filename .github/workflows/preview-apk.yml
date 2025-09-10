@@ -29,7 +29,7 @@ jobs:
         run: npm ci
 
       - name: 🔑 Verify EAS auth
-        run: npx eas whoami || true
+        run: npx --yes eas-cli@latest whoami || true
 
       - name: 🧩 Write .env
         run: |
@@ -37,13 +37,13 @@ jobs:
           echo "EXPO_PUBLIC_VERSION=${EXPO_PUBLIC_VERSION}" >> .env
 
       - name: 📲 EAS build (APK, preview profile)
-        run: npx eas build --platform android --profile preview --non-interactive --no-wait
+        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --no-wait
 
       - name: ⏳ Wait for build
-        run: npx eas build:wait
+        run: npx --yes eas-cli@latest build:wait
 
       - name: ⬇️ Download latest APK
-        run: npx eas build:download --latest --platform android --profile preview -o app-preview.apk
+        run: npx --yes eas-cli@latest build:download --latest --platform android --profile preview -o app-preview.apk
 
       - name: 📤 Upload APK as artifact
         uses: actions/upload-artifact@v4
