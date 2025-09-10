@@ -12,11 +12,19 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.capstone.pickleball",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +45,19 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "05d308c8-7844-4fa8-a693-abe92cc8bb65"
+      }
+    },
+    "owner": "nguyentuan170164",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/05d308c8-7844-4fa8-a693-abe92cc8bb65"
     }
   }
 }

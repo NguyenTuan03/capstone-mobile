@@ -1,0 +1,41 @@
+name: Main APK (internal)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4
+      - name: 🔧 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: 📦 Install deps
+        run: npm ci
+      - name: 🔑 Login Expo (token)
+        run: npx expo login --token $EXPO_TOKEN
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: 📲 EAS build (APK, preview channel)
+        run: npx eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: ⏳ Wait for build
+        run: npx eas build:wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: ⬇️ Download latest APK
+        run: npx eas build:download --latest --platform android --profile preview -o app-main.apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: 📤 Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-main
+          path: app-main.apk
+          retention-days: 14
