@@ -7,6 +7,9 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      ENV_FILE: ${{ secrets.ENV_FILE }}
     permissions:
       contents: read
       pull-requests: write
@@ -30,8 +33,8 @@ jobs:
 
       # (tùy chọn) nếu bạn có ENV_FILE để build thử nghiệm
       - name: 🔐 Write .env (optional)
-        if: ${{ secrets.ENV_FILE != '' }}
-        run: echo "${{ secrets.ENV_FILE }}" > .env
+        if: env.ENV_FILE != ''
+        run: echo "$ENV_FILE" > .env
 
       - name: 📲 EAS build (APK, preview)
         run: npx eas build --platform android --profile preview --non-interactive --no-wait
@@ -65,11 +68,11 @@ jobs:
               "✅ **APK built** and attached as workflow artifact.",
               "",
               "➡️ Download from the workflow’s **Artifacts** section:",
-              runUrl
+              runUrl,
             ].join("\n");
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
-              body
+              body,
             });
