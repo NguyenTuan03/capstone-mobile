@@ -7,6 +7,7 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
       pull-requests: write
@@ -36,51 +37,11 @@ jobs:
           echo "EXPO_PUBLIC_API_BASE_URL=${EXPO_PUBLIC_API_BASE_URL}" >> .env
           echo "EXPO_PUBLIC_VERSION=${EXPO_PUBLIC_VERSION}" >> .env
 
-      - name: 🚀 Start EAS build (no-wait)
-        id: start
-        run: |
-          npx --yes eas-cli@latest build \
-            --platform android \
-            --profile preview \
-            --non-interactive \
-            --no-wait \
-            --json > build.json
+      - name: 📲 Build APK (wait until finished)
+        run: npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait
 
-          echo "Raw build json:"
-          cat build.json
-
-          BUILD_ID=$(jq -r '.[0].id' build.json)
-          WEB_URL=$(jq -r '.[0].webBuildUrl // .[0].buildDetailsPageUrl // empty' build.json)
-
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_OUTPUT
-          echo "WEB_URL=$WEB_URL"   >> $GITHUB_OUTPUT
-
-
-      - name: ⏳ Wait for EAS build to finish
-        timeout-minutes: 30
-        run: |
-          BUILD_ID="${{ steps.start.outputs.BUILD_ID }}"
-          echo "Polling build $BUILD_ID ..."
-          for i in $(seq 1 60); do  # 60 * 30s = 30 phút
-            STATUS=$(npx --yes eas-cli@latest build:view --build-id "$BUILD_ID" --json | jq -r '.status')
-            echo "[$(date -u +"%H:%M:%S")] status=$STATUS"
-            if [ "$STATUS" = "finished" ]; then
-              exit 0
-            elif [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
-              echo "Build failed with status=$STATUS"
-              exit 1
-            fi
-            sleep 30
-          done
-          echo "Timed out waiting for build."
-          exit 1
-
-
-      - name: ⬇️ Download APK
-        run: |
-          npx --yes eas-cli@latest build:download \
-            --build-id "${{ steps.start.outputs.BUILD_ID }}" \
-            -o app-preview.apk
+      - name: ⬇️ Download latest APK
+        run: npx --yes eas-cli@latest build:download --latest --platform android --profile preview -o app-preview.apk
 
       - name: 📤 Upload APK as artifact
         uses: actions/upload-artifact@v4
@@ -89,19 +50,16 @@ jobs:
           path: app-preview.apk
           retention-days: 14
 
-
-      - name: 💬 Comment PR with build page
-        if: ${{ steps.start.outputs.WEB_URL != '' }}
+      - name: 💬 Comment PR with download hint
         uses: actions/github-script@v7
         with:
           script: |
-            const url = `${{ toJson(steps.start.outputs.WEB_URL) }}`.replace(/^"|"$/g, "");
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const body = [
-              "✅ **APK build started** and will be attached here once finished.",
+              "✅ **APK built successfully**",
               "",
-              `🔍 EAS build page: ${url}`,
-              `📦 CI run (artifacts after finish): ${runUrl}`
+              "➡️ Download it from the workflow’s **Artifacts** section:",
+              runUrl
             ].join("\n");
             github.rest.issues.createComment({
               owner: context.repo.owner,
