@@ -55,6 +55,7 @@ jobs:
           echo "BUILD_ID=$BUILD_ID" >> $GITHUB_OUTPUT
           echo "WEB_URL=$WEB_URL"   >> $GITHUB_OUTPUT
 
+
       - name: ⏳ Wait for EAS build to finish
         timeout-minutes: 30
         run: |
@@ -74,7 +75,7 @@ jobs:
           echo "Timed out waiting for build."
           exit 1
 
-      # 3) Download chính xác build theo BUILD_ID
+
       - name: ⬇️ Download APK
         run: |
           npx --yes eas-cli@latest build:download \
@@ -87,6 +88,8 @@ jobs:
           name: app-preview
           path: app-preview.apk
           retention-days: 14
+
+
       - name: 💬 Comment PR with build page
         if: ${{ steps.start.outputs.WEB_URL != '' }}
         uses: actions/github-script@v7
