@@ -1,15 +1,11 @@
 import AppForm from "@/components/common/AppForm";
-import {
-  useJWTAuth,
-  useJWTAuthActions,
-} from "@/services/jwt-auth/JWTAuthProvider";
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text } from "react-native";
 
 export default function AuthScreen() {
-  const { signInUser } = useJWTAuthActions();
-  const { isAuthenticated } = useJWTAuth();
+  // const { signInUser } = useJWTAuthActions();
+  // const { isAuthenticated } = useJWTAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -19,7 +15,7 @@ export default function AuthScreen() {
     setSubmitting(true);
     try {
       // await signInUser({ email: values.email, password: values.password });
-      router.replace("/(tabs)");
+      router.push("/(learner)/home" as Href);
     } catch {
       setError("Invalid email or password");
     } finally {
