@@ -58,6 +58,19 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
+        name="upload/index"
+        options={{
+          title: "Upload",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "cloud-upload" : "cloud-upload-outline"}
+              size={22}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="films/index"
         options={{
           title: "Films",
