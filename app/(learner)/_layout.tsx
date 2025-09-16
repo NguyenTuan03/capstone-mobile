@@ -71,7 +71,7 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
-        name="menu/index"
+        name="menu"
         options={{
           title: "Menu",
           tabBarIcon: ({ color, size, focused }) => (

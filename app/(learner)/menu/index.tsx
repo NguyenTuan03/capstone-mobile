@@ -3,6 +3,7 @@ import MenuList, { MenuItem } from "@/components/common/AppMenu";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 export default function MenuScreen() {
   const items: MenuItem[] = [
@@ -10,6 +11,7 @@ export default function MenuScreen() {
       key: "account",
       label: "My Account",
       icon: <Ionicons name="person-outline" size={20} color="#111" />,
+      onPress: () => router.push("/menu/account"),
     },
     {
       key: "profile",

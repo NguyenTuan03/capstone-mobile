@@ -2,6 +2,7 @@ import React from "react";
 import { SafeAreaView, View, Text, Pressable, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 export default function AccountScreen() {
   const insets = useSafeAreaInsets();
@@ -19,7 +20,7 @@ export default function AccountScreen() {
           marginBottom: 12,
         }}
       >
-        <Pressable onPress={() => console.log("Back")}>
+        <Pressable onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color="#111" />
         </Pressable>
         <Text
@@ -28,7 +29,7 @@ export default function AccountScreen() {
             textAlign: "center",
             fontSize: 18,
             fontWeight: "700",
-            marginRight: 22, // để cân icon back
+            marginRight: 22,
           }}
         >
           MY ACCOUNT
