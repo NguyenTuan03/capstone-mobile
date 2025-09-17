@@ -96,7 +96,18 @@ export default function Coaches() {
         end={{ x: 1, y: 1 }}
         style={s.hero}
       >
-        <Text style={s.heroTitle}>Find your Coach</Text>
+        <View style={s.heroHeader}>
+          <Text style={s.heroTitle}>Find your Coach</Text>
+        </View>
+
+        <Pressable
+          onPress={() => router.push("/(learner)/coach/my-sessions" as any)}
+          style={s.mySessionsBtn}
+        >
+          <Ionicons name="calendar-outline" size={18} color="#111827" />
+          <Text style={s.mySessionsText}>My Sessions</Text>
+          <Ionicons name="chevron-forward" size={14} color="#111827" />
+        </Pressable>
         <Text style={s.heroSub}>
           Lọc theo vị trí, chuyên môn, giá — book lịch trong 30s.
         </Text>
@@ -263,11 +274,35 @@ const s = StyleSheet.create({
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
+  heroHeader: {
+    marginBottom: 12,
+  },
   heroTitle: {
     color: "#fff",
     fontSize: 22,
     fontWeight: "800",
     letterSpacing: 0.3,
+  },
+  mySessionsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mySessionsText: {
+    color: "#111827",
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 8,
+    flex: 1,
   },
   heroSub: { color: "#d1d5db", marginTop: 4 },
   searchWrap: {

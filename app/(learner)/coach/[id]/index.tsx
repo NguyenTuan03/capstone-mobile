@@ -1,254 +1,139 @@
-import React, { useMemo, useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  Pressable,
-  StyleSheet,
-  FlatList,
-  ImageBackground,
-} from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { useBookings } from "@/modules/learner/context/bookingContext";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const MOCK = {
-  c1: {
-    cover:
-      "https://images.unsplash.com/photo-1521417531099-7a2c1c0d3d0e?q=80&w=1200&auto=format&fit=crop",
-    avatar: "https://i.pravatar.cc/200?img=12",
-    name: "David Miller",
-    rating: 4.9,
-    price: 35,
-    location: "District 1, HCMC",
-    bio: "Former semi-pro. 6+ years coaching doubles tactics. Focus on dinks/3rd shot.",
-    specialties: ["Dinking", "3rd Shot", "Strategy", "Defense"],
-  },
-  c2: {
-    cover:
-      "https://images.unsplash.com/photo-1549060279-7e168f61e26e?q=80&w=1200&auto=format&fit=crop",
-    avatar: "https://i.pravatar.cc/200?img=32",
-    name: "Sophia Nguyen",
-    rating: 4.8,
-    price: 25,
-    location: "Thu Duc City",
-    bio: "Footwork + serve/return optimization. Great for beginners→intermediates.",
-    specialties: ["Serve", "Return", "Footwork"],
-  },
-  c3: {
-    cover:
-      "https://images.unsplash.com/photo-1508606572321-901ea443707f?q=80&w=1200&auto=format&fit=crop",
-    avatar: "https://i.pravatar.cc/200?img=68",
-    name: "Liam Tran",
-    rating: 5,
-    price: 40,
-    location: "District 7, HCMC",
-    bio: "Kitchen readiness and doubles strategy. High-intensity but fun.",
-    specialties: ["Kitchen Readiness", "Doubles Tactics"],
-  },
-} as const;
+// helper: convert "Mon"+"07:30" -> ISO of the next coming day
+const dayIdx: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+function nextDateISO(weekday: string, hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const now = new Date();
+  const target = new Date(now);
+  const delta = (dayIdx[weekday] - now.getDay() + 7) % 7 || 7; // next occurrence
+  target.setDate(now.getDate() + delta);
+  target.setHours(h, m, 0, 0);
+  return target.toISOString();
+}
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const TIMES = ["08:00", "09:30", "11:00", "14:00", "15:30", "19:00"];
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const slots = ["06:30", "07:30", "09:00", "17:30", "19:00"];
 
-export default function CoachProfile() {
-  const { id } = useLocalSearchParams<{ id: keyof typeof MOCK }>();
-  const data = useMemo(() => (id ? MOCK[id] : undefined), [id]);
-  const [day, setDay] = useState(0);
-  const [time, setTime] = useState<string | null>(null);
+export default function Book() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { addSession } = useBookings();
+  const [d, setD] = useState<string | null>(days[0]);
+  const [s, setS] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
-  if (!data) return null;
+  const onConfirm = () => {
+    if (!id || !d || !s) return;
+    const startAt = nextDateISO(d, s);
+    const endAt = new Date(
+      new Date(startAt).getTime() + 60 * 60 * 1000,
+    ).toISOString(); // 60'
+    const sessionId = addSession({
+      coachId: String(id),
+      coachName: String(id), // TODO: truyền real name từ profile
+      price: 25,
+      mode: "online",
+      meetingUrl: "https://meet.example.com/abc",
+      startAt,
+      endAt,
+    });
+    router.replace(`/(learner)/coach/my-sessions/${sessionId}` as any);
+  };
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        padding: 16,
+        paddingTop: insets.top,
+      }}
     >
-      <ImageBackground source={{ uri: data.cover }} style={s.cover}>
-        <Pressable style={s.back} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color="#fff" />
-        </Pressable>
-      </ImageBackground>
-
-      <View style={{ paddingHorizontal: 16 }}>
-        <View
-          style={{ flexDirection: "row", alignItems: "center", marginTop: -32 }}
-        >
-          <Image source={{ uri: data.avatar }} style={s.avatar} />
-          <View style={{ marginLeft: 12 }}>
-            <Text style={s.name}>{data.name}</Text>
-            <Text style={s.meta}>
-              ★ {data.rating.toFixed(1)} • ${data.price}/h • {data.location}
-            </Text>
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 8,
-            marginTop: 12,
-          }}
-        >
-          {data.specialties.map((t) => (
-            <View key={t} style={s.tag}>
-              <Text style={s.tagText}>{t}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={s.section}>About</Text>
-        <Text style={s.bio}>{data.bio}</Text>
-
-        <Text style={s.section}>Next 7 days</Text>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={DAYS}
-          keyExtractor={(d) => d}
-          renderItem={({ item, index }) => (
-            <Pressable
-              onPress={() => setDay(index)}
-              style={[s.dayChip, day === index && s.dayChipActive]}
-            >
-              <Text style={[s.dayText, day === index && s.dayTextActive]}>
-                {item}
-              </Text>
-            </Pressable>
-          )}
-          ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
-          contentContainerStyle={{ paddingBottom: 8 }}
-        />
-
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {TIMES.map((t) => (
-            <Pressable
-              key={t}
-              onPress={() => setTime(t)}
-              style={[s.timeChip, time === t && s.timeChipActive]}
-            >
-              <Text style={[s.timeText, time === t && s.timeTextActive]}>
-                {t}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+      <Text style={{ fontSize: 20, fontWeight: "800" }}>Book with {id}</Text>
+      <Text style={st.label}>Select Day</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+        {days.map((x) => (
+          <Pressable
+            key={x}
+            onPress={() => setD(x)}
+            style={[st.pill, d === x && st.pillActive]}
+          >
+            <Text style={[st.pillText, d === x && st.pillTextActive]}>{x}</Text>
+          </Pressable>
+        ))}
       </View>
-
-      {/* Sticky CTA */}
-      <View style={s.sticky}>
-        <View>
-          <Text style={{ fontWeight: "800", fontSize: 16 }}>
-            ${data.price}/h
-          </Text>
-          <Text style={{ color: "#6b7280", fontSize: 12 }}>
-            {time ? `Selected ${DAYS[day]} ${time}` : "Pick a slot"}
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => router.push(`/(learner)/coach/${id}/book` as any)}
-          style={[s.cta, !time && { opacity: 0.5 }]}
-          disabled={!time}
-        >
-          <Text style={s.ctaText}>Book session</Text>
-        </Pressable>
+      <Text style={st.label}>Select Time</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+        {slots.map((x) => (
+          <Pressable
+            key={x}
+            onPress={() => setS(x)}
+            style={[st.slot, s === x && st.slotActive]}
+          >
+            <Text style={[st.slotText, s === x && st.slotTextActive]}>{x}</Text>
+          </Pressable>
+        ))}
       </View>
+      <Pressable
+        disabled={!s || !d}
+        onPress={onConfirm}
+        style={[st.cta, (!s || !d) && { opacity: 0.5 }]}
+      >
+        <Text style={st.ctaText}>Confirm Booking</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
 
-const s = StyleSheet.create({
-  cover: {
-    height: 160,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  back: {
-    position: "absolute",
-    left: 12,
-    top: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.35)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 3,
-    borderColor: "#fff",
-  },
-  name: { fontSize: 20, fontWeight: "800", color: "#111827" },
-  meta: { color: "#6b7280", marginTop: 2 },
-
-  tag: {
-    backgroundColor: "#f3f4f6",
-    borderColor: "#e5e7eb",
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  tagText: { color: "#111827", fontWeight: "600", fontSize: 12 },
-
-  section: {
+const st = StyleSheet.create({
+  label: {
     marginTop: 16,
-    marginBottom: 6,
+    marginBottom: 8,
     fontWeight: "800",
-    fontSize: 16,
     color: "#111827",
   },
-  bio: { color: "#374151" },
-
-  dayChip: {
-    paddingHorizontal: 12,
+  pill: {
     paddingVertical: 8,
-    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    marginRight: 8,
+    marginBottom: 8,
   },
-  dayChipActive: { backgroundColor: "#111", borderColor: "#111" },
-  dayText: { color: "#111", fontWeight: "700" },
-  dayTextActive: { color: "#fff" },
-
-  timeChip: {
-    paddingHorizontal: 12,
+  pillActive: { backgroundColor: "#111827", borderColor: "#111827" },
+  pillText: { color: "#111827", fontWeight: "700" },
+  pillTextActive: { color: "#fff" },
+  slot: {
     paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    backgroundColor: "#fff",
+    marginRight: 8,
+    marginBottom: 8,
   },
-  timeChipActive: { backgroundColor: "#111" },
-  timeText: { color: "#111", fontWeight: "700" },
-  timeTextActive: { color: "#fff" },
-
-  sticky: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 72,
-    borderTopWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
+  slotActive: { backgroundColor: "#111827", borderColor: "#111827" },
+  slotText: { color: "#111827", fontWeight: "700" },
+  slotTextActive: { color: "#fff" },
   cta: {
+    marginTop: 24,
     backgroundColor: "#111827",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
+    height: 48,
     borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   ctaText: { color: "#fff", fontWeight: "800" },
 });
