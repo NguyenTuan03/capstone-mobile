@@ -45,7 +45,7 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
-        name="roadmap/index"
+        name="roadmap"
         options={{
           title: "Roadmap",
           tabBarIcon: ({ color, size, focused }) => (
@@ -71,9 +71,9 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
-        name="films/index"
+        name="coach"
         options={{
-          title: "Films",
+          title: "Coach",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "play-circle" : "play-circle-outline"}

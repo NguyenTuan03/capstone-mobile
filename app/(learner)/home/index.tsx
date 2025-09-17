@@ -22,7 +22,7 @@ import {
 } from "@/modules/learner/home";
 
 const { height: H } = Dimensions.get("window");
-const HERO_H = Math.round(H * 0.66);
+const HERO_H = Math.round(H * 0.5);
 
 const skills = [
   "Serve",
