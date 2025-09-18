@@ -58,7 +58,7 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
-        name="students/index"
+        name="students"
         options={{
           title: "Students",
           tabBarIcon: ({ color, size, focused }) => (
@@ -84,7 +84,7 @@ export default function LearnerTabs() {
         }}
       />
       <Tabs.Screen
-        name="menu/index"
+        name="menu"
         options={{
           title: "Menu",
           tabBarIcon: ({ color, size, focused }) => (

@@ -127,7 +127,12 @@ export default function EarningsScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom + 50,
+      }}
     >
       <FlatList
         data={[{ k: "header" } as const]}

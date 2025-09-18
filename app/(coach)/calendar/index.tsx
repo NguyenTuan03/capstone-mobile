@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** ================== TYPES ================== */
 type Mode = "online" | "offline";
@@ -107,7 +106,6 @@ const BASE_SLOTS: Slot[] = [
 
 /** ================== SCREEN ================== */
 export default function CoachCalendar() {
-  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"sessions" | "availability">("sessions");
   const [selected, setSelected] = useState<string>(todayOffset(0));
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
@@ -197,9 +195,7 @@ export default function CoachCalendar() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
       <View style={st.header}>
         <Text style={st.h1}>Calendar</Text>
@@ -577,7 +573,7 @@ async function upsertSessionEvent(
 ): Promise<string> {
   const startDate = toDate(s.date, s.start);
   const endDate = toDate(s.date, s.end);
-  const details: any = {
+  const details: Partial<ExpoCal.Event> = {
     title: `Coaching: ${s.student}`,
     startDate,
     endDate,
@@ -589,10 +585,10 @@ async function upsertSessionEvent(
     url: s.meetingUrl ?? undefined,
   };
   if (existingEventId) {
-    await ExpoCal.updateEventAsync(existingEventId, details);
+    await ExpoCal.updateEventAsync(existingEventId, details as any);
     return existingEventId;
   }
-  return await ExpoCal.createEventAsync(calendarId, details);
+  return await ExpoCal.createEventAsync(calendarId, details as any);
 }
 
 async function publishWeeklyAvailability(
