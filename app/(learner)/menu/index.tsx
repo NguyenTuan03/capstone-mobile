@@ -3,7 +3,7 @@ import MenuList, { MenuItem } from "@/components/common/AppMenu";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 
 export default function MenuScreen() {
   const items: MenuItem[] = [
@@ -19,9 +19,10 @@ export default function MenuScreen() {
       icon: <MaterialIcons name="sports-tennis" size={20} color="#111" />,
     },
     {
-      key: "goals",
-      label: "My DUPR Goals",
+      key: "community",
+      label: "Community",
       icon: <MaterialIcons name="open-in-new" size={20} color="#111" />,
+      onPress: () => router.push("/menu/community"),
     },
     {
       key: "dupr-app",
@@ -49,14 +50,15 @@ export default function MenuScreen() {
       icon: <Ionicons name="notifications-outline" size={20} color="#111" />,
     },
     {
-      key: "faq",
-      label: "FAQ",
-      icon: <MaterialIcons name="open-in-new" size={20} color="#111" />,
-    },
-    {
       key: "feedback",
       label: "Feedback / Support",
       icon: <Ionicons name="thumbs-up-outline" size={20} color="#111" />,
+    },
+    {
+      key: "logout",
+      label: "Logout",
+      icon: <MaterialIcons name="logout" size={20} color="#111" />,
+      onPress: () => router.push("/(auth)" as Href),
     },
   ];
   const insets = useSafeAreaInsets();

@@ -130,7 +130,7 @@ export default function Coaches() {
             items={SPECIALTIES as unknown as string[]}
             value={spec}
             onChange={setSpec}
-            icon={(active) => (
+            icon={(active: boolean) => (
               <MaterialIcons
                 name="sports-tennis"
                 size={14}
@@ -152,10 +152,10 @@ export default function Coaches() {
       {/* List */}
       <FlatList
         data={data}
-        keyExtractor={(i) => i.id}
+        keyExtractor={(i: any) => i.id}
         contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }) => <CoachCard coach={item} />}
+        renderItem={({ item }: { item: any }) => <CoachCard coach={item} />}
       />
     </SafeAreaView>
   );

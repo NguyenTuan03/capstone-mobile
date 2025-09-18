@@ -1,10 +1,10 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 export type MenuItem = {
   key: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: any;
   onPress?: () => void;
 };
 

@@ -14,8 +14,9 @@ export default function AuthScreen() {
     setError(null);
     setSubmitting(true);
     try {
+      if (values.password === "c") router.push("/(coach)/home" as Href);
       // await signInUser({ email: values.email, password: values.password });
-      router.push("/(learner)/home" as Href);
+      // router.push("/(learner)/home" as Href);
     } catch {
       setError("Invalid email or password");
     } finally {
