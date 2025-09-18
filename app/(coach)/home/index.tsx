@@ -101,13 +101,13 @@ export default function CoachHome() {
             label="Sessions Today"
             value={String(kpi.todaySessions)}
             icon="time-outline"
-            onPress={() => router.push("/calendar/index")}
+            onPress={() => router.push("/(coach)/calendar/index" as any)}
           />
           <KpiCard
             label="Pending Requests"
             value={String(kpi.pending)}
             icon="alert-circle-outline"
-            onPress={() => router.push("/calendar/index")}
+            onPress={() => router.push("/(coach)/calendar/index" as any)}
           />
         </View>
 
@@ -123,17 +123,17 @@ export default function CoachHome() {
             <QA
               icon="clipboard-outline"
               label="Add Notes"
-              onPress={() => router.push("/students/index")}
+              onPress={() => router.push("/(coach)/students/index" as any)}
             />
             <QA
               icon="barbell-outline"
               label="Assign Drill"
-              onPress={() => router.push("/students/index")}
+              onPress={() => router.push("/(coach)/students/index" as any)}
             />
             <QA
               icon="calendar-outline"
               label="Add Slots"
-              onPress={() => router.push("/calendar/index")}
+              onPress={() => router.push("/(coach)/calendar/index" as any)}
             />
           </View>
         </Section>
@@ -152,7 +152,7 @@ export default function CoachHome() {
               <Card
                 onPress={() =>
                   router.push({
-                    pathname: "/calendar/index",
+                    pathname: "/(coach)/calendar/index" as any,
                     params: { focus: item.id },
                   })
                 }
