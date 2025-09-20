@@ -58,7 +58,7 @@ export default function LibraryVideoDetail() {
             <Text style={st.primaryTxt}>Làm Quiz</Text>
           </Pressable>
           <Pressable style={st.secondary} onPress={() => {}}>
-            <Text style={st.secondaryTxt}>Lưu offline</Text>
+            <Text style={st.secondaryTxt}>Download</Text>
           </Pressable>
         </View>
       </View>

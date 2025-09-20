@@ -1,18 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
   FlatList,
   Image,
-  Pressable,
-  StyleSheet,
   Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
@@ -118,6 +118,29 @@ export default function RoadmapLibrary() {
     >
       {/* Header */}
       <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: "rgba(107, 114, 128, 0.1)",
+            }}
+          >
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
+          </Pressable>
+          <View style={{ flex: 1 }} />
+          <Text style={{ fontWeight: "900", color: "#111827", fontSize: 18 }}>
+            Video Library
+          </Text>
+          <View style={{ width: 36 }} />
+        </View>
         <Text style={st.h1}>LIBRARY</Text>
         <Text style={st.sub}>
           Video được AI đề xuất theo skill/level của bạn. Xem xong làm Quiz để

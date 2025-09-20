@@ -121,10 +121,30 @@ export default function StudentDetail() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       {/* Header */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={{ color: "#6b7280" }}>‹ Back</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingTop: 10,
+          paddingBottom: 8,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: "rgba(107, 114, 128, 0.1)",
+          }}
+        >
+          <Ionicons name="chevron-back" size={20} color="#6b7280" />
         </Pressable>
+        <View style={{ flex: 1 }} />
+        <Text style={{ fontWeight: "900", color: "#111827", fontSize: 16 }}>
+          Student Profile
+        </Text>
+        <View style={{ width: 36 }} />
       </View>
 
       {/* Hero */}

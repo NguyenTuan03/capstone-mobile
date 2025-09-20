@@ -34,7 +34,7 @@ export default function LearnerTabs() {
       <Tabs.Screen
         name="home/index"
         options={{
-          title: "Dashboard",
+          title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}

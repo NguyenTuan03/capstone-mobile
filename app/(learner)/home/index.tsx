@@ -83,7 +83,7 @@ export default function HomeScreen() {
 
               {/* CTA */}
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <PrimaryButton title="SUBSCRIBE" onPress={() => {}} />
+                <PrimaryButton title="✨ AI ANALYZER" onPress={() => {}} />
                 <OutlineButton title="VIEW ROADMAP" onPress={() => {}} light />
               </View>
             </LinearGradient>
@@ -101,7 +101,7 @@ export default function HomeScreen() {
 
           {/* DUPR SKILLS */}
           <SectionTitle
-            title="DUPR SKILLS"
+            title="Personal Skills"
             caption={`See below your scores for your game areas. Your coach has\nrated each area on a DUPR scale of 2 to 8.`}
           />
           <View style={styles.skillGrid}>

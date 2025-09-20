@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import { Href, router } from "expo-router";
+import { router } from "expo-router";
 import React, { useMemo } from "react";
 import {
   FlatList,
@@ -19,7 +19,14 @@ import Svg, { Rect } from "react-native-svg";
 
 /** --------- MOCK DATA (đổi sang API/Context sau) --------- */
 const coach = { name: "David Nguyen", avatarText: "DN" };
-const kpi = { mtd: 1240, todaySessions: 3, pending: 2 };
+const kpi = {
+  mtd: Number("124000").toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }),
+  todaySessions: 3,
+  pending: 2,
+};
 const upcoming = [
   {
     id: "s1",
@@ -93,8 +100,8 @@ export default function CoachHome() {
         {/* -------- KPI -------- */}
         <View style={styles.kpiRow}>
           <KpiCard
-            label="MTD Earnings"
-            value={`$${kpi.mtd}`}
+            label="Financial Earnings"
+            value={`${kpi.mtd}`}
             icon="cash-outline"
           />
           <KpiCard
@@ -105,7 +112,7 @@ export default function CoachHome() {
           />
           <KpiCard
             label="Pending Requests"
-            value={String(kpi.pending)}
+            value={String(kpi.todaySessions)}
             icon="alert-circle-outline"
             onPress={() => router.push("/(coach)/calendar/index" as any)}
           />
@@ -255,7 +262,7 @@ export default function CoachHome() {
         </Section>
 
         {/* -------- EARNINGS CHART -------- */}
-        <Section title="MTD Earnings" caption="7 ngày gần nhất">
+        <Section title="Financial Earnings" caption="7 ngày gần nhất">
           <Card>
             <MiniBar data={earnings7d} />
           </Card>
@@ -392,7 +399,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     flexDirection: "row",
     alignItems: "flex-end",
-    paddingBottom: 16,
+    paddingBottom: 50,
   },
   avatarWrap: {
     width: 56,

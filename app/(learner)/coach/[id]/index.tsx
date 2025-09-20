@@ -1,4 +1,5 @@
 import { useBookings } from "@/modules/learner/context/bookingContext";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
@@ -24,8 +25,8 @@ function nextDateISO(weekday: string, hhmm: string) {
   return target.toISOString();
 }
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const slots = ["06:30", "07:30", "09:00", "17:30", "19:00"];
+const days = ["Mon", "Wed", "Thu", "Sat"];
+const slots = ["06:30", "17:30", "19:00"];
 
 export default function Book() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,7 +61,34 @@ export default function Book() {
         paddingTop: insets.top,
       }}
     >
-      <Text style={{ fontSize: 20, fontWeight: "800" }}>Book with {id}</Text>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: "rgba(107, 114, 128, 0.1)",
+          }}
+        >
+          <Ionicons name="chevron-back" size={20} color="#6b7280" />
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <Text style={{ fontWeight: "900", color: "#111827", fontSize: 18 }}>
+          Book Session
+        </Text>
+        <View style={{ width: 36 }} />
+      </View>
+
+      <Text style={{ fontSize: 20, fontWeight: "800", marginBottom: 16 }}>
+        Book with Coach {id}
+      </Text>
       <Text style={st.label}>Select Day</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
         {days.map((x) => (

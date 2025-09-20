@@ -8,6 +8,7 @@ import {
   Pressable,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
@@ -66,6 +67,8 @@ export default function SessionNotes() {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#fff",
+          paddingTop: inset.top,
+          paddingBottom: inset.bottom + 50,
         }}
       >
         <Text>Session not found</Text>
@@ -79,165 +82,169 @@ export default function SessionNotes() {
         flex: 1,
         backgroundColor: "#fff",
         paddingTop: inset.top,
-        paddingBottom: inset.bottom,
+        paddingBottom: inset.bottom + 100,
       }}
     >
       {/* header */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 10,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Pressable onPress={() => router.back()}>
-          <Text style={{ color: "#6b7280" }}>‹ Back</Text>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Text style={{ fontWeight: "900", color: "#111827" }}>
-          Session Notes
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      {/* hero */}
-      <View style={st.cardHero}>
-        <Image source={{ uri: s.student.avatar }} style={st.avatar} />
-        <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={st.name}>{s.student.name}</Text>
-          <Text style={st.meta}>
-            {new Date(s.dateISO).toLocaleString([], {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })}{" "}
-            · {s.mode === "online" ? "Online" : s.place}
+      <ScrollView>
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 10,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Pressable onPress={() => router.back()}>
+            <Text style={{ color: "#6b7280" }}>‹ Back</Text>
+          </Pressable>
+          <View style={{ flex: 1 }} />
+          <Text style={{ fontWeight: "900", color: "#111827" }}>
+            Session Notes
           </Text>
+          <View style={{ width: 40 }} />
         </View>
-        <Pressable
+
+        {/* hero */}
+        <View style={st.cardHero}>
+          <Image source={{ uri: s.student.avatar }} style={st.avatar} />
+          <View style={{ flex: 1, marginLeft: 10 }}>
+            <Text style={st.name}>{s.student.name}</Text>
+            <Text style={st.meta}>
+              {new Date(s.dateISO).toLocaleString([], {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}{" "}
+              · {s.mode === "online" ? "Online" : s.place}
+            </Text>
+          </View>
+          {/* <Pressable
           style={st.linkBtn}
           onPress={() => router.push("/(coach)/drill/assign")}
         >
           <Ionicons name="barbell-outline" size={16} color="#111827" />
           <Text style={st.linkTxt}>Open Drills</Text>
-        </Pressable>
-      </View>
+        </Pressable> */}
+        </View>
 
-      {/* body */}
-      <View style={{ padding: 16 }}>
-        {/* Ratings */}
-        <Text style={st.sectionTitle}>Ratings (1–5)</Text>
-        {SKILLS.map((sk) => (
-          <View key={sk} style={st.rateRow}>
-            <Text style={st.rateLabel}>{sk}</Text>
-            <View style={{ flexDirection: "row" }}>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <Pressable
-                  key={n}
-                  onPress={() => setRating((prev) => ({ ...prev, [sk]: n }))}
-                  style={[st.star, rating[sk] >= n && st.starActive]}
-                >
-                  <Ionicons
-                    name="star"
-                    size={14}
-                    color={rating[sk] >= n ? "#fff" : "#9ca3af"}
-                  />
-                </Pressable>
-              ))}
+        {/* body */}
+        <View style={{ padding: 16 }}>
+          {/* Ratings */}
+          <Text style={st.sectionTitle}>Ratings (1–5)</Text>
+          {SKILLS.map((sk) => (
+            <View key={sk} style={st.rateRow}>
+              <Text style={st.rateLabel}>{sk}</Text>
+              <View style={{ flexDirection: "row" }}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Pressable
+                    key={n}
+                    onPress={() => setRating((prev) => ({ ...prev, [sk]: n }))}
+                    style={[st.star, rating[sk] >= n && st.starActive]}
+                  >
+                    <Ionicons
+                      name="star"
+                      size={14}
+                      color={rating[sk] >= n ? "#fff" : "#9ca3af"}
+                    />
+                  </Pressable>
+                ))}
+              </View>
             </View>
+          ))}
+
+          {/* Goals */}
+          <Text style={st.sectionTitle}>Goals</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {[
+              "Consistency",
+              "Footwork",
+              "Decision",
+              "Serve power",
+              "Drop height",
+            ].map((g) => {
+              const active = goals.includes(g);
+              return (
+                <Pressable
+                  key={g}
+                  onPress={() =>
+                    setGoals((prev) =>
+                      active ? prev.filter((x) => x !== g) : [...prev, g],
+                    )
+                  }
+                  style={[st.chip, active && st.chipActive]}
+                >
+                  <Text style={[st.chipTxt, active && st.chipTxtActive]}>
+                    {g}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
-        ))}
 
-        {/* Goals */}
-        <Text style={st.sectionTitle}>Goals</Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {[
-            "Consistency",
-            "Footwork",
-            "Decision",
-            "Serve power",
-            "Drop height",
-          ].map((g) => {
-            const active = goals.includes(g);
-            return (
-              <Pressable
-                key={g}
-                onPress={() =>
-                  setGoals((prev) =>
-                    active ? prev.filter((x) => x !== g) : [...prev, g],
-                  )
-                }
-                style={[st.chip, active && st.chipActive]}
-              >
-                <Text style={[st.chipTxt, active && st.chipTxtActive]}>
-                  {g}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {/* Observations */}
+          <Text style={st.sectionTitle}>Observations</Text>
+          <TextInput
+            value={obs}
+            onChangeText={setObs}
+            placeholder="What went well? What to improve?"
+            placeholderTextColor="#9ca3af"
+            multiline
+            style={st.input}
+          />
+
+          {/* Action Items */}
+          <Text style={st.sectionTitle}>Action Items</Text>
+          <TextInput
+            value={actions}
+            onChangeText={setActions}
+            placeholder="Next steps for learner…"
+            placeholderTextColor="#9ca3af"
+            multiline
+            style={st.input}
+          />
+
+          {/* Attach Drill */}
+          <Text style={st.sectionTitle}>Attach Drill</Text>
+          <View style={{ flexDirection: "row" }}>
+            {[
+              "d1: Dink – Control",
+              "d2: 3rd Shot – Mechanics",
+              "d3: Serve – Ladder",
+            ].map((d) => {
+              const active = attachedDrill === d;
+              return (
+                <Pressable
+                  key={d}
+                  onPress={() => setAttachedDrill(active ? null : d)}
+                  style={[st.optBtn, active && st.optBtnActive]}
+                >
+                  <Text style={[st.optTxt, active && st.optTxtActive]}>
+                    {d}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Actions */}
+          <View style={{ flexDirection: "row", marginTop: 14 }}>
+            <Pressable
+              style={[st.primary, { flex: 1, justifyContent: "center" }]}
+              onPress={() => Alert.alert("Saved ✅", "Notes saved (mock).")}
+            >
+              <Text style={st.primaryTxt}>Send</Text>
+            </Pressable>
+            {/* <Pressable
+              style={[st.secondary, { flex: 1 }]}
+              onPress={() =>
+                Alert.alert("Sent 📩", "Notes sent to learner (mock).")
+              }
+            >
+              <Text style={st.secondaryTxt}>Save & Send</Text>
+            </Pressable> */}
+          </View>
         </View>
-
-        {/* Observations */}
-        <Text style={st.sectionTitle}>Observations</Text>
-        <TextInput
-          value={obs}
-          onChangeText={setObs}
-          placeholder="What went well? What to improve?"
-          placeholderTextColor="#9ca3af"
-          multiline
-          style={st.input}
-        />
-
-        {/* Action Items */}
-        <Text style={st.sectionTitle}>Action Items</Text>
-        <TextInput
-          value={actions}
-          onChangeText={setActions}
-          placeholder="Next steps for learner…"
-          placeholderTextColor="#9ca3af"
-          multiline
-          style={st.input}
-        />
-
-        {/* Attach Drill */}
-        <Text style={st.sectionTitle}>Attach Drill</Text>
-        <View style={{ flexDirection: "row" }}>
-          {[
-            "d1: Dink – Control",
-            "d2: 3rd Shot – Mechanics",
-            "d3: Serve – Ladder",
-          ].map((d) => {
-            const active = attachedDrill === d;
-            return (
-              <Pressable
-                key={d}
-                onPress={() => setAttachedDrill(active ? null : d)}
-                style={[st.optBtn, active && st.optBtnActive]}
-              >
-                <Text style={[st.optTxt, active && st.optTxtActive]}>{d}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Actions */}
-        <View style={{ flexDirection: "row", marginTop: 14 }}>
-          <Pressable
-            style={[st.primary, { flex: 1, justifyContent: "center" }]}
-            onPress={() => Alert.alert("Saved ✅", "Notes saved (mock).")}
-          >
-            <Text style={st.primaryTxt}>Save</Text>
-          </Pressable>
-          <Pressable
-            style={[st.secondary, { flex: 1 }]}
-            onPress={() =>
-              Alert.alert("Sent 📩", "Notes sent to learner (mock).")
-            }
-          >
-            <Text style={st.secondaryTxt}>Save & Send</Text>
-          </Pressable>
-        </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

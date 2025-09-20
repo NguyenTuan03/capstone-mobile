@@ -1,20 +1,20 @@
-import React, { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
 import {
+  Alert,
+  FlatList,
+  Image,
+  Platform,
+  Pressable,
   SafeAreaView,
-  View,
+  StyleSheet,
   Text,
   TextInput,
-  FlatList,
-  Pressable,
-  Image,
-  StyleSheet,
-  Platform,
-  Alert,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** ------- Types & Mock ------- */

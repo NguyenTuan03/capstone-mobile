@@ -13,6 +13,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** -------- Mock data (đổi sang API/Context sau) -------- */
 export type Student = {
@@ -76,8 +77,17 @@ export default function StudentsList() {
     });
   }, [q, level]);
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom + 50,
+      }}
+    >
       <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
         <Text style={st.h1}>Students</Text>
 

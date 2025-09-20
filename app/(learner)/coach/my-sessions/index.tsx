@@ -1,7 +1,7 @@
 import { useBookings } from "@/modules/learner/context/bookingContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -55,7 +55,29 @@ export default function MySessions() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>My Sessions</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            style={{
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: "rgba(107, 114, 128, 0.1)",
+            }}
+          >
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
+          </Pressable>
+          <View style={{ flex: 1 }} />
+          <Text style={{ fontWeight: "900", color: "#111827", fontSize: 18 }}>
+            My Sessions
+          </Text>
+          <View style={{ width: 36 }} />
+        </View>
         <Text style={styles.subtitle}>
           {sessions.length} session{sessions.length !== 1 ? "s" : ""} booked
         </Text>

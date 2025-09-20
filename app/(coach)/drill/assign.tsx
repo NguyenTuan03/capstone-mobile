@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Image,
-  FlatList,
-  TextInput,
-  Alert,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
@@ -80,7 +80,7 @@ export default function AssignDrill() {
         flex: 1,
         backgroundColor: "#fff",
         paddingTop: inset.top,
-        paddingBottom: inset.bottom,
+        paddingBottom: inset.bottom + 100,
       }}
     >
       {/* Header */}
@@ -140,7 +140,13 @@ export default function AssignDrill() {
       </View>
 
       {/* Options */}
-      <View style={{ paddingHorizontal: 16, marginTop: 6 }}>
+      <View
+        style={{
+          paddingHorizontal: 16,
+          marginTop: 6,
+          paddingBottom: 120,
+        }}
+      >
         <Text style={st.sectionTitle}>Frequency</Text>
         <View style={{ flexDirection: "row" }}>
           {(["once", "daily", "weekly"] as const).map((f) => (
@@ -186,7 +192,7 @@ export default function AssignDrill() {
       </View>
 
       {/* Actions */}
-      <View style={{ flexDirection: "row", padding: 16 }}>
+      <View style={{ flexDirection: "row", padding: 16, paddingBottom: 120 }}>
         <Pressable
           style={[st.primary, { flex: 1, justifyContent: "center" }]}
           onPress={onSave}

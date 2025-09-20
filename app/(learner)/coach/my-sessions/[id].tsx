@@ -1,6 +1,7 @@
-import { SafeAreaView, View, Text, Pressable } from "react-native";
 import { useBookings } from "@/modules/learner/context/bookingContext";
-import { useLocalSearchParams, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { Pressable, SafeAreaView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SessionDetail() {
@@ -29,7 +30,32 @@ export default function SessionDetail() {
         paddingTop: insets.top,
       }}
     >
-      <Text style={{ fontSize: 22, fontWeight: "800" }}>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          style={{
+            padding: 8,
+            borderRadius: 8,
+            backgroundColor: "rgba(107, 114, 128, 0.1)",
+          }}
+        >
+          <Ionicons name="chevron-back" size={20} color="#6b7280" />
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <Text style={{ fontWeight: "900", color: "#111827", fontSize: 18 }}>
+          Session Details
+        </Text>
+        <View style={{ width: 36 }} />
+      </View>
+
+      <Text style={{ fontSize: 22, fontWeight: "800", marginBottom: 8 }}>
         Session with {s.coachName}
       </Text>
       <Text style={{ color: "#6b7280", marginTop: 6 }}>

@@ -1,16 +1,17 @@
-import React, { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import {
+  Alert,
+  Image,
+  Pressable,
   SafeAreaView,
-  View,
+  StyleSheet,
   Text,
   TextInput,
-  Image,
-  StyleSheet,
-  Pressable,
-  Alert,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const DB = {
   d1: {
@@ -64,8 +65,9 @@ export default function DrillDetail() {
   const meta = useMemo(
     () =>
       `${data?.skill} · ${data?.level} · ${data?.duration}m · INT ${data?.intensity}/5`,
-    [id],
+    [data?.skill, data?.level, data?.duration, data?.intensity],
   );
+  const insets = useSafeAreaInsets();
 
   if (!data) {
     return (
@@ -83,7 +85,14 @@ export default function DrillDetail() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom + 100,
+      }}
+    >
       <View
         style={{
           paddingHorizontal: 16,
