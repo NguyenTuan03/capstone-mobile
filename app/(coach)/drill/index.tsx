@@ -15,6 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** ------- Types & Mock ------- */
 type Level = "Beginner" | "Intermediate" | "Advanced";
@@ -90,6 +91,7 @@ const DRILLS: Drill[] = [
 
 /** ------- Screen ------- */
 export default function DrillsScreen() {
+  const inset = useSafeAreaInsets();
   const [q, setQ] = useState("");
   const [skill, setSkill] = useState<Drill["skill"] | "All">("All");
   const [level, setLevel] = useState<Level | null>(null);
@@ -107,7 +109,14 @@ export default function DrillsScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: inset.top,
+        paddingBottom: inset.bottom + 50,
+      }}
+    >
       <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
         <Text style={st.h1}>Drills & Assignments</Text>
 

@@ -1,7 +1,7 @@
 import React from "react";
 import MenuList, { MenuItem } from "@/components/common/AppMenu";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native";
+import { SafeAreaView, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Href, router } from "expo-router";
 
@@ -70,7 +70,9 @@ export default function MenuScreen() {
         paddingTop: insets.top,
       }}
     >
-      <MenuList title="MENU" items={items} />
+      <ScrollView>
+        <MenuList title="MENU" items={items} />
+      </ScrollView>
     </SafeAreaView>
   );
 }

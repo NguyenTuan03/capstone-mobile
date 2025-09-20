@@ -13,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Level = "Beginner" | "Intermediate" | "Advanced";
 type Student = { id: string; name: string; avatar: string };
@@ -24,6 +25,7 @@ const STUDENTS: Student[] = [
 ];
 
 export default function AssignDrill() {
+  const inset = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     drillId?: string;
     title?: string;
@@ -73,7 +75,14 @@ export default function AssignDrill() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: inset.top,
+        paddingBottom: inset.bottom,
+      }}
+    >
       {/* Header */}
       <View
         style={{

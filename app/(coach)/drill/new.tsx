@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SKILLS = ["Dink", "Serve", "Return", "3rd Shot"] as const;
 type Level = "Beginner" | "Intermediate" | "Advanced";
@@ -19,7 +20,7 @@ type Level = "Beginner" | "Intermediate" | "Advanced";
 export default function NewDrill() {
   // optional prefill từ params (vd: chọn từ student profile theo skill)
   const { skill: preSkill } = useLocalSearchParams<{ skill?: string }>();
-
+  const inset = useSafeAreaInsets();
   const [title, setTitle] = useState("");
   const [skill, setSkill] = useState<string>(
     preSkill && SKILLS.includes(preSkill as any) ? (preSkill as any) : "Dink",
@@ -57,7 +58,14 @@ export default function NewDrill() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: inset.top,
+        paddingBottom: inset.bottom,
+      }}
+    >
       {/* Header */}
       <View
         style={{

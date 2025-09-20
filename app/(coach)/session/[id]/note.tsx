@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** mock session */
 const SESS = {
@@ -43,7 +44,7 @@ const SKILLS = ["Serve", "Return", "Dink", "3rd Shot", "Position"] as const;
 export default function SessionNotes() {
   const { id } = useLocalSearchParams<{ id: keyof typeof SESS }>();
   const s = id ? SESS[id] : undefined;
-
+  const inset = useSafeAreaInsets();
   // ratings 1..5
   const [rating, setRating] = useState<Record<string, number>>({
     Serve: 3,
@@ -73,7 +74,14 @@ export default function SessionNotes() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: inset.top,
+        paddingBottom: inset.bottom,
+      }}
+    >
       {/* header */}
       <View
         style={{

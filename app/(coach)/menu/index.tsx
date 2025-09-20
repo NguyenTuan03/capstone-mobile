@@ -7,16 +7,18 @@ import {
   StyleSheet,
   Switch,
   Image,
+  ScrollView,
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Href, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CoachMenu() {
   const [pushOn, setPushOn] = useState(true);
   const [emailOn, setEmailOn] = useState(true);
-  const verified = false; // mock
+  const verified = false;
   const insets = useSafeAreaInsets();
+
   return (
     <SafeAreaView
       style={{
@@ -26,154 +28,209 @@ export default function CoachMenu() {
         paddingBottom: insets.bottom + 50,
       }}
     >
-      {/* Header */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-        <Text style={st.h1}>Menu</Text>
-      </View>
-
-      {/* Profile card */}
-      <View style={st.cardHero}>
-        <Image
-          source={{ uri: "https://i.pravatar.cc/150?img=23" }}
-          style={st.avatar}
-        />
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <Text style={st.name}>David Nguyen</Text>
-          <Text style={st.meta}>Pickleball Coach · HCMC</Text>
-          <View style={{ flexDirection: "row", marginTop: 6 }}>
-            <Badge
-              color={verified ? "#16a34a" : "#f59e0b"}
-              icon={verified ? "shield-checkmark" : "shield-outline"}
-              text={verified ? "Verified" : "Verification pending"}
-            />
-            <Badge color="#111827" icon="star-outline" text="Top Rated" />
-          </View>
+      <ScrollView>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
+          <Text style={st.h1}>Menu</Text>
         </View>
-        <Pressable
-          onPress={() => router.push("/(coach)/menu/profile" as any)}
-          style={st.primary}
-        >
-          <Ionicons name="create-outline" size={16} color="#fff" />
-          <Text style={st.primaryTxt}>Edit</Text>
-        </Pressable>
-      </View>
 
-      {/* Sections */}
-      <Section title="Profile & Setup">
-        <Row
-          icon={
-            <Ionicons name="person-circle-outline" size={18} color="#111827" />
-          }
-          title="Professional Profile"
-          subtitle="Headline, bio, experience, media"
-          onPress={() => router.push("/(coach)/menu/profile" as any)}
-        />
-        <Row
-          icon={
-            <Ionicons
-              name="shield-checkmark-outline"
-              size={18}
-              color="#111827"
-            />
-          }
-          title="Credential Verification"
-          subtitle="ID & Certifications"
-          onPress={() => router.push("/(coach)/menu/verify" as any)}
-          right={
-            <Pill
-              text={verified ? "Verified" : "Start"}
-              tone={verified ? "ok" : "warn"}
-            />
-          }
-        />
-        <Row
-          icon={
-            <MaterialIcons name="sports-tennis" size={18} color="#111827" />
-          }
-          title="Teaching Specialty & Methodology"
-          subtitle="Areas of focus, coaching style"
-          onPress={() => router.push("/(coach)/menu/teaching" as any)}
-        />
-        <Row
-          icon={<Ionicons name="pricetag-outline" size={18} color="#111827" />}
-          title="Rates & Packages"
-          subtitle="Hourly, clinic, group"
-          onPress={() => router.push("/(coach)/menu/rates" as any)}
-        />
-      </Section>
+        {/* Profile card */}
+        <View style={st.cardHero}>
+          <Image
+            source={{ uri: "https://i.pravatar.cc/150?img=23" }}
+            style={st.avatar}
+          />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={st.name}>David Nguyen</Text>
+            <Text style={st.meta}>Pickleball Coach · HCMC</Text>
+            <View style={{ flexDirection: "row", marginTop: 6 }}>
+              <Badge
+                color={verified ? "#16a34a" : "#f59e0b"}
+                icon={verified ? "shield-checkmark" : "shield-outline"}
+                text={verified ? "Verified" : "Verification pending"}
+              />
+              <Badge color="#111827" icon="star-outline" text="Top Rated" />
+            </View>
+          </View>
+          <Pressable
+            onPress={() => router.push("/(coach)/menu/profile" as any)}
+            style={st.primary}
+          >
+            <Ionicons name="create-outline" size={16} color="#fff" />
+            <Text style={st.primaryTxt}>Edit</Text>
+          </Pressable>
+        </View>
 
-      <Section title="Operations">
-        <Row
-          icon={<Ionicons name="cash-outline" size={18} color="#111827" />}
-          title="Payouts & Bank"
-          subtitle="Connect Stripe / Bank account"
-          onPress={() => router.push("/(coach)/menu/payouts" as any)}
-        />
-        <Row
-          icon={<Ionicons name="videocam-outline" size={18} color="#111827" />}
-          title="Integrations"
-          subtitle="Video conferencing provider"
-          onPress={() => router.push("/(coach)/menu/integrations" as any)}
-        />
-        <Row
-          icon={
-            <Ionicons name="notifications-outline" size={18} color="#111827" />
-          }
-          title="Notifications"
-          subtitle="Booking, reminders, payouts"
-          onPress={() => router.push("/(coach)/menu/notifications" as any)}
-        />
-      </Section>
+        {/* ===== Coaching Tools (NEW) ===== */}
+        <Section title="Coaching Tools">
+          <Row
+            icon={
+              <Ionicons name="calendar-outline" size={18} color="#111827" />
+            }
+            title="Sessions & Notes"
+            subtitle="Lịch dạy, vào phiên, ghi chú"
+            onPress={() => router.push("/(coach)/calendar/index" as any)}
+          />
+          <Row
+            icon={<Ionicons name="barbell-outline" size={18} color="#111827" />}
+            title="Drills & Assignments"
+            subtitle="Thư viện drill, giao bài"
+            onPress={() => router.push("/(coach)/drill" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons name="add-circle-outline" size={18} color="#111827" />
+            }
+            title="Create New Drill"
+            subtitle="Tạo template mới"
+            onPress={() => router.push("/(coach)/drill/new" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons name="clipboard-outline" size={18} color="#111827" />
+            }
+            title="Assign Drill"
+            subtitle="Giao bài cho học viên"
+            onPress={() => router.push("/(coach)/drill/assign" as any)}
+          />
+        </Section>
 
-      <Section title="Account">
-        <Row
-          icon={
-            <Ionicons name="lock-closed-outline" size={18} color="#111827" />
-          }
-          title="Security"
-          subtitle="Password, 2FA"
-          onPress={() => router.push("/(coach)/menu/security" as any)}
-        />
-        <Row
-          icon={
-            <Ionicons name="help-circle-outline" size={18} color="#111827" />
-          }
-          title="Support"
-          subtitle="Feedback / Contact us"
-          onPress={() => router.push("/(coach)/menu/support" as any)}
-        />
-        <Row
-          icon={
-            <Ionicons
-              name="information-circle-outline"
-              size={18}
-              color="#111827"
-            />
-          }
-          title="About"
-          subtitle="Terms · Privacy · App version"
-          onPress={() => router.push("/(coach)/menu/about" as any)}
-        />
-      </Section>
+        {/* Profile & Setup */}
+        <Section title="Profile & Setup">
+          <Row
+            icon={
+              <Ionicons
+                name="person-circle-outline"
+                size={18}
+                color="#111827"
+              />
+            }
+            title="Professional Profile"
+            subtitle="Headline, bio, experience, media"
+            onPress={() => router.push("/(coach)/menu/profile" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={18}
+                color="#111827"
+              />
+            }
+            title="Credential Verification"
+            subtitle="ID & Certifications"
+            onPress={() => router.push("/(coach)/menu/verify" as any)}
+            right={
+              <Pill
+                text={verified ? "Verified" : "Start"}
+                tone={verified ? "ok" : "warn"}
+              />
+            }
+          />
+          <Row
+            icon={
+              <MaterialIcons name="sports-tennis" size={18} color="#111827" />
+            }
+            title="Teaching Specialty & Methodology"
+            subtitle="Areas of focus, coaching style"
+            onPress={() => router.push("/(coach)/menu/teaching" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons name="pricetag-outline" size={18} color="#111827" />
+            }
+            title="Rates & Packages"
+            subtitle="Hourly, clinic, group"
+            onPress={() => router.push("/(coach)/menu/rates" as any)}
+          />
+        </Section>
 
-      {/* Quick toggles at bottom */}
-      <View style={st.toggleWrap}>
-        <ToggleRow
-          label="Push Notifications"
-          value={pushOn}
-          onChange={setPushOn}
+        {/* Operations */}
+        <Section title="Operations">
+          <Row
+            icon={<Ionicons name="cash-outline" size={18} color="#111827" />}
+            title="Payouts & Bank"
+            subtitle="Connect Stripe / Bank account"
+            onPress={() => router.push("/(coach)/menu/payouts" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons name="videocam-outline" size={18} color="#111827" />
+            }
+            title="Integrations"
+            subtitle="Video conferencing provider"
+            onPress={() => router.push("/(coach)/menu/integrations" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons
+                name="notifications-outline"
+                size={18}
+                color="#111827"
+              />
+            }
+            title="Notifications"
+            subtitle="Booking, reminders, payouts"
+            onPress={() => router.push("/(coach)/menu/notifications" as any)}
+          />
+        </Section>
+
+        {/* Account */}
+        <Section title="Account">
+          <Row
+            icon={
+              <Ionicons name="lock-closed-outline" size={18} color="#111827" />
+            }
+            title="Security"
+            subtitle="Password, 2FA"
+            onPress={() => router.push("/(coach)/menu/security" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons name="help-circle-outline" size={18} color="#111827" />
+            }
+            title="Support"
+            subtitle="Feedback / Contact us"
+            onPress={() => router.push("/(coach)/menu/support" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons
+                name="information-circle-outline"
+                size={18}
+                color="#111827"
+              />
+            }
+            title="About"
+            subtitle="Terms · Privacy · App version"
+            onPress={() => router.push("/(coach)/menu/about" as any)}
+          />
+        </Section>
+
+        {/* Toggles */}
+        <View style={st.toggleWrap}>
+          <ToggleRow
+            label="Push Notifications"
+            value={pushOn}
+            onChange={setPushOn}
+          />
+          <ToggleRow
+            label="Email Notifications"
+            value={emailOn}
+            onChange={setEmailOn}
+          />
+        </View>
+        <Row
+          icon={<Ionicons name="log-out-outline" size={18} color="#111827" />}
+          title="Logout"
+          onPress={() => router.push("/(auth)" as Href)}
         />
-        <ToggleRow
-          label="Email Notifications"
-          value={emailOn}
-          onChange={setEmailOn}
-        />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-/* ============ Reusable ============ */
+/* ===== Reusable components & styles (giữ nguyên như bạn có) ===== */
 function Section({
   title,
   children,
@@ -251,10 +308,8 @@ function Pill({ text, tone }: { text: string; tone?: "ok" | "warn" }) {
   return <Text style={{ color: c, fontWeight: "900" }}>{text}</Text>;
 }
 
-/* ============ Styles ============ */
 const st: any = StyleSheet.create({
   h1: { fontSize: 22, fontWeight: "900", color: "#111827" },
-
   cardHero: {
     marginTop: 10,
     marginHorizontal: 16,
@@ -283,7 +338,6 @@ const st: any = StyleSheet.create({
     marginRight: 6,
   },
   badgeTxt: { fontSize: 12, fontWeight: "800", marginLeft: 6 },
-
   primary: {
     backgroundColor: "#111827",
     borderRadius: 10,
@@ -293,7 +347,6 @@ const st: any = StyleSheet.create({
     alignItems: "center",
   },
   primaryTxt: { color: "#fff", fontWeight: "900", marginLeft: 6 },
-
   secTitle: {
     fontSize: 14,
     fontWeight: "900",
@@ -307,7 +360,6 @@ const st: any = StyleSheet.create({
     borderColor: "#e5e7eb",
     backgroundColor: "#fff",
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -327,6 +379,5 @@ const st: any = StyleSheet.create({
   },
   rowTitle: { fontWeight: "900", color: "#111827" },
   rowSub: { color: "#6b7280", marginTop: 2 },
-
   toggleWrap: { paddingHorizontal: 16, marginTop: 12, marginBottom: 24 },
 });

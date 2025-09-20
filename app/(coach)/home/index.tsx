@@ -50,7 +50,7 @@ const requests = [
   },
 ];
 const earnings7d = [80, 0, 120, 220, 60, 300, 160]; // mini chart
-
+const nextSessionId = upcoming[0]?.id;
 export default function CoachHome() {
   const hi = useMemo(() => helloByHour(), []);
   const tabBarHeight = useBottomTabBarHeight();
@@ -123,12 +123,19 @@ export default function CoachHome() {
             <QA
               icon="clipboard-outline"
               label="Add Notes"
-              onPress={() => router.push("/(coach)/students/index" as any)}
+              onPress={() =>
+                nextSessionId
+                  ? router.push({
+                      pathname: "/(coach)/session/[id]/note",
+                      params: { id: nextSessionId },
+                    })
+                  : router.push("/(coach)/calendar/index" as any)
+              }
             />
             <QA
               icon="barbell-outline"
               label="Assign Drill"
-              onPress={() => router.push("/(coach)/students/index" as any)}
+              onPress={() => router.push("/(coach)/drill" as any)}
             />
             <QA
               icon="calendar-outline"
@@ -137,7 +144,23 @@ export default function CoachHome() {
             />
           </View>
         </Section>
-
+        <Section
+          title="Drills & Assignments"
+          caption="Tạo drill, giao bài cho học viên"
+        >
+          <Card onPress={() => router.push("/(coach)/drill" as any)}>
+            <View style={styles.cardRow}>
+              <Ionicons name="barbell-outline" size={18} color="#111827" />
+              <View style={{ marginLeft: 10, flex: 1 }}>
+                <Text style={styles.cardTitle}>Open Drill Library</Text>
+                <Text style={styles.cardSub}>
+                  Create, edit, and assign drills
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
+            </View>
+          </Card>
+        </Section>
         {/* -------- UPCOMING -------- */}
         <Section
           title="Upcoming Sessions"
@@ -152,8 +175,8 @@ export default function CoachHome() {
               <Card
                 onPress={() =>
                   router.push({
-                    pathname: "/(coach)/calendar/index" as any,
-                    params: { focus: item.id },
+                    pathname: "/(coach)/session/[id]/note",
+                    params: { id: item.id },
                   })
                 }
               >
@@ -175,9 +198,9 @@ export default function CoachHome() {
                   <Pressable
                     onPress={() =>
                       router.push({
-                        // pathname: "/(coach)/call/temp/index",
-                        // params: { sessionId: item.id },
-                      } as Href)
+                        pathname: "/(coach)/session/[id]/note",
+                        params: { id: item.id },
+                      })
                     }
                     style={styles.joinBtn}
                   >
