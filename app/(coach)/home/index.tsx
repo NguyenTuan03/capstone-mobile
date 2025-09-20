@@ -1,21 +1,21 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { LinearGradient } from "expo-linear-gradient";
+import { Href, router } from "expo-router";
 import React, { useMemo } from "react";
 import {
+  FlatList,
+  ImageBackground,
+  Platform,
+  Pressable,
   SafeAreaView,
-  View,
-  Text,
   ScrollView,
   StyleSheet,
-  Pressable,
-  FlatList,
-  Platform,
-  ImageBackground,
+  Text,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import Svg, { Rect } from "react-native-svg";
-import { Href, router } from "expo-router";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Rect } from "react-native-svg";
 
 /** --------- MOCK DATA (đổi sang API/Context sau) --------- */
 const coach = { name: "David Nguyen", avatarText: "DN" };
@@ -344,8 +344,8 @@ function MiniBar({ data }: { data: number[] }) {
         })}
       </Svg>
       <View style={styles.chartLegend}>
-        {["M", "T", "W", "T", "F", "S", "S"].map((d) => (
-          <Text key={d} style={styles.legendTxt}>
+        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+          <Text key={`${d}-${i}`} style={styles.legendTxt}>
             {d}
           </Text>
         ))}

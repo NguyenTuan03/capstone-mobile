@@ -1,9 +1,17 @@
 import { GradientItem, Segmented } from "@/modules/learner/roadmap";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Href, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 const ITEMS = ["Dink", "Serve", "Return", "3rd Shot"].map((label) => ({
   id: label,
   label,
@@ -19,6 +27,7 @@ export default function RoadmapScreen() {
         flex: 1,
         backgroundColor: "#fff",
         paddingTop: insets.top,
+        paddingBottom: insets.bottom + 50,
       }}
     >
       {/* Top title */}
@@ -30,9 +39,18 @@ export default function RoadmapScreen() {
         </View>
       </View>
 
-      {/* Section title */}
+      {/* Section title + Library CTA */}
       <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
-        <Text style={s.sectionTitle}>GAME ELEMENT BREAKDOWN</Text>
+        <View style={s.titleRow}>
+          <Text style={s.sectionTitle}>GAME ELEMENT BREAKDOWN</Text>
+          <Pressable
+            style={s.linkBtn}
+            onPress={() => router.push("/(learner)/roadmap/library")}
+          >
+            <Ionicons name="videocam-outline" size={14} color="#111827" />
+            <Text style={s.linkBtnTxt}>Library</Text>
+          </Pressable>
+        </View>
         <Text style={s.sub}>
           Your strengths and areas for improvement are listed below.{"\n"}
           Scores are updated as you receive feedback from your personal DUPR
@@ -85,6 +103,22 @@ export default function RoadmapScreen() {
 }
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  linkBtn: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  linkBtnTxt: { marginLeft: 6, fontWeight: "800", color: "#111827" },
   headerWrap: {
     paddingHorizontal: 20,
     paddingTop: 8,

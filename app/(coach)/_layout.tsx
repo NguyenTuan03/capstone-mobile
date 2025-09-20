@@ -1,7 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Platform } from "react-native";
-export default function LearnerTabs() {
+export default function CoachTabs() {
   return (
     <Tabs
       screenOptions={{
@@ -34,7 +34,7 @@ export default function LearnerTabs() {
       <Tabs.Screen
         name="home/index"
         options={{
-          title: "Dashboard",
+          title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -49,8 +49,8 @@ export default function LearnerTabs() {
         options={{
           title: "Calendar",
           tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons
-              name={focused ? "map" : "map"}
+            <Ionicons
+              name={focused ? "calendar" : "calendar-outline"}
               size={20}
               color={color}
             />
@@ -63,8 +63,8 @@ export default function LearnerTabs() {
           title: "Students",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "cloud-upload" : "cloud-upload-outline"}
-              size={22}
+              name={focused ? "people" : "people-outline"}
+              size={20}
               color={color}
             />
           ),
@@ -76,8 +76,8 @@ export default function LearnerTabs() {
           title: "Earnings",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "play-circle" : "play-circle-outline"}
-              size={22}
+              name={focused ? "cash" : "cash-outline"}
+              size={20}
               color={color}
             />
           ),
@@ -96,6 +96,8 @@ export default function LearnerTabs() {
           ),
         }}
       />
+      <Tabs.Screen name="drill" options={{ href: null }} />
+      <Tabs.Screen name="session" options={{ href: null }} />
     </Tabs>
   );
 }

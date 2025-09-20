@@ -1,18 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  Pressable,
-  StyleSheet,
   FlatList,
-  TextInput,
+  Image,
   Modal,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams, router } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path, Rect } from "react-native-svg";
 
 /** --- same mock DB (đổi sang API/Context sau) --- */
@@ -551,8 +551,8 @@ function Bars({ values }: { values: number[] }) {
           paddingHorizontal: 4,
         }}
       >
-        {["M", "T", "W", "T", "F", "S", "S"].map((d) => (
-          <Text key={d} style={{ color: "#6b7280", fontSize: 12 }}>
+        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+          <Text key={`${d}-${i}`} style={{ color: "#6b7280", fontSize: 12 }}>
             {d}
           </Text>
         ))}

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** ================== TYPES ================== */
 type Mode = "online" | "offline";
@@ -106,6 +108,7 @@ const BASE_SLOTS: Slot[] = [
 
 /** ================== SCREEN ================== */
 export default function CoachCalendar() {
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<"sessions" | "availability">("sessions");
   const [selected, setSelected] = useState<string>(todayOffset(0));
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
@@ -186,19 +189,56 @@ export default function CoachCalendar() {
     }
   };
 
-  const joinSession = (s: Session) => {
-    router.push({
-      // pathname: "/(coach)/call/temp/index",
-      // params: { sessionId: s.id },
-      pathname: "/(coach)/calendar",
-    });
+  const joinSession = async (s: Session) => {
+    if (s.meetingUrl) {
+      try {
+        await Linking.openURL(s.meetingUrl);
+      } catch {}
+    } else {
+      router.push({
+        pathname: "/(coach)/session/[id]/note",
+        params: { id: s.id },
+      });
+    }
+  };
+
+  const syncAllVisibleSessions = async () => {
+    if (!deviceCalId) {
+      Alert.alert("Permission", "Thiếu quyền Calendar.");
+      return;
+    }
+    try {
+      const list = sessions.filter(
+        (s) => s.status === "upcoming" || s.status === "pending",
+      );
+      const newMap: Record<string, string> = { ...eventIds };
+      for (const s of list) {
+        const evId = await upsertSessionEvent(deviceCalId, s, eventIds[s.id]);
+        newMap[s.id] = evId;
+      }
+      setEventIds(newMap);
+      Alert.alert("Synced", `Đã sync ${list.length} session lên lịch.`);
+    } catch (e: any) {
+      Alert.alert("Lỗi", e?.message ?? "Không thể sync");
+    }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
+    >
       {/* Header */}
       <View style={st.header}>
         <Text style={st.h1}>Calendar</Text>
+        <Pressable style={st.syncBtn} onPress={syncAllVisibleSessions}>
+          <Ionicons name="cloud-upload-outline" size={16} color="#111827" />
+          <Text style={st.syncTxt}>Sync All</Text>
+        </Pressable>
         <View style={st.tabs}>
           <Pressable
             onPress={() => setTab("sessions")}
@@ -341,7 +381,7 @@ export default function CoachCalendar() {
               <View style={st.weekRow}>
                 {WEEK.map((d, i) => (
                   <Pressable
-                    key={d}
+                    key={`${d}-${i}`}
                     style={[st.weekBtn, i === slotWeekday && st.weekBtnActive]}
                     onPress={() => setSlotWeekday(i)}
                   >
@@ -538,7 +578,11 @@ function Empty({ title, subtitle }: { title: string; subtitle?: string }) {
 }
 
 /** ================== expo-calendar helpers ================== */
-
+async function getAndroidCalendarSource() {
+  const cals = await ExpoCal.getCalendarsAsync(ExpoCal.EntityTypes.EVENT);
+  const local = cals.find((c: any) => c.source && c.source.name === "Local");
+  return local?.source ?? { isLocalAccount: true, name: "Local" };
+}
 async function ensureCalendar(): Promise<string> {
   const { status } = await ExpoCal.requestCalendarPermissionsAsync();
   if (status !== "granted") throw new Error("Calendar permission denied");
@@ -553,13 +597,18 @@ async function ensureCalendar(): Promise<string> {
     const def = await ExpoCal.getDefaultCalendarAsync();
     source = def?.source;
   }
+  // Android cần sourceId riêng
+  if (Platform.OS === "android") {
+    const androidSrc = await getAndroidCalendarSource();
+    source = androidSrc;
+  }
   const id = await ExpoCal.createCalendarAsync({
     title: "Coach App",
     color: "#111827",
     sourceId: Platform.OS === "ios" ? source?.id : undefined,
     source: Platform.OS === "ios" ? source : undefined,
     name: "Coach App",
-    ownerAccount: "personal",
+    ownerAccount: "Coach App",
     accessLevel: ExpoCal.CalendarAccessLevel.OWNER,
     entityType: ExpoCal.EntityTypes.EVENT,
   });
@@ -583,12 +632,17 @@ async function upsertSessionEvent(
         ? `Online session. Join: ${s.meetingUrl ?? ""}`
         : "Offline session",
     url: s.meetingUrl ?? undefined,
+    alarms: [{ relativeOffset: -10 }],
   };
   if (existingEventId) {
     await ExpoCal.updateEventAsync(existingEventId, details as any);
     return existingEventId;
   }
-  return await ExpoCal.createEventAsync(calendarId, details as any);
+  const id = await ExpoCal.createEventAsync(calendarId, details as any);
+  try {
+    await ExpoCal.openEventInCalendar(id);
+  } catch {}
+  return id;
 }
 
 async function publishWeeklyAvailability(
@@ -696,6 +750,14 @@ function roundToQuarter(d: Date) {
 const st: any = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 10 },
   h1: { fontSize: 22, fontWeight: "900", color: "#111827" },
+  syncBtn: {
+    position: "absolute",
+    right: 16,
+    top: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  syncTxt: { marginLeft: 6, fontWeight: "800", color: "#111827" },
   tabs: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
