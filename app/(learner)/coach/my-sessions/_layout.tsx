@@ -9,6 +9,14 @@ export default function MySessionsLayout() {
         options={{ title: "Session Details", presentation: "modal" }}
       />
       <Stack.Screen name="ListSession" options={{ title: "Lessons" }} />
+      <Stack.Screen
+        name="feedback"
+        options={{
+          title: "Feedback",
+          presentation: "modal",
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

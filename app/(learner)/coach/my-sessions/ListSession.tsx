@@ -330,7 +330,7 @@ export default function ListSession() {
         contentContainerStyle={{
           padding: 16,
           paddingTop: 0,
-          paddingBottom: 24,
+          paddingBottom: session?.status === "completed" ? 100 : 24, // Space for feedback button
         }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={
@@ -341,6 +341,62 @@ export default function ListSession() {
           </View>
         }
       />
+
+      {/* Feedback Button - Show only for completed sessions */}
+      {session?.status === "completed" && (
+        <View style={st.feedbackContainer}>
+          <Pressable
+            onPress={() =>
+              router.push(
+                `/(learner)/coach/my-sessions/feedback?id=${session.id}` as any,
+              )
+            }
+            style={st.feedbackButton}
+          >
+            <Ionicons name="star-outline" size={20} color="#fff" />
+            <Text style={st.feedbackButtonText}>Write Feedback</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Completion Action - Show for offline sessions that are checked out */}
+      {session?.mode === "offline" &&
+        checkInAt &&
+        checkOutAt &&
+        session?.status !== "completed" && (
+          <View style={st.feedbackContainer}>
+            <Pressable
+              onPress={() => {
+                // Mark session as completed and show feedback
+                Alert.alert(
+                  "Session Completed!",
+                  "Great job! Would you like to leave feedback for your coach?",
+                  [
+                    {
+                      text: "Later",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Write Feedback",
+                      onPress: () =>
+                        router.push(
+                          `/(learner)/coach/my-sessions/feedback?id=${session.id}` as any,
+                        ),
+                    },
+                  ],
+                );
+              }}
+              style={[st.feedbackButton, { backgroundColor: "#059669" }]}
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color="#fff"
+              />
+              <Text style={st.feedbackButtonText}>Complete Session</Text>
+            </Pressable>
+          </View>
+        )}
     </SafeAreaView>
   );
 }
@@ -386,6 +442,40 @@ const st = StyleSheet.create({
     color: "#6b7280",
     marginTop: 4,
     textAlign: "center",
+  },
+
+  // Feedback Button
+  feedbackContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingBottom: 32,
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  feedbackButton: {
+    backgroundColor: "#111827",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  feedbackButtonText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 16,
   },
 });
 const att = StyleSheet.create({

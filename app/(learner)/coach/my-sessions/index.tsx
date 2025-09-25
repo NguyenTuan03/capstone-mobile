@@ -184,6 +184,26 @@ export default function MySessions() {
             <View style={styles.cardFooter}>
               <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
             </View>
+            {item.status === "completed" && (
+              <Pressable
+                onPress={() =>
+                  router.push(
+                    `/(learner)/coach/my-sessions/feedback?id=${item.id}` as any,
+                  )
+                }
+                style={{
+                  marginTop: 8,
+                  backgroundColor: "#111827",
+                  borderRadius: 10,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "800" }}>
+                  Write Feedback
+                </Text>
+              </Pressable>
+            )}
           </Pressable>
         )}
         ListEmptyComponent={
