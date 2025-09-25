@@ -8,13 +8,14 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Rect } from "react-native-svg";
-
 /** --- same mock DB (đổi sang API/Context sau) --- */
 type Student = {
   id: string;
@@ -98,6 +99,7 @@ export default function StudentDetail() {
   const [noteText, setNoteText] = useState("");
 
   const chartData = useMemo(() => [2.9, 3.0, 3.1, 3.2, 3.3], []); // giả lập DUPR history
+  const insets = useSafeAreaInsets();
 
   if (!s) {
     return (
@@ -119,337 +121,353 @@ export default function StudentDetail() {
     : "No upcoming session";
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingTop: 10,
-          paddingBottom: 8,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: "#fff",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
+    >
+      <ScrollView>
+        {/* Header */}
+        <View
           style={{
-            padding: 8,
-            borderRadius: 8,
-            backgroundColor: "rgba(107, 114, 128, 0.1)",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            paddingTop: 10,
+            paddingBottom: 8,
           }}
         >
-          <Ionicons name="chevron-back" size={20} color="#6b7280" />
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Text style={{ fontWeight: "900", color: "#111827", fontSize: 16 }}>
-          Student Profile
-        </Text>
-        <View style={{ width: 36 }} />
-      </View>
-
-      {/* Hero */}
-      <LinearGradient
-        colors={["#111827", "#0f172a"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={st.hero}
-      >
-        <Image source={{ uri: s.avatar }} style={st.avatar} />
-        <View style={{ marginLeft: 12, flex: 1 }}>
-          <Text style={st.name}>{s.name}</Text>
-          <Text style={st.meta}>{nextTxt}</Text>
-          <View style={{ flexDirection: "row", marginTop: 6 }}>
-            <View style={st.duprPill}>
-              <Ionicons name="podium-outline" size={12} color="#111827" />
-              <Text style={st.duprTxt}> {s.dupr.toFixed(1)}</Text>
-            </View>
-            {s.tags.map((t) => (
-              <View key={t} style={st.tag}>
-                <Text style={st.tagTxt}>{t}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <Pressable onPress={() => router.push("/calendar")} style={st.primary}>
-          <Ionicons name="calendar-outline" size={16} color="#111827" />
-          <Text style={st.primaryTxt}>Schedule</Text>
-        </Pressable>
-      </LinearGradient>
-
-      {/* Segmented */}
-      <View style={st.tabs}>
-        {(["overview", "progress", "notes"] as const).map((t) => (
           <Pressable
-            key={t}
-            onPress={() => setTab(t)}
-            style={[st.tab, tab === t && st.tabActive]}
+            onPress={() => router.back()}
+            style={{
+              padding: 8,
+              borderRadius: 8,
+              backgroundColor: "rgba(107, 114, 128, 0.1)",
+            }}
           >
-            <Text style={[st.tabTxt, tab === t && st.tabTxtActive]}>
-              {t[0].toUpperCase() + t.slice(1)}
-            </Text>
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
           </Pressable>
-        ))}
-      </View>
+          <View style={{ flex: 1 }} />
+          <Text style={{ fontWeight: "900", color: "#111827", fontSize: 16 }}>
+            Student Profile
+          </Text>
+          <View style={{ width: 36 }} />
+        </View>
 
-      {/* Body */}
-      {tab === "overview" && (
-        <FlatList
-          data={[
-            { key: "qa" },
-            { key: "prog" },
-            { key: "assign" },
-            { key: "notes" },
-          ]}
-          renderItem={({ item }) => {
-            switch (item.key) {
-              case "qa":
-                return (
-                  <Section title="Quick Actions">
-                    <View style={st.qaRow}>
-                      <QA
-                        icon="videocam-outline"
-                        label="Start Call"
-                        onPress={() =>
-                          router.push({
-                            pathname: "/(coach)/call/[sessionId]" as any,
-                            params: { sessionId: s.id },
-                          })
-                        }
-                      />
-                      <QA
-                        icon="barbell-outline"
-                        label="Assign Drill"
-                        onPress={() =>
-                          setAssigns((prev) => [
-                            {
-                              id: `a${Date.now()}`,
-                              title: "Shadow swing 10'",
-                              status: "open",
-                            },
-                            ...prev,
-                          ])
-                        }
-                      />
-                      <QA
-                        icon="clipboard-outline"
-                        label="Add Note"
-                        onPress={() => setShowNote(true)}
-                      />
-                    </View>
-                  </Section>
-                );
-              case "prog":
-                return (
-                  <Section
-                    title="Skill Progress"
-                    caption="DUPR trend (last 5 checkpoints)"
-                  >
-                    <Card>
-                      <Sparkline values={chartData} />
-                    </Card>
-                  </Section>
-                );
-              case "assign":
-                return (
-                  <Section title="Assignments">
-                    <FlatList
-                      data={assigns}
-                      keyExtractor={(x) => x.id}
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: 8 }} />
-                      )}
-                      renderItem={({ item }) => (
-                        <Card>
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                            }}
-                          >
+        {/* Hero */}
+        <LinearGradient
+          colors={["#111827", "#0f172a"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={st.hero}
+        >
+          <Image source={{ uri: s.avatar }} style={st.avatar} />
+          <View style={{ marginLeft: 12, flex: 1 }}>
+            <Text style={st.name}>{s.name}</Text>
+            <Text style={st.meta}>{nextTxt}</Text>
+            <View style={{ flexDirection: "row", marginTop: 6 }}>
+              <View style={st.duprPill}>
+                <Ionicons name="podium-outline" size={12} color="#111827" />
+                <Text style={st.duprTxt}> {s.dupr.toFixed(1)}</Text>
+              </View>
+              {s.tags.map((t) => (
+                <View key={t} style={st.tag}>
+                  <Text style={st.tagTxt}>{t}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          <Pressable
+            onPress={() => router.push("/calendar")}
+            style={st.primary}
+          >
+            <Ionicons name="calendar-outline" size={16} color="#111827" />
+            <Text style={st.primaryTxt}>Schedule</Text>
+          </Pressable>
+        </LinearGradient>
+
+        {/* Segmented */}
+        <View style={st.tabs}>
+          {(["overview", "progress", "notes"] as const).map((t) => (
+            <Pressable
+              key={t}
+              onPress={() => setTab(t)}
+              style={[st.tab, tab === t && st.tabActive]}
+            >
+              <Text style={[st.tabTxt, tab === t && st.tabTxtActive]}>
+                {t[0].toUpperCase() + t.slice(1)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Body */}
+        {tab === "overview" && (
+          <FlatList
+            data={[
+              { key: "qa" },
+              { key: "prog" },
+              { key: "assign" },
+              { key: "notes" },
+            ]}
+            renderItem={({ item }) => {
+              switch (item.key) {
+                case "qa":
+                  return (
+                    <Section title="Quick Actions">
+                      <View style={st.qaRow}>
+                        <QA
+                          icon="videocam-outline"
+                          label="Start Call"
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(coach)/call/[sessionId]" as any,
+                              params: { sessionId: s.id },
+                            })
+                          }
+                        />
+                        <QA
+                          icon="barbell-outline"
+                          label="Assign Drill"
+                          onPress={() =>
+                            setAssigns((prev) => [
+                              {
+                                id: `a${Date.now()}`,
+                                title: "Shadow swing 10'",
+                                status: "open",
+                              },
+                              ...prev,
+                            ])
+                          }
+                        />
+                        <QA
+                          icon="clipboard-outline"
+                          label="Add Note"
+                          onPress={() => setShowNote(true)}
+                        />
+                      </View>
+                    </Section>
+                  );
+                case "prog":
+                  return (
+                    <Section
+                      title="Skill Progress"
+                      caption="DUPR trend (last 5 checkpoints)"
+                    >
+                      <Card>
+                        <Sparkline values={chartData} />
+                      </Card>
+                    </Section>
+                  );
+                case "assign":
+                  return (
+                    <Section title="Assignments">
+                      <FlatList
+                        data={assigns}
+                        keyExtractor={(x) => x.id}
+                        ItemSeparatorComponent={() => (
+                          <View style={{ height: 8 }} />
+                        )}
+                        renderItem={({ item }) => (
+                          <Card>
                             <View
-                              style={[
-                                st.dot,
-                                {
-                                  backgroundColor:
-                                    item.status === "done"
-                                      ? "#22c55e"
-                                      : "#f59e0b",
-                                },
-                              ]}
-                            />
-                            <Text
                               style={{
-                                fontWeight: "900",
-                                color: "#111827",
-                                flex: 1,
-                                marginLeft: 8,
+                                flexDirection: "row",
+                                alignItems: "center",
                               }}
                             >
-                              {item.title}
+                              <View
+                                style={[
+                                  st.dot,
+                                  {
+                                    backgroundColor:
+                                      item.status === "done"
+                                        ? "#22c55e"
+                                        : "#f59e0b",
+                                  },
+                                ]}
+                              />
+                              <Text
+                                style={{
+                                  fontWeight: "900",
+                                  color: "#111827",
+                                  flex: 1,
+                                  marginLeft: 8,
+                                }}
+                              >
+                                {item.title}
+                              </Text>
+                              {item.status === "open" ? (
+                                <RoundBtn
+                                  label="Mark done"
+                                  solid
+                                  onPress={() =>
+                                    setAssigns((prev) =>
+                                      prev.map((a) =>
+                                        a.id === item.id
+                                          ? { ...a, status: "done" }
+                                          : a,
+                                      ),
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <RoundBtn
+                                  label="Reopen"
+                                  onPress={() =>
+                                    setAssigns((prev) =>
+                                      prev.map((a) =>
+                                        a.id === item.id
+                                          ? { ...a, status: "open" }
+                                          : a,
+                                      ),
+                                    )
+                                  }
+                                />
+                              )}
+                            </View>
+                          </Card>
+                        )}
+                      />
+                    </Section>
+                  );
+                case "notes":
+                  return (
+                    <Section title="Notes">
+                      <FlatList
+                        data={notes}
+                        keyExtractor={(x) => x.id}
+                        ItemSeparatorComponent={() => (
+                          <View style={{ height: 8 }} />
+                        )}
+                        renderItem={({ item }) => (
+                          <Card>
+                            <Text style={{ color: "#6b7280", fontSize: 12 }}>
+                              {new Date(item.createdISO).toLocaleString()}
                             </Text>
-                            {item.status === "open" ? (
-                              <RoundBtn
-                                label="Mark done"
-                                solid
-                                onPress={() =>
-                                  setAssigns((prev) =>
-                                    prev.map((a) =>
-                                      a.id === item.id
-                                        ? { ...a, status: "done" }
-                                        : a,
-                                    ),
-                                  )
-                                }
-                              />
-                            ) : (
-                              <RoundBtn
-                                label="Reopen"
-                                onPress={() =>
-                                  setAssigns((prev) =>
-                                    prev.map((a) =>
-                                      a.id === item.id
-                                        ? { ...a, status: "open" }
-                                        : a,
-                                    ),
-                                  )
-                                }
-                              />
-                            )}
-                          </View>
-                        </Card>
-                      )}
-                    />
-                  </Section>
-                );
-              case "notes":
-                return (
-                  <Section title="Notes">
-                    <FlatList
-                      data={notes}
-                      keyExtractor={(x) => x.id}
-                      ItemSeparatorComponent={() => (
-                        <View style={{ height: 8 }} />
-                      )}
-                      renderItem={({ item }) => (
-                        <Card>
-                          <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                            {new Date(item.createdISO).toLocaleString()}
-                          </Text>
-                          <Text
-                            style={{
-                              marginTop: 6,
-                              color: "#111827",
-                              fontWeight: "700",
-                            }}
-                          >
-                            {item.content}
-                          </Text>
-                        </Card>
-                      )}
-                    />
-                  </Section>
-                );
-              default:
-                return null;
-            }
-          }}
-          keyExtractor={(i) => i.key}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          ListHeaderComponent={<View style={{ height: 10 }} />}
-        />
-      )}
+                            <Text
+                              style={{
+                                marginTop: 6,
+                                color: "#111827",
+                                fontWeight: "700",
+                              }}
+                            >
+                              {item.content}
+                            </Text>
+                          </Card>
+                        )}
+                      />
+                    </Section>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            keyExtractor={(i) => i.key}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            ListHeaderComponent={<View style={{ height: 10 }} />}
+          />
+        )}
 
-      {tab === "progress" && (
-        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-          <Section title="Weekly Practice Minutes" caption="Last 7 days">
-            <Card>
-              <Bars values={[20, 45, 10, 60, 35, 0, 25]} />
-            </Card>
-          </Section>
-          <Section
-            title="Skill Breakdown"
-            caption="Serve · Return · Dink · 3rd Shot · Position"
-          >
-            <Card>
-              <RadarStub />
-            </Card>
-          </Section>
-        </View>
-      )}
-
-      {tab === "notes" && (
-        <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-          <Pressable
-            onPress={() => setShowNote(true)}
-            style={[st.primary, { alignSelf: "flex-start" }]}
-          >
-            <Ionicons name="add" size={16} color="#111827" />
-            <Text style={st.primaryTxt}>New Note</Text>
-          </Pressable>
-          <FlatList
-            data={notes}
-            keyExtractor={(x) => x.id}
-            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-            contentContainerStyle={{ paddingVertical: 12 }}
-            renderItem={({ item }) => (
+        {tab === "progress" && (
+          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+            <Section title="Weekly Practice Minutes" caption="Last 7 days">
               <Card>
-                <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                  {new Date(item.createdISO).toLocaleString()}
-                </Text>
-                <Text
-                  style={{ marginTop: 6, color: "#111827", fontWeight: "700" }}
-                >
-                  {item.content}
-                </Text>
+                <Bars values={[20, 45, 10, 60, 35, 0, 25]} />
               </Card>
-            )}
-          />
-        </View>
-      )}
-
-      {/* Add Note Modal */}
-      <Modal visible={showNote} animationType="slide" transparent>
-        <Pressable style={st.backdrop} onPress={() => setShowNote(false)} />
-        <View style={st.sheet}>
-          <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }}>
-            New Note
-          </Text>
-          <TextInput
-            placeholder="Type feedback/notes..."
-            placeholderTextColor="#9ca3af"
-            value={noteText}
-            onChangeText={setNoteText}
-            multiline
-            style={st.input}
-          />
-          <View style={{ flexDirection: "row", marginTop: 12 }}>
-            <Pressable
-              style={[st.primary, { flex: 1, justifyContent: "center" }]}
-              onPress={() => {
-                if (!noteText.trim()) return;
-                setNotes((prev) => [
-                  {
-                    id: `n${Date.now()}`,
-                    content: noteText.trim(),
-                    createdISO: new Date().toISOString(),
-                  },
-                  ...prev,
-                ]);
-                setNoteText("");
-                setShowNote(false);
-              }}
+            </Section>
+            <Section
+              title="Skill Breakdown"
+              caption="Serve · Return · Dink · 3rd Shot · Position"
             >
-              <Text style={st.primaryTxt}>Save</Text>
-            </Pressable>
-            <Pressable
-              style={[st.secondary, { flex: 1 }]}
-              onPress={() => setShowNote(false)}
-            >
-              <Text style={st.secondaryTxt}>Cancel</Text>
-            </Pressable>
+              <Card>
+                <RadarStub />
+              </Card>
+            </Section>
           </View>
-        </View>
-      </Modal>
+        )}
+
+        {tab === "notes" && (
+          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+            <Pressable
+              onPress={() => setShowNote(true)}
+              style={[st.primary, { alignSelf: "flex-start" }]}
+            >
+              <Ionicons name="add" size={16} color="#111827" />
+              <Text style={st.primaryTxt}>New Note</Text>
+            </Pressable>
+            <FlatList
+              data={notes}
+              keyExtractor={(x) => x.id}
+              ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+              contentContainerStyle={{ paddingVertical: 12 }}
+              renderItem={({ item }) => (
+                <Card>
+                  <Text style={{ color: "#6b7280", fontSize: 12 }}>
+                    {new Date(item.createdISO).toLocaleString()}
+                  </Text>
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      color: "#111827",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {item.content}
+                  </Text>
+                </Card>
+              )}
+            />
+          </View>
+        )}
+
+        {/* Add Note Modal */}
+        <Modal visible={showNote} animationType="slide" transparent>
+          <Pressable style={st.backdrop} onPress={() => setShowNote(false)} />
+          <View style={st.sheet}>
+            <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }}>
+              New Note
+            </Text>
+            <TextInput
+              placeholder="Type feedback/notes..."
+              placeholderTextColor="#9ca3af"
+              value={noteText}
+              onChangeText={setNoteText}
+              multiline
+              style={st.input}
+            />
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <Pressable
+                style={[st.primary, { flex: 1, justifyContent: "center" }]}
+                onPress={() => {
+                  if (!noteText.trim()) return;
+                  setNotes((prev) => [
+                    {
+                      id: `n${Date.now()}`,
+                      content: noteText.trim(),
+                      createdISO: new Date().toISOString(),
+                    },
+                    ...prev,
+                  ]);
+                  setNoteText("");
+                  setShowNote(false);
+                }}
+              >
+                <Text style={st.primaryTxt}>Save</Text>
+              </Pressable>
+              <Pressable
+                style={[st.secondary, { flex: 1 }]}
+                onPress={() => setShowNote(false)}
+              >
+                <Text style={st.secondaryTxt}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
 }

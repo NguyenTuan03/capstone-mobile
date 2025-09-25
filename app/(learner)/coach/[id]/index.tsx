@@ -1,4 +1,3 @@
-import { useBookings } from "@/modules/learner/context/bookingContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -30,26 +29,11 @@ const slots = ["06:30", "17:30", "19:00"];
 
 export default function Book() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { addSession } = useBookings();
   const [d, setD] = useState<string | null>(days[0]);
   const [s, setS] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const onConfirm = () => {
-    if (!id || !d || !s) return;
-    const startAt = nextDateISO(d, s);
-    const endAt = new Date(
-      new Date(startAt).getTime() + 60 * 60 * 1000,
-    ).toISOString(); // 60'
-    const sessionId = addSession({
-      coachId: String(id),
-      coachName: String(id), // TODO: truyền real name từ profile
-      price: 25,
-      mode: "online",
-      meetingUrl: "https://meet.example.com/abc",
-      startAt,
-      endAt,
-    });
-    router.replace(`/(learner)/coach/my-sessions/${sessionId}` as any);
+    router.replace(`/(learner)/payment` as any);
   };
 
   return (

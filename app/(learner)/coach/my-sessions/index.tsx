@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type SessionStatus = "upcoming" | "completed" | "cancelled";
+type SessionStatus = "upcoming" | "completed" | "canceled";
 
 export default function MySessions() {
   const { sessions } = useBookings();
@@ -29,7 +29,7 @@ export default function MySessions() {
         return "#3b82f6";
       case "completed":
         return "#10b981";
-      case "cancelled":
+      case "canceled":
         return "#ef4444";
       default:
         return "#6b7280";
@@ -42,8 +42,8 @@ export default function MySessions() {
         return "Upcoming";
       case "completed":
         return "Completed";
-      case "cancelled":
-        return "Cancelled";
+      case "canceled":
+        return "Canceled";
       default:
         return status;
     }
@@ -85,7 +85,7 @@ export default function MySessions() {
 
       {/* Filters */}
       <View style={styles.filters}>
-        {(["all", "upcoming", "completed", "cancelled"] as const).map(
+        {(["all", "upcoming", "completed", "canceled"] as const).map(
           (status) => (
             <Pressable
               key={status}

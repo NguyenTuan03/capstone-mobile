@@ -69,6 +69,7 @@ export default function Coaches() {
   const [spec, setSpec] = useState<string | null>(null);
   const [tier, setTier] = useState<(typeof PRICE_TIERS)[number] | null>(null);
   const insets = useSafeAreaInsets();
+
   const data = useMemo(() => {
     return COACHES.filter(
       (c) =>
@@ -89,141 +90,145 @@ export default function Coaches() {
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
     >
-      {/* Hero */}
-      <LinearGradient
-        colors={["#18181b", "#111827"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={s.hero}
-      >
-        <View style={s.heroHeader}>
-          <Text style={s.heroTitle}>Find your Coach</Text>
-        </View>
-
-        <Pressable
-          onPress={() => router.push("/(learner)/coach/my-sessions" as any)}
-          style={s.mySessionsBtn}
-        >
-          <Ionicons name="calendar-outline" size={18} color="#111827" />
-          <Text style={s.mySessionsText}>My Sessions</Text>
-          <Ionicons name="chevron-forward" size={14} color="#111827" />
-        </Pressable>
-        <Text style={s.heroSub}>
-          Lọc theo vị trí, chuyên môn, giá — book lịch trong 30s.
-        </Text>
-
-        {/* Search */}
-        <View style={s.searchWrap}>
-          <Ionicons name="search" size={18} color="#6b7280" />
-          <TextInput
-            placeholder="Search coach or location..."
-            placeholderTextColor="#9ca3af"
-            value={q}
-            onChangeText={setQ}
-            style={s.searchInput}
-          />
-        </View>
-
-        {/* Filters */}
-        <View style={s.filters}>
-          <ScrollChips
-            items={SPECIALTIES as unknown as string[]}
-            value={spec}
-            onChange={setSpec}
-            icon={(active: boolean) => (
-              <MaterialIcons
-                name="sports-tennis"
-                size={14}
-                color={active ? "#111" : "#6b7280"}
-              />
-            )}
-          />
-          <ScrollChips
-            items={PRICE_TIERS as unknown as string[]}
-            value={tier}
-            onChange={setTier}
-            icon={() => (
-              <Ionicons name="cash-outline" size={14} color="#6b7280" />
-            )}
-          />
-        </View>
-      </LinearGradient>
-
-      {/* List */}
       <FlatList
         data={data}
-        keyExtractor={(i: any) => i.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }: { item: any }) => <CoachCard coach={item} />}
+        keyExtractor={(i) => i.id}
+        renderItem={({ item }) => <CoachCard coach={item} />}
+        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        ListHeaderComponent={
+          <View style={s.headerContainer}>
+            <LinearGradient
+              colors={["#18181b", "#111827"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={s.hero}
+            >
+              <View style={s.heroHeader}>
+                <Text style={s.heroTitle}>Find a Coach</Text>
+              </View>
+
+              <Pressable
+                onPress={() =>
+                  router.push("/(learner)/coach/my-sessions" as any)
+                }
+                style={s.mySessionsBtn}
+              >
+                <Ionicons name="calendar-outline" size={18} color="#111827" />
+                <Text style={s.mySessionsText}>My Sessions</Text>
+                <Ionicons name="chevron-forward" size={14} color="#111827" />
+              </Pressable>
+
+              <Text style={s.heroSub}>
+                Filter by location, specialty, and price — book a session in
+                30s.
+              </Text>
+
+              {/* Search */}
+              <View style={s.searchWrap}>
+                <Ionicons name="search" size={18} color="#6b7280" />
+                <TextInput
+                  placeholder="Search coach or location..."
+                  placeholderTextColor="#9ca3af"
+                  value={q}
+                  onChangeText={setQ}
+                  style={s.searchInput}
+                />
+              </View>
+
+              {/* Filters */}
+              <View style={s.filters}>
+                <ScrollChips
+                  items={SPECIALTIES as unknown as string[]}
+                  value={spec}
+                  onChange={setSpec}
+                  icon={(active: boolean) => (
+                    <MaterialIcons
+                      name="sports-tennis"
+                      size={14}
+                      color={active ? "#111" : "#6b7280"}
+                    />
+                  )}
+                />
+                <ScrollChips
+                  items={PRICE_TIERS as unknown as string[]}
+                  value={tier}
+                  onChange={setTier}
+                  icon={() => (
+                    <Ionicons name="cash-outline" size={14} color="#6b7280" />
+                  )}
+                />
+              </View>
+            </LinearGradient>
+          </View>
+        }
       />
     </SafeAreaView>
   );
 }
 
 function CoachCard({ coach }: { coach: Coach }) {
+  const handleDetailPress = (e: any) => {
+    e.stopPropagation();
+    router.push(`/(learner)/coach/${coach.id}/detail` as any);
+  };
+
+  const handleBookPress = (e: any) => {
+    e.stopPropagation();
+    router.push(`/(learner)/coach/${coach.id}` as any);
+  };
+
   return (
     <Pressable
-      onPress={() => router.push(`/(learner)/coach/${coach.id}` as any)}
+      onPress={() => router.push(`/(learner)/coach/${coach.id}/detail` as any)}
       style={s.card}
     >
+      {/* Avatar */}
       <Image source={{ uri: coach.avatar }} style={s.avatar} />
-      <View style={{ flex: 1 }}>
+
+      {/* Info */}
+      <View style={s.cardContent}>
         <Text style={s.name}>{coach.name}</Text>
-        <View
-          style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}
-        >
-          {renderStars(coach.rating)}
+
+        <View style={s.ratingRow}>
+          <Ionicons name="star" size={14} color="#f59e0b" />
           <Text style={s.ratingText}>{coach.rating.toFixed(1)}</Text>
           <Text style={s.dot}>•</Text>
           <Ionicons name="location-outline" size={14} color="#6b7280" />
           <Text style={s.locText}>{coach.location}</Text>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 6,
-            marginTop: 8,
-          }}
-        >
-          {coach.specialties.slice(0, 3).map((t) => (
-            <View key={t} style={s.tag}>
-              <Text style={s.tagText}>{t}</Text>
+
+        <View style={s.specialtiesRow}>
+          {coach.specialties.slice(0, 3).map((specialty, index) => (
+            <View key={specialty} style={s.tag}>
+              <Text style={s.tagText}>{specialty}</Text>
             </View>
           ))}
         </View>
-      </View>
 
-      <View style={{ alignItems: "flex-end" }}>
-        <Text style={s.price}>${coach.price}/h</Text>
-        <Pressable
-          onPress={() =>
-            router.push(`/(learner)/coach/${coach.id}/book` as any)
-          }
-          style={s.bookBtn}
-        >
-          <Text style={s.bookText}>Book</Text>
-        </Pressable>
+        {/* Price & Actions */}
+        <View style={s.cardFooter}>
+          <View style={s.priceContainer}>
+            <Text style={s.price}>${coach.price}</Text>
+            <Text style={s.priceUnit}>/hour</Text>
+          </View>
+          <View style={s.actionButtons}>
+            <Pressable
+              onPress={handleDetailPress}
+              style={[s.actionBtn, s.detailBtn]}
+            >
+              <Text style={s.detailBtnText}>Detail</Text>
+            </Pressable>
+            <Pressable
+              onPress={handleBookPress}
+              style={[s.actionBtn, s.bookBtn]}
+            >
+              <Text style={s.bookBtnText}>Book</Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
     </Pressable>
-  );
-}
-
-function renderStars(rating: number) {
-  const full = Math.floor(rating);
-  const arr = Array.from({ length: 5 }, (_, i) => i < full);
-  return (
-    <View style={{ flexDirection: "row", marginRight: 6 }}>
-      {arr.map((f, i) => (
-        <Ionicons
-          key={i}
-          name={f ? "star" : "star-outline"}
-          size={14}
-          color={f ? "#f59e0b" : "#d1d5db"}
-        />
-      ))}
-    </View>
   );
 }
 
@@ -267,10 +272,14 @@ function ScrollChips({
 }
 
 const s = StyleSheet.create({
+  headerContainer: {
+    marginBottom: 16,
+    marginHorizontal: -16, // Offset parent padding
+  },
   hero: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 16,
+    paddingTop: 20,
+    paddingBottom: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
   },
@@ -332,16 +341,6 @@ const s = StyleSheet.create({
   chipText: { color: "#374151", fontWeight: "600" },
   chipTextActive: { color: "#111" },
 
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    flexDirection: "row",
-    gap: 12,
-  },
-  avatar: { width: 56, height: 56, borderRadius: 28, marginRight: 8 },
   name: { fontSize: 16, fontWeight: "700", color: "#111827" },
   ratingText: { color: "#6b7280", marginLeft: 4, fontWeight: "700" },
   dot: { color: "#9ca3af", marginHorizontal: 6 },
@@ -356,13 +355,84 @@ const s = StyleSheet.create({
   },
   tagText: { color: "#111827", fontWeight: "600", fontSize: 12 },
 
-  price: { fontWeight: "800", color: "#111827" },
-  bookBtn: {
-    marginTop: 8,
-    backgroundColor: "#111827",
-    borderRadius: 10,
+  price: { fontWeight: "800", color: "#111827", fontSize: 16 },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  avatar: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: "#f3f4f6",
+  },
+  cardContent: {
+    flex: 1,
+    gap: 8,
+  },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  specialtiesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  cardFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 4,
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  priceUnit: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+    marginLeft: 2,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionBtn: {
     paddingVertical: 8,
     paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
   },
-  bookText: { color: "#fff", fontWeight: "700" },
+  detailBtn: {
+    backgroundColor: "#f9fafb",
+    borderColor: "#e5e7eb",
+  },
+  detailBtnText: {
+    color: "#374151",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  bookBtn: {
+    backgroundColor: "#111827",
+    borderColor: "#111827",
+  },
+  bookBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 12,
+  },
 });

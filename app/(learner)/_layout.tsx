@@ -1,5 +1,5 @@
-import { Tabs } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 export default function LearnerTabs() {
   return (
@@ -94,6 +94,20 @@ export default function LearnerTabs() {
               color={color}
             />
           ),
+        }}
+      />
+
+      {/* Hidden screens - không hiển thị trên tab bar */}
+      <Tabs.Screen
+        name="payment"
+        options={{
+          href: null, // Ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="payment-success"
+        options={{
+          href: null, // Ẩn khỏi tab bar
         }}
       />
     </Tabs>

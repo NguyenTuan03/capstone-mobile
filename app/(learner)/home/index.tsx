@@ -93,10 +93,7 @@ export default function HomeScreen() {
         {/* ---------- BODY ---------- */}
         <View style={styles.bodyCard}>
           {/* NEXT SESSION */}
-          <SectionTitle
-            title="NEXT SESSION"
-            caption="Buổi học sắp tới của bạn"
-          />
+          <SectionTitle title="NEXT SESSION" caption="Your next session" />
           <NextSessionCard session={next} />
 
           {/* DUPR SKILLS */}
@@ -153,10 +150,10 @@ function NextSessionCard({ session }: { session?: any }) {
       >
         <Ionicons name="calendar-outline" size={20} color="#4b5563" />
         <Text style={styles.nextText}>
-          Bạn chưa có lịch — đặt buổi học ngay!
+          you don&apos;t have a session — book one now!
         </Text>
         <Pressable style={styles.nextBtn}>
-          <Text style={styles.nextBtnText}>Find Coach</Text>
+          <Text style={styles.nextBtnText}>Find a Coach</Text>
         </Pressable>
       </LinearGradient>
     );
