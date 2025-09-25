@@ -268,6 +268,7 @@ function BadgesRow() {
       keyExtractor={(x) => x.id}
       horizontal
       showsHorizontalScrollIndicator={false}
+      nestedScrollEnabled={true}
       contentContainerStyle={{ paddingVertical: 8 }}
       ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
       renderItem={({ item }) => (

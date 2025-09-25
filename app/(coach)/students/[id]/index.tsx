@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path, Rect } from "react-native-svg";
+import SessionNotes from "../sessionNotes";
 /** --- same mock DB (đổi sang API/Context sau) --- */
 type Student = {
   id: string;
@@ -87,10 +88,48 @@ const INIT_NOTES: Note[] = [
   },
 ];
 
+// Mock sessions data
+const MOCK_SESSIONS = [
+  {
+    id: "session_1",
+    date: "2024-01-15",
+    time: "10:00 AM",
+    duration: "60 min",
+    type: "Individual Training",
+    status: "completed" as const,
+  },
+  {
+    id: "session_2",
+    date: "2024-01-18",
+    time: "2:00 PM",
+    duration: "60 min",
+    type: "Technique Focus",
+    status: "completed" as const,
+  },
+  {
+    id: "session_3",
+    date: "2024-01-22",
+    time: "10:00 AM",
+    duration: "90 min",
+    type: "Match Practice",
+    status: "completed" as const,
+  },
+  {
+    id: "session_4",
+    date: "2024-01-25",
+    time: "4:00 PM",
+    duration: "60 min",
+    type: "Individual Training",
+    status: "upcoming" as const,
+  },
+];
+
 export default function StudentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const s = id ? DB[id] : undefined;
-  const [tab, setTab] = useState<"overview" | "progress" | "notes">("overview");
+  const [tab, setTab] = useState<
+    "overview" | "progress" | "notes" | "sessions"
+  >("overview");
   const [assigns, setAssigns] = useState<Assignment[]>(INIT_ASSIGN);
   const [notes, setNotes] = useState<Note[]>(INIT_NOTES);
 
@@ -191,7 +230,7 @@ export default function StudentDetail() {
 
         {/* Segmented */}
         <View style={st.tabs}>
-          {(["overview", "progress", "notes"] as const).map((t) => (
+          {(["overview", "progress", "sessions"] as const).map((t: any) => (
             <Pressable
               key={t}
               onPress={() => setTab(t)}
@@ -213,6 +252,7 @@ export default function StudentDetail() {
               { key: "assign" },
               { key: "notes" },
             ]}
+            scrollEnabled={false}
             renderItem={({ item }) => {
               switch (item.key) {
                 case "qa":
@@ -268,6 +308,7 @@ export default function StudentDetail() {
                       <FlatList
                         data={assigns}
                         keyExtractor={(x) => x.id}
+                        scrollEnabled={false}
                         ItemSeparatorComponent={() => (
                           <View style={{ height: 8 }} />
                         )}
@@ -340,6 +381,7 @@ export default function StudentDetail() {
                       <FlatList
                         data={notes}
                         keyExtractor={(x) => x.id}
+                        scrollEnabled={false}
                         ItemSeparatorComponent={() => (
                           <View style={{ height: 8 }} />
                         )}
@@ -402,6 +444,7 @@ export default function StudentDetail() {
             <FlatList
               data={notes}
               keyExtractor={(x) => x.id}
+              scrollEnabled={false}
               ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
               contentContainerStyle={{ paddingVertical: 12 }}
               renderItem={({ item }) => (
@@ -419,6 +462,81 @@ export default function StudentDetail() {
                     {item.content}
                   </Text>
                 </Card>
+              )}
+            />
+          </View>
+        )}
+
+        {tab === "sessions" && (
+          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+            <FlatList
+              data={MOCK_SESSIONS}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              renderItem={({ item }) => (
+                <View style={st.sessionCard}>
+                  {/* Session Header */}
+                  <View style={st.sessionHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={st.sessionTitle}>{item.type}</Text>
+                      <View style={st.sessionMeta}>
+                        <Ionicons
+                          name="calendar-outline"
+                          size={14}
+                          color="#6b7280"
+                        />
+                        <Text style={st.sessionMetaText}>
+                          {item.date} • {item.time}
+                        </Text>
+                        <Text style={st.sessionDot}>•</Text>
+                        <Ionicons
+                          name="time-outline"
+                          size={14}
+                          color="#6b7280"
+                        />
+                        <Text style={st.sessionMetaText}>{item.duration}</Text>
+                      </View>
+                    </View>
+                    <View
+                      style={[
+                        st.statusBadge,
+                        {
+                          backgroundColor:
+                            item.status === "completed" ? "#10b981" : "#f59e0b",
+                        },
+                      ]}
+                    >
+                      <Text style={st.statusText}>
+                        {item.status === "completed" ? "Completed" : "Upcoming"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Session Notes */}
+                  {item.status === "completed" && (
+                    <View style={st.sessionNotesContainer}>
+                      <SessionNotes
+                        sessionId={item.id}
+                        title={`Notes for ${item.type}`}
+                      />
+                    </View>
+                  )}
+
+                  {item.status === "upcoming" && (
+                    <View style={st.upcomingNote}>
+                      <Ionicons
+                        name="information-circle-outline"
+                        size={16}
+                        color="#6b7280"
+                      />
+                      <Text style={st.upcomingNoteText}>
+                        Notes will be available after the session is completed
+                      </Text>
+                    </View>
+                  )}
+                </View>
               )}
             />
           </View>
@@ -744,4 +862,69 @@ const st = StyleSheet.create({
   roundSolid: { backgroundColor: "#111827", borderColor: "#111827" },
   roundTxt: { fontWeight: "800", color: "#111827" },
   roundTxtSolid: { color: "#fff" },
+
+  // Session styles
+  sessionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    padding: 16,
+    marginBottom: 8,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  sessionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  sessionMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sessionMetaText: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginLeft: 4,
+  },
+  sessionDot: {
+    color: "#9ca3af",
+    marginHorizontal: 6,
+  },
+  statusBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginLeft: 12,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  sessionNotesContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#f3f4f6",
+    paddingTop: 12,
+  },
+  upcomingNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "#f9fafb",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  upcomingNoteText: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginLeft: 6,
+    fontStyle: "italic",
+  },
 });
