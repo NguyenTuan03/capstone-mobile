@@ -44,7 +44,7 @@ const COACHES = [
     specialties: ["Dinking", "3rd Shot", "Strategy"],
     methodology: {
       sessionStructure: {
-        warmup: ["Footwork ladder 5’", "Soft dinks cross-court 5’"],
+        warmup: ["Footwork ladder 5'", "Soft dinks cross-court 5'"],
         coreDrills: [
           {
             name: "3rd Shot Drop Reps",
@@ -58,7 +58,7 @@ const COACHES = [
           },
         ],
         situationalPlay: ["2v2 kitchen control", "Transition zone defense"],
-        cooldown: ["Stretch calves/forearm 3’"],
+        cooldown: ["Stretch calves/forearm 3'"],
       },
       teachingPrinciples: [
         "Game-based learning: drill → mini-game → game",
@@ -86,9 +86,43 @@ const COACHES = [
         },
       ],
       equipment: ["2–3 bóng game-ready", "Ladder", "Cones"],
-      safetyNotes: ["Khởi động cổ tay/gối đủ", "Uống nước mỗi 15’"],
+      safetyNotes: ["Khởi động cổ tay/gối đủ", "Uống nước mỗi 15'"],
       videoFeedback: { used: true, notes: "Quay slow-mo dinking & 3rd shot" },
     } as Methodology,
+    reviews: [
+      {
+        id: "r1a",
+        learner: "Alex Chen",
+        date: "2024-01-15",
+        rating: 5,
+        comment:
+          "David's methodology is incredible! My 3rd shot drop improved dramatically in just 3 sessions. The video feedback really helped me see what I was doing wrong.",
+      },
+      {
+        id: "r1b",
+        learner: "Maria Rodriguez",
+        date: "2024-02-08",
+        rating: 5,
+        comment:
+          "Best pickleball coach I've worked with. Very structured approach and clear progression. My dinking consistency went from 20 to 50+ rallies!",
+      },
+      {
+        id: "r1c",
+        learner: "John Park",
+        date: "2024-02-22",
+        rating: 4,
+        comment:
+          "Excellent technical knowledge and patient teaching style. Really helped me understand court positioning and shot selection.",
+      },
+      {
+        id: "r1d",
+        learner: "Sarah Kim",
+        date: "2024-03-05",
+        rating: 5,
+        comment:
+          "David's game-based learning approach made practice fun and effective. Highly recommend for intermediate to advanced players!",
+      },
+    ],
   },
   {
     id: "c2",
@@ -102,12 +136,36 @@ const COACHES = [
       "I use a combination of video analysis, drills, and live feedback to help learners improve their skills.",
     reviews: [
       {
-        id: "r2",
+        id: "r2a",
         learner: "Jane Smith",
         date: "2024-02-01",
-        rating: 4.5,
+        rating: 5,
         comment:
-          "Sophia is a great coach! She helped me improve my skills in no time.",
+          "Sophia is a great coach! She helped me improve my serve consistency from 60% to 85% in just 4 sessions. Her attention to detail is amazing.",
+      },
+      {
+        id: "r2b",
+        learner: "David Wilson",
+        date: "2024-02-14",
+        rating: 4,
+        comment:
+          "Really focused on fundamentals which was exactly what I needed. My footwork has improved significantly and I feel more confident on the court.",
+      },
+      {
+        id: "r2c",
+        learner: "Lisa Zhang",
+        date: "2024-02-28",
+        rating: 5,
+        comment:
+          "Excellent coach for beginners! Sophia breaks down complex movements into simple steps. Very patient and encouraging throughout the learning process.",
+      },
+      {
+        id: "r2d",
+        learner: "Michael Brown",
+        date: "2024-03-12",
+        rating: 5,
+        comment:
+          "The video analysis sessions were incredibly helpful. Being able to see my form and compare it to proper technique made all the difference!",
       },
     ],
   },
@@ -123,12 +181,44 @@ const COACHES = [
       "I use a combination of video analysis, drills, and live feedback to help learners improve their skills.",
     reviews: [
       {
-        id: "r3",
+        id: "r3a",
         learner: "Mike Johnson",
+        date: "2024-01-20",
+        rating: 5,
+        comment:
+          "Liam is an absolute master of doubles strategy! My partner and I went from losing most games to winning our local tournament. His kitchen tactics are game-changing.",
+      },
+      {
+        id: "r3b",
+        learner: "Emma Davis",
+        date: "2024-02-05",
+        rating: 5,
+        comment:
+          "Best investment I've made in my pickleball journey. Liam's doubles positioning lessons completely transformed my game. Now I feel confident at the net!",
+      },
+      {
+        id: "r3c",
+        learner: "Tom Anderson",
+        date: "2024-02-18",
+        rating: 5,
+        comment:
+          "Incredible coach with deep knowledge of advanced tactics. Helped me understand when to speed up vs slow down points. My win rate has improved dramatically.",
+      },
+      {
+        id: "r3d",
+        learner: "Rachel Lee",
         date: "2024-03-01",
         rating: 5,
         comment:
-          "Liam is a great coach! He helped me improve my skills in no time.",
+          "Liam's teaching style is perfect for competitive players. Very analytical approach and great at explaining the 'why' behind each strategy. Highly recommended!",
+      },
+      {
+        id: "r3e",
+        learner: "Kevin Martinez",
+        date: "2024-03-10",
+        rating: 4,
+        comment:
+          "Excellent advanced coaching. Really helped me understand court coverage and communication in doubles. The only reason it's 4 stars is the price, but worth it for serious players.",
       },
     ],
   },
@@ -182,6 +272,7 @@ export default function CoachDetail() {
         <View style={styles.profileCard}>
           <View style={styles.profileHeader}>
             <Image source={{ uri: coach.avatar }} style={styles.avatar} />
+
             <View style={styles.profileInfo}>
               <Text style={styles.name}>{coach.name}</Text>
               <View style={styles.ratingRow}>
@@ -192,9 +283,20 @@ export default function CoachDetail() {
                 <Text style={styles.location}>{coach.location}</Text>
               </View>
             </View>
+
             <View style={styles.priceContainer}>
               <Text style={styles.price}>${coach.price}</Text>
               <Text style={styles.priceUnit}>/hour</Text>
+
+              {/* NEW: Book button */}
+              <Pressable
+                onPress={() =>
+                  router.push(`/(learner)/coach/${coach.id}/book` as any)
+                }
+                style={styles.bookBtn}
+              >
+                <Text style={styles.bookBtnText}>Book</Text>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -669,5 +771,17 @@ const styles = StyleSheet.create({
   },
   muted: {
     color: "#6b7280",
+  },
+  bookBtn: {
+    marginTop: 8,
+    backgroundColor: "#111827",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    alignItems: "center",
+  },
+  bookBtnText: {
+    color: "#fff",
+    fontWeight: "800",
   },
 });

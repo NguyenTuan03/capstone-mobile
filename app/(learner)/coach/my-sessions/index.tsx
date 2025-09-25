@@ -117,7 +117,9 @@ export default function MySessions() {
         renderItem={({ item }) => (
           <Pressable
             onPress={() =>
-              router.push(`/(learner)/coach/my-sessions/${item.id}` as any)
+              router.push(
+                `/(learner)/coach/my-sessions/ListSession?id=${item.id}` as any,
+              )
             }
             style={styles.sessionCard}
           >
