@@ -15,7 +15,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const SKILLS = ["Dink", "Serve", "Return", "3rd Shot"] as const;
-type Level = "Beginner" | "Intermediate" | "Advanced";
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
+type DuprLevel = (typeof DUPR_LEVELS)[number];
 
 export default function NewDrill() {
   // optional prefill từ params (vd: chọn từ student profile theo skill)
@@ -25,7 +26,7 @@ export default function NewDrill() {
   const [skill, setSkill] = useState<string>(
     preSkill && SKILLS.includes(preSkill as any) ? (preSkill as any) : "Dink",
   );
-  const [level, setLevel] = useState<Level>("Beginner");
+  const [level, setLevel] = useState<DuprLevel>("2.5-3.0");
   const [duration, setDuration] = useState("10"); // minutes
   const [intensity, setIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [videoUrl, setVideoUrl] = useState("");
@@ -109,9 +110,9 @@ export default function NewDrill() {
           })}
         </View>
 
-        <Text style={st.label}>Level</Text>
+        <Text style={st.label}>DUPR Level</Text>
         <View style={{ flexDirection: "row" }}>
-          {(["Beginner", "Intermediate", "Advanced"] as const).map((L) => {
+          {DUPR_LEVELS.map((L) => {
             const active = level === L;
             return (
               <Pressable

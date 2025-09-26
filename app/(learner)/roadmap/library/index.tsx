@@ -15,12 +15,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Level = "Beginner" | "Intermediate" | "Advanced";
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
+type DuprLevel = (typeof DUPR_LEVELS)[number];
 type Video = {
   id: string;
   title: string;
   skill: "Dink" | "Serve" | "Return" | "3rd Shot";
-  level: Level;
+  level: DuprLevel;
   duration: number; // minutes
   thumb: string;
   progress?: number; // 0..1
@@ -34,7 +35,7 @@ const VIDEOS: Video[] = [
     id: "v1",
     title: "Dink: Control & Consistency",
     skill: "Dink",
-    level: "Beginner",
+    level: "2.5-3.0",
     duration: 12,
     thumb:
       "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop",
@@ -45,7 +46,7 @@ const VIDEOS: Video[] = [
     id: "v2",
     title: "Serve: Power vs Accuracy",
     skill: "Serve",
-    level: "Advanced",
+    level: "4.5+",
     duration: 14,
     thumb:
       "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=1200&auto=format&fit=crop",
@@ -54,7 +55,7 @@ const VIDEOS: Video[] = [
     id: "v3",
     title: "Return: Placement for Advantage",
     skill: "Return",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 10,
     thumb:
       "https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=1200&auto=format&fit=crop",
@@ -63,7 +64,7 @@ const VIDEOS: Video[] = [
     id: "v4",
     title: "3rd Shot: Drop Mechanics",
     skill: "3rd Shot",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 16,
     thumb:
       "https://images.unsplash.com/photo-1533130061792-64b345e4a833?q=80&w=1200&auto=format&fit=crop",
@@ -73,7 +74,7 @@ const VIDEOS: Video[] = [
     id: "v5",
     title: "Kitchen Footwork (Dink under pressure)",
     skill: "Dink",
-    level: "Beginner",
+    level: "2.5-3.0",
     duration: 9,
     thumb:
       "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop",
@@ -84,7 +85,7 @@ export default function RoadmapLibrary() {
   const params = useLocalSearchParams<{ skill?: string }>();
   const [q, setQ] = useState("");
   const [skill, setSkill] = useState<Video["skill"] | "All">("All");
-  const [level, setLevel] = useState<Level | null>(null);
+  const [level, setLevel] = useState<DuprLevel | null>(null);
   const insets = useSafeAreaInsets();
   useEffect(() => {
     // nếu mở từ roadmap item: /roadmap/library?skill=Dink
@@ -189,7 +190,7 @@ export default function RoadmapLibrary() {
           )}
           ListFooterComponent={
             <View style={{ marginLeft: 8, flexDirection: "row" }}>
-              {(["Beginner", "Intermediate", "Advanced"] as const).map((L) => (
+              {DUPR_LEVELS.map((L) => (
                 <Pressable
                   key={L}
                   onPress={() => setLevel(level === L ? null : L)}
@@ -197,7 +198,7 @@ export default function RoadmapLibrary() {
                 >
                   <View style={[st.lvl, level === L && st.lvlActive]}>
                     <Text style={[st.lvlTxt, level === L && st.lvlTxtActive]}>
-                      {L[0]}
+                      {L}
                     </Text>
                   </View>
                 </Pressable>

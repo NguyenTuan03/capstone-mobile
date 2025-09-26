@@ -19,7 +19,7 @@ const DB = {
     thumb:
       "https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=1200&auto=format&fit=crop",
     skill: "Dink",
-    level: "Beginner",
+    level: "2.5-3.0",
     duration: 10,
     intensity: 2,
     desc: "Shadow dinking 10' + target zones.",
@@ -29,7 +29,7 @@ const DB = {
     thumb:
       "https://images.unsplash.com/photo-1533130061792-64b345e4a833?q=80&w=1200&auto=format&fit=crop",
     skill: "3rd Shot",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 15,
     intensity: 3,
     desc: "Focus on arc height & landing area.",
@@ -39,7 +39,7 @@ const DB = {
     thumb:
       "https://images.unsplash.com/photo-1517649763962-0c623066013b?q=80&w=1200&auto=format&fit=crop",
     skill: "Serve",
-    level: "Advanced",
+    level: "4.5+",
     duration: 12,
     intensity: 4,
     desc: "Target corners with 5x reps.",
@@ -49,7 +49,7 @@ const DB = {
     thumb:
       "https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=1200&auto=format&fit=crop",
     skill: "Return",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 8,
     intensity: 2,
     desc: "Shadow dinking 10' + target zones.",

@@ -53,7 +53,7 @@ const requests = [
     id: "r2",
     student: "Minh",
     time: "Sat 07:00–08:00",
-    note: "Beginner clinic",
+    note: "2.5-3.0 clinic",
   },
 ];
 const earnings7d = [80, 0, 120, 220, 60, 300, 160]; // mini chart

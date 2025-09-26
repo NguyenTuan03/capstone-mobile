@@ -21,7 +21,7 @@ export type Student = {
   name: string;
   avatar: string;
   dupr: number; // 2.0 - 8.0
-  tags: string[]; // ["Beginner","Doubles"]
+  tags: string[]; // ["2.5-3.0","Doubles"]
   nextSession?: { dateISO: string; mode: "online" | "offline"; place?: string };
   progress: number; // 0..1 completion of current plan
 };
@@ -32,7 +32,7 @@ const STUDENTS: Student[] = [
     name: "Tuấn",
     avatar: "https://i.pravatar.cc/150?img=15",
     dupr: 3.1,
-    tags: ["Beginner", "Doubles"],
+    tags: ["2.5-3.0", "Doubles"],
     nextSession: {
       dateISO: new Date(Date.now() + 36e5).toISOString(),
       mode: "online",
@@ -44,7 +44,7 @@ const STUDENTS: Student[] = [
     name: "Lan",
     avatar: "https://i.pravatar.cc/150?img=5",
     dupr: 3.9,
-    tags: ["Intermediate", "Singles"],
+    tags: ["3.5-4.0", "Singles"],
     nextSession: {
       dateISO: new Date(Date.now() + 2 * 86400e3).toISOString(),
       mode: "offline",
@@ -57,22 +57,28 @@ const STUDENTS: Student[] = [
     name: "Huy",
     avatar: "https://i.pravatar.cc/150?img=12",
     dupr: 4.3,
-    tags: ["Advanced", "Doubles"],
+    tags: ["4.5+", "Doubles"],
     progress: 0.12,
   },
 ];
 
-const LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
-type Level = (typeof LEVELS)[number];
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
+type DuprLevel = (typeof DUPR_LEVELS)[number];
 
 export default function StudentsList() {
   const [q, setQ] = useState("");
-  const [level, setLevel] = useState<Level | null>(null);
+  const [level, setLevel] = useState<DuprLevel | null>(null);
 
   const data = useMemo(() => {
     return STUDENTS.filter((s) => {
       const hitQ = !q || s.name.toLowerCase().includes(q.toLowerCase());
-      const hitLevel = !level || s.tags.includes(level);
+      let hitLevel = !level;
+      if (level) {
+        if (level === "1.0-2.0") hitLevel = s.dupr >= 1.0 && s.dupr <= 2.0;
+        else if (level === "2.5-3.0") hitLevel = s.dupr >= 2.5 && s.dupr <= 3.0;
+        else if (level === "3.5-4.0") hitLevel = s.dupr >= 3.5 && s.dupr <= 4.0;
+        else if (level === "4.5+") hitLevel = s.dupr >= 4.5;
+      }
       return hitQ && hitLevel;
     });
   }, [q, level]);
@@ -108,9 +114,9 @@ export default function StudentsList() {
           )}
         </View>
 
-        {/* Level filter */}
+        {/* DUPR Level filter */}
         <FlatList
-          data={LEVELS as readonly string[]}
+          data={DUPR_LEVELS as readonly string[]}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(x) => x}
@@ -118,7 +124,9 @@ export default function StudentsList() {
           ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => setLevel(level === item ? null : (item as Level))}
+              onPress={() =>
+                setLevel(level === item ? null : (item as DuprLevel))
+              }
             >
               <View style={[st.chip, level === item && st.chipActive]}>
                 <Text

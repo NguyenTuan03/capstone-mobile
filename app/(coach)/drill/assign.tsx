@@ -15,7 +15,8 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type Level = "Beginner" | "Intermediate" | "Advanced";
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
+type DuprLevel = (typeof DUPR_LEVELS)[number];
 type Student = { id: string; name: string; avatar: string };
 
 const STUDENTS: Student[] = [
@@ -30,7 +31,7 @@ export default function AssignDrill() {
     drillId?: string;
     title?: string;
     skill?: string;
-    level?: Level;
+    level?: DuprLevel;
     duration?: string;
     intensity?: string;
     videoUrl?: string;

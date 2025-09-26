@@ -32,7 +32,7 @@ const EVENTS: Event[] = [
     players: 10,
     capacity: 16,
     fee: 0,
-    tags: ["Open Play", "Beginner Friendly"],
+    tags: ["Open Play", "2.5-3.0 Friendly"],
   },
   {
     id: "e2",

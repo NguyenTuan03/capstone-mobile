@@ -18,12 +18,13 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** ------- Types & Mock ------- */
-type Level = "Beginner" | "Intermediate" | "Advanced";
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
+type DuprLevel = (typeof DUPR_LEVELS)[number];
 type Drill = {
   id: string;
   title: string;
   skill: "Dink" | "Serve" | "Return" | "3rd Shot";
-  level: Level;
+  level: DuprLevel;
   duration: number;
   intensity: 1 | 2 | 3 | 4 | 5;
   thumb: string;
@@ -50,7 +51,7 @@ const DRILLS: Drill[] = [
     id: "d1",
     title: "Dink – Control & Consistency",
     skill: "Dink",
-    level: "Beginner",
+    level: "2.5-3.0",
     duration: 10,
     intensity: 2,
     thumb:
@@ -61,7 +62,7 @@ const DRILLS: Drill[] = [
     id: "d2",
     title: "3rd Shot Drop – Mechanics",
     skill: "3rd Shot",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 15,
     intensity: 3,
     thumb:
@@ -71,7 +72,7 @@ const DRILLS: Drill[] = [
     id: "d3",
     title: "Serve – Accuracy Ladder",
     skill: "Serve",
-    level: "Advanced",
+    level: "4.5+",
     duration: 12,
     intensity: 4,
     thumb:
@@ -81,7 +82,7 @@ const DRILLS: Drill[] = [
     id: "d4",
     title: "Return – Deep Placement",
     skill: "Return",
-    level: "Intermediate",
+    level: "3.5-4.0",
     duration: 8,
     intensity: 2,
     thumb:
@@ -94,7 +95,7 @@ export default function DrillsScreen() {
   const inset = useSafeAreaInsets();
   const [q, setQ] = useState("");
   const [skill, setSkill] = useState<Drill["skill"] | "All">("All");
-  const [level, setLevel] = useState<Level | null>(null);
+  const [level, setLevel] = useState<DuprLevel | null>(null);
   const [assignTo, setAssignTo] = useState<Assignment[]>([]);
 
   const list = useMemo(
@@ -156,7 +157,7 @@ export default function DrillsScreen() {
           )}
           ListFooterComponent={
             <View style={{ marginLeft: 8, flexDirection: "row" }}>
-              {(["Beginner", "Intermediate", "Advanced"] as const).map((L) => (
+              {DUPR_LEVELS.map((L) => (
                 <Pressable
                   key={L}
                   onPress={() => setLevel(level === L ? null : L)}
@@ -164,7 +165,7 @@ export default function DrillsScreen() {
                 >
                   <View style={[st.lvl, level === L && st.lvlActive]}>
                     <Text style={[st.lvlTxt, level === L && st.lvlTxtActive]}>
-                      {L[0]}
+                      {L}
                     </Text>
                   </View>
                 </Pressable>
