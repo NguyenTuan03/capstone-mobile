@@ -31,7 +31,7 @@ const DB: Record<string, Student> = {
     name: "Tuấn",
     avatar: "https://i.pravatar.cc/150?img=15",
     dupr: 3.1,
-    tags: ["Beginner", "Doubles"],
+    tags: ["2.5-3.0", "Doubles"],
     nextSession: {
       dateISO: new Date(Date.now() + 36e5).toISOString(),
       mode: "online",
@@ -43,7 +43,7 @@ const DB: Record<string, Student> = {
     name: "Lan",
     avatar: "https://i.pravatar.cc/150?img=5",
     dupr: 3.9,
-    tags: ["Intermediate", "Singles"],
+    tags: ["3.5-4.0", "Singles"],
     nextSession: {
       dateISO: new Date(Date.now() + 2 * 86400e3).toISOString(),
       mode: "offline",
@@ -56,7 +56,7 @@ const DB: Record<string, Student> = {
     name: "Huy",
     avatar: "https://i.pravatar.cc/150?img=12",
     dupr: 4.3,
-    tags: ["Advanced", "Doubles"],
+    tags: ["4.5+", "Doubles"],
     progress: 0.12,
   },
 };

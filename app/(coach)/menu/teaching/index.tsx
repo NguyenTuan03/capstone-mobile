@@ -11,10 +11,9 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
 const ALL = [
-  "Beginner",
-  "Intermediate",
-  "Advanced",
+  ...DUPR_LEVELS,
   "Singles",
   "Doubles",
   "Dinking",
