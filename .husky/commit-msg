@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Nếu commitlint fail thì in hint rồi chặn commit
-if ! npx --no -- commitlint --edit "$1" 2>&1 | cat; then
+if ! npx --no -- commitlint --edit "$1" >/dev/stdout 2>&1; then
   # show commit message dòng đầu cho dev thấy mình vừa gõ gì
   first_line="$(head -n1 "$1" 2>/dev/null)"
   printf "\n❌ Commit message KHÔNG hợp lệ: \"%s\"\n" "$first_line"
