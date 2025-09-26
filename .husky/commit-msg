@@ -8,8 +8,8 @@ if ! npx --no -- commitlint --edit "$1" >/dev/stdout 2>&1; then
   printf "ℹ️  Conventional Commits:\n"
   printf "   Format: type(scope?): subject\n"
   printf "   Types : feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert\n"
-  printf "   Ví dụ : feat(auth): add Google login on mobile\n"
-  printf "           fix(ui): prevent header flicker on Android 14\n"
+  printf "   Ví dụ : feat(auth): add google login on mobile\n"
+  printf "           fix(ui): prevent header flicker on android 14\n"
   exit 1
 fi
 

@@ -261,7 +261,7 @@ export default function StudentDetail() {
                       <View style={st.qaRow}>
                         <QA
                           icon="videocam-outline"
-                          label="Start Call"
+                          label="Start Session"
                           onPress={() =>
                             router.push({
                               pathname: "/(coach)/call/[sessionId]" as any,
