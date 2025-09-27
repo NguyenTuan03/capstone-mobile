@@ -47,7 +47,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="calendar/index"
         options={{
-          title: "Lịch trình",
+          title: "Lịch học",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "calendar" : "calendar-outline"}
@@ -94,6 +94,12 @@ export default function CoachTabs() {
               color={color}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="drill"
+        options={{
+          href: null, // Ẩn khỏi tab bar
         }}
       />
     </Tabs>
