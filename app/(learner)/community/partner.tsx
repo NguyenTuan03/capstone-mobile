@@ -104,7 +104,7 @@ export default function PartnerMatching() {
         <Text style={st.sub}>Tìm bạn đánh chung theo trình độ & vị trí</Text>
         <InvitesButton
           count={pendingCount}
-          onPress={() => router.push("/menu/community/invites")}
+          onPress={() => router.push("/community/invites")}
         />
         {/* Search */}
         <View style={st.search}>
@@ -205,7 +205,7 @@ function TopTabs({ current }: { current: "partner" | "events" }) {
   return (
     <View style={st.topTabs}>
       <Pressable
-        onPress={() => router.replace("/menu/community/partner")}
+        onPress={() => router.replace("/community/partner")}
         style={[st.topTab, current === "partner" && st.topTabActive]}
       >
         <Text
@@ -215,7 +215,7 @@ function TopTabs({ current }: { current: "partner" | "events" }) {
         </Text>
       </Pressable>
       <Pressable
-        onPress={() => router.replace("/menu/community/events")}
+        onPress={() => router.replace("/community/events")}
         style={[st.topTab, current === "events" && st.topTabActive]}
       >
         <Text

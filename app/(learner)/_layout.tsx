@@ -90,12 +90,12 @@ export default function LearnerTabs() {
           }}
         />
         <Tabs.Screen
-          name="menu"
+          name="community"
           options={{
-            title: "Menu",
+            title: "Cộng đồng",
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
-                name={focused ? "menu" : "menu-outline"}
+                name={focused ? "people" : "people-outline"}
                 size={22}
                 color={color}
               />
@@ -112,6 +112,12 @@ export default function LearnerTabs() {
         />
         <Tabs.Screen
           name="payment-success"
+          options={{
+            href: null, // Ẩn khỏi tab bar
+          }}
+        />
+        <Tabs.Screen
+          name="menu"
           options={{
             href: null, // Ẩn khỏi tab bar
           }}
