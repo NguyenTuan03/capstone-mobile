@@ -167,7 +167,7 @@ export default function Payment() {
             ]}
           >
             <Ionicons
-              name="logo-usd"
+              name="cash-outline"
               size={18}
               color={method === "payos" ? "#111827" : "#6b7280"}
             />
@@ -257,26 +257,30 @@ export default function Payment() {
         <View style={styles.totals}>
           <View style={styles.row}>
             <Text style={styles.muted}>Price</Text>
-            <Text style={styles.bold}>${price.toFixed(2)}</Text>
+            <Text style={styles.bold}>
+              ₫{(price * 25000).toLocaleString("vi-VN")}
+            </Text>
           </View>
           {fee > 0 && (
             <View style={styles.row}>
               <Text style={styles.muted}>Fee</Text>
-              <Text style={styles.bold}>${fee.toFixed(2)}</Text>
+              <Text style={styles.bold}>
+                ₫{(fee * 25000).toLocaleString("vi-VN")}
+              </Text>
             </View>
           )}
           {discount > 0 && (
             <View style={styles.row}>
               <Text style={[styles.muted, { color: "#059669" }]}>Discount</Text>
               <Text style={[styles.bold, { color: "#059669" }]}>
-                - ${discount.toFixed(2)}
+                - ₫{(discount * 25000).toLocaleString("vi-VN")}
               </Text>
             </View>
           )}
           <View style={[styles.row, { marginTop: 8 }]}>
             <Text style={[styles.bold, { fontSize: 16 }]}>Total</Text>
             <Text style={[styles.bold, { fontSize: 16 }]}>
-              ${total.toFixed(2)}
+              ₫{(total * 25000).toLocaleString("vi-VN")}
             </Text>
           </View>
         </View>

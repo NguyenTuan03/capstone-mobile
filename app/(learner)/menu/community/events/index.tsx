@@ -134,7 +134,9 @@ function EventCard({ e }: { e: Event }) {
             <Ionicons name="people-outline" size={16} color="#6b7280" />
             <Text style={st.eSub}>
               &nbsp;{e.players}/{e.capacity} ·{" "}
-              {e.fee === 0 ? "Free" : `$${e.fee}`}
+              {e.fee === 0
+                ? "Miễn phí"
+                : `₫${(e.fee * 25000).toLocaleString("vi-VN")}`}
             </Text>
           </View>
           <View

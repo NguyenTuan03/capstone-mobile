@@ -497,7 +497,7 @@ export default function UploadScreen() {
               marginBottom: 8,
             }}
           >
-            UPLOAD
+            ĐĂNG TẢI
           </Text>
           <Text
             style={{
@@ -507,8 +507,7 @@ export default function UploadScreen() {
               fontSize: 16,
             }}
           >
-            Upload your practice videos and get instant AI-powered analysis to
-            improve your game.
+            Đăng tải video của bạn để phân tích AI
           </Text>
         </View>
 
@@ -522,7 +521,7 @@ export default function UploadScreen() {
               marginBottom: 16,
             }}
           >
-            Select Video
+            Chọn video để phân tích AI
           </Text>
 
           {selectedFile ? (
@@ -589,7 +588,7 @@ export default function UploadScreen() {
                       textAlign: "center",
                     }}
                   >
-                    Uploading... {uploadProgress}%
+                    Đang tải... {uploadProgress}%
                   </Text>
                 </View>
               )}
@@ -652,7 +651,7 @@ export default function UploadScreen() {
               <Ionicons name="play-outline" size={20} color="#fff" />
             )}
             <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
-              {isUploading ? "UPLOADING..." : "UPLOAD & ANALYZE"}
+              {isUploading ? "Đang tải lên..." : "Đăng tải lên"}
             </Text>
           </Pressable>
         </View>

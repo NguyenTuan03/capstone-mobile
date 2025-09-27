@@ -25,7 +25,7 @@ const kpi = {
     currency: "VND",
   }),
   todaySessions: 3,
-  pending: 2,
+  activeStudents: 15, // Number of actively enrolled students
 };
 const upcoming = [
   {
@@ -42,22 +42,8 @@ const upcoming = [
     place: "Crescent Court",
   },
 ];
-const requests = [
-  {
-    id: "r1",
-    student: "Huy",
-    time: "Fri 18:30–19:30",
-    note: "Wants doubles drill",
-  },
-  {
-    id: "r2",
-    student: "Minh",
-    time: "Sat 07:00–08:00",
-    note: "2.5-3.0 clinic",
-  },
-];
+// No requests needed with automatic booking system
 const earnings7d = [80, 0, 120, 220, 60, 300, 160]; // mini chart
-const nextSessionId = upcoming[0]?.id;
 export default function CoachHome() {
   const hi = useMemo(() => helloByHour(), []);
   const tabBarHeight = useBottomTabBarHeight();
@@ -83,7 +69,7 @@ export default function CoachHome() {
               <Text style={styles.avatarText}>{coach.avatarText}</Text>
             </View>
             <View style={{ marginLeft: 12 }}>
-              <Text style={styles.hello}>{hi}, Coach</Text>
+              <Text style={styles.hello}>{hi}, Huấn luyện viên</Text>
               <Text style={styles.name}>{coach.name}</Text>
             </View>
             <View style={{ flex: 1 }} />
@@ -92,7 +78,7 @@ export default function CoachHome() {
               style={styles.editBtn}
             >
               <Ionicons name="create-outline" size={16} color="#fff" />
-              <Text style={styles.editBtnText}>Edit Profile</Text>
+              <Text style={styles.editBtnText}>Chỉnh sửa hồ sơ</Text>
             </Pressable>
           </LinearGradient>
         </ImageBackground>
@@ -100,68 +86,70 @@ export default function CoachHome() {
         {/* -------- KPI -------- */}
         <View style={styles.kpiRow}>
           <KpiCard
-            label="Financial Earnings"
+            label="Thu nhập tài chính"
             value={`${kpi.mtd}`}
             icon="cash-outline"
           />
           <KpiCard
-            label="Sessions Today"
+            label="Buổi học hôm nay"
             value={String(kpi.todaySessions)}
             icon="time-outline"
             onPress={() => router.push("/(coach)/calendar/index" as any)}
           />
           <KpiCard
-            label="Pending Requests"
-            value={String(kpi.todaySessions)}
-            icon="alert-circle-outline"
-            onPress={() => router.push("/(coach)/calendar/index" as any)}
+            label="Học viên đang hoạt động"
+            value={String(kpi.activeStudents)}
+            icon="people-outline"
+            onPress={() => router.push("/(coach)/students" as any)}
           />
         </View>
 
         {/* -------- QUICK ACTIONS -------- */}
-        <Section title="Quick Actions">
+        <Section title="Hành động nhanh">
           <View style={styles.qaRow}>
             <QA
-              icon="videocam-outline"
-              label="Start Call"
-              //   onPress={() => router.push("/call/temp/index")}
-              onPress={() => {}}
-            />
-            <QA
-              icon="clipboard-outline"
-              label="Add Notes"
-              onPress={() =>
-                nextSessionId
-                  ? router.push({
-                      pathname: "/(coach)/session/[id]/note",
-                      params: { id: nextSessionId },
-                    })
-                  : router.push("/(coach)/calendar/index" as any)
-              }
-            />
-            <QA
               icon="barbell-outline"
-              label="Assign Drill"
-              onPress={() => router.push("/(coach)/drill" as any)}
+              label="Quản lý Bài tập"
+              onPress={() => router.push("/(coach)/menu/drills" as any)}
             />
             <QA
-              icon="calendar-outline"
-              label="Add Slots"
-              onPress={() => router.push("/(coach)/calendar/index" as any)}
+              icon="document-text-outline"
+              label="Ghi chú buổi học"
+              onPress={() => {
+                const nextSession = upcoming[0];
+                if (nextSession) {
+                  router.push({
+                    pathname: "/(coach)/calendar/session/[id]",
+                    params: { id: nextSession.id, fromCalendar: "true" },
+                  });
+                } else {
+                  router.push("/(coach)/calendar/index" as any);
+                }
+              }}
+            />
+            <QA
+              icon="analytics-outline"
+              label="Xem phân tích"
+              onPress={() => router.push("/(coach)/earnings/index" as any)}
+            />
+            <QA
+              icon="add-circle-outline"
+              label="Tạo chương trình"
+              onPress={() => router.push("/(coach)/menu/session-blocks" as any)}
             />
           </View>
         </Section>
         <Section
-          title="Drills & Assignments"
-          caption="Tạo drill, giao bài cho học viên"
+          title="Bài tập & Phân công"
+          caption="Tạo bài tập, giao bài cho học viên"
         >
-          <Card onPress={() => router.push("/(coach)/drill" as any)}>
+          <Card onPress={() => router.push("/(coach)/menu/drills" as any)}>
             <View style={styles.cardRow}>
               <Ionicons name="barbell-outline" size={18} color="#111827" />
               <View style={{ marginLeft: 10, flex: 1 }}>
-                <Text style={styles.cardTitle}>Open Drill Library</Text>
+                <Text style={styles.cardTitle}>Mở thư viện Bài tập</Text>
                 <Text style={styles.cardSub}>
-                  Create, edit, and assign drills
+                  Tạo, chỉnh sửa và giao bài tập
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#9ca3af" />
@@ -170,8 +158,8 @@ export default function CoachHome() {
         </Section>
         {/* -------- UPCOMING -------- */}
         <Section
-          title="Upcoming Sessions"
-          caption="Nhấn để vào chi tiết / bắt đầu call"
+          title="Buổi học sắp tới"
+          caption="Nhấn để vào chi tiết / bắt đầu cuộc gọi"
         >
           <FlatList
             data={upcoming}
@@ -182,8 +170,8 @@ export default function CoachHome() {
               <Card
                 onPress={() =>
                   router.push({
-                    pathname: "/(coach)/session/[id]/note",
-                    params: { id: item.id },
+                    pathname: "/(coach)/calendar/session/[id]",
+                    params: { id: item.id, fromCalendar: "true" },
                   })
                 }
               >
@@ -205,13 +193,13 @@ export default function CoachHome() {
                   <Pressable
                     onPress={() =>
                       router.push({
-                        pathname: "/(coach)/session/[id]/note",
-                        params: { id: item.id },
+                        pathname: "/(coach)/calendar/session/[id]",
+                        params: { id: item.id, fromCalendar: "true" },
                       })
                     }
                     style={styles.joinBtn}
                   >
-                    <Text style={styles.joinBtnText}>Join</Text>
+                    <Text style={styles.joinBtnText}>Xem</Text>
                   </Pressable>
                 </View>
               </Card>
@@ -219,50 +207,135 @@ export default function CoachHome() {
           />
         </Section>
 
-        {/* -------- NEW REQUESTS -------- */}
+        {/* -------- TODAY'S SCHEDULE -------- */}
         <Section
-          title="New Requests"
-          caption="Xử lý nhanh các yêu cầu đặt lịch mới"
+          title="Lịch trình hôm nay"
+          caption="Các buổi học của bạn hôm nay"
         >
           <FlatList
-            data={requests}
+            data={upcoming.filter((s) => s.time.includes("Today"))}
             keyExtractor={(x) => x.id}
             scrollEnabled={false}
             ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            renderItem={({ item }) => (
+            ListEmptyComponent={() => (
               <Card>
                 <View style={styles.cardRow}>
-                  <Ionicons name="person-outline" size={18} color="#111827" />
+                  <Ionicons
+                    name="calendar-clear-outline"
+                    size={18}
+                    color="#64748b"
+                  />
+                  <View style={{ marginLeft: 10, flex: 1 }}>
+                    <Text style={styles.cardTitle}>
+                      Không có buổi học hôm nay
+                    </Text>
+                    <Text style={styles.cardSub}>
+                      Tận hưởng ngày nghỉ của bạn!
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+            )}
+            renderItem={({ item }) => (
+              <Card
+                onPress={() =>
+                  router.push({
+                    pathname: "/(coach)/calendar/session/[id]",
+                    params: { id: item.id, fromCalendar: "true" },
+                  })
+                }
+              >
+                <View style={styles.cardRow}>
+                  <Ionicons
+                    name={
+                      item.mode === "online" ? "globe-outline" : "pin-outline"
+                    }
+                    size={18}
+                    color="#111827"
+                  />
                   <View style={{ marginLeft: 10, flex: 1 }}>
                     <Text style={styles.cardTitle}>{item.student}</Text>
                     <Text style={styles.cardSub}>
-                      {item.time} · {item.note}
+                      {item.time} ·{" "}
+                      {item.mode === "online" ? "Online" : item.place}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: "row" }}>
-                    <Pressable
-                      style={[styles.reqBtn, { backgroundColor: "#111827" }]}
-                    >
-                      <Text style={[styles.reqText, { color: "#fff" }]}>
-                        Approve
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.reqBtn, { backgroundColor: "#F3F4F6" }]}
-                    >
-                      <Text style={[styles.reqText, { color: "#111827" }]}>
-                        Decline
-                      </Text>
-                    </Pressable>
-                  </View>
+                  <Pressable
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(coach)/calendar/session/[id]",
+                        params: { id: item.id, fromCalendar: "true" },
+                      })
+                    }
+                    style={styles.joinBtn}
+                  >
+                    <Text style={styles.joinBtnText}>Bắt đầu</Text>
+                  </Pressable>
                 </View>
               </Card>
             )}
           />
         </Section>
 
+        {/* -------- RECENT ACTIVITY -------- */}
+        <Section
+          title="Hoạt động gần đây"
+          caption="Các cập nhật mới nhất từ huấn luyện của bạn"
+        >
+          <Card>
+            <View style={styles.activityList}>
+              <View style={styles.activityItem}>
+                <View style={styles.activityIconContainer}>
+                  <Ionicons
+                    name="person-add-outline"
+                    size={16}
+                    color="#10b981"
+                  />
+                </View>
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityTitle}>Đăng ký mới</Text>
+                  <Text style={styles.activitySub}>
+                    Học viên Minh đã đăng ký Chiến lược & Chiến thuật
+                  </Text>
+                </View>
+                <Text style={styles.activityTime}>2h ago</Text>
+              </View>
+
+              <View style={styles.activityItem}>
+                <View style={styles.activityIconContainer}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={16}
+                    color="#3b82f6"
+                  />
+                </View>
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityTitle}>Buổi học hoàn thành</Text>
+                  <Text style={styles.activitySub}>
+                    Buổi học 3 với học viên Tuan đã kết thúc
+                  </Text>
+                </View>
+                <Text style={styles.activityTime}>5h ago</Text>
+              </View>
+
+              <View style={styles.activityItem}>
+                <View style={styles.activityIconContainer}>
+                  <Ionicons name="star-outline" size={16} color="#f59e0b" />
+                </View>
+                <View style={styles.activityContent}>
+                  <Text style={styles.activityTitle}>Đánh giá mới</Text>
+                  <Text style={styles.activitySub}>
+                    Học viên Lan để lại đánh giá 5 sao
+                  </Text>
+                </View>
+                <Text style={styles.activityTime}>1d ago</Text>
+              </View>
+            </View>
+          </Card>
+        </Section>
+
         {/* -------- EARNINGS CHART -------- */}
-        <Section title="Financial Earnings" caption="7 ngày gần nhất">
+        <Section title="Thu nhập tài chính" caption="7 ngày gần nhất">
           <Card>
             <MiniBar data={earnings7d} />
           </Card>
@@ -387,9 +460,9 @@ function MiniBar({ data }: { data: number[] }) {
 /* ================= Styles ================= */
 function helloByHour() {
   const h = new Date().getHours();
-  if (h < 11) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
+  if (h < 11) return "Chào buổi sáng";
+  if (h < 17) return "Chào buổi chiều";
+  return "Chào buổi tối";
 }
 
 const styles = StyleSheet.create({
@@ -412,6 +485,32 @@ const styles = StyleSheet.create({
   avatarText: { color: "#fff", fontWeight: "900", fontSize: 16 },
   hello: { color: "#E5E7EB", fontWeight: "700", fontSize: 12 },
   name: { color: "#fff", fontSize: 18, fontWeight: "900", letterSpacing: 0.5 },
+  coachStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 8,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+  },
+  statText: { color: "#fff", fontSize: 10, fontWeight: "600" },
+  verifyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(245, 158, 11, 0.2)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 2,
+  },
+  verifyText: { color: "#fbbf24", fontSize: 10, fontWeight: "600" },
   editBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -479,8 +578,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   cardRow: { flexDirection: "row", alignItems: "center" },
+  sessionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   cardTitle: { fontWeight: "900", color: "#111827" },
   cardSub: { color: "#6b7280", marginTop: 2 },
+  sessionBlockName: {
+    color: "#6366f1",
+    fontSize: 12,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  blockBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#6366f1",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    gap: 2,
+  },
+  blockBadgeText: { color: "#fff", fontSize: 9, fontWeight: "700" },
 
   joinBtn: {
     backgroundColor: "#111827",
@@ -505,4 +625,81 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   legendTxt: { color: "#6b7280", fontSize: 12 },
+
+  // Activity Styles
+  activityList: {
+    gap: 16,
+  },
+  activityItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  activityIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1e293b",
+    marginBottom: 2,
+  },
+  activitySub: {
+    fontSize: 12,
+    color: "#64748b",
+  },
+  activityTime: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontWeight: "600",
+  },
+  specialtyTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 12,
+  },
+  techniquesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  techniqueChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0fdf4",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#bbf7d0",
+  },
+  techniqueText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#166534",
+  },
+  specialtyFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 12,
+    gap: 4,
+  },
+  specialtyFooterText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
 });

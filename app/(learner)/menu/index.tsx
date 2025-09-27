@@ -9,44 +9,44 @@ export default function MenuScreen() {
   const items: MenuItem[] = [
     {
       key: "account",
-      label: "My Account",
+      label: "Tài khoản của tôi",
       icon: <Ionicons name="person-outline" size={20} color="#111" />,
       onPress: () => router.push("/menu/account"),
     },
     {
       key: "profile",
-      label: "Player Profile",
+      label: "Hồ sơ người chơi",
       icon: <MaterialIcons name="sports-tennis" size={20} color="#111" />,
     },
     {
       key: "community",
-      label: "Community",
+      label: "Cộng đồng",
       icon: <MaterialIcons name="open-in-new" size={20} color="#111" />,
       onPress: () => router.push("/menu/community"),
     },
     {
       key: "dupr-app",
-      label: "DUPR App",
+      label: "Ứng dụng DUPR",
       icon: <MaterialIcons name="open-in-new" size={20} color="#111" />,
     },
     {
       key: "coach",
-      label: "Find a Coach",
+      label: "Tìm huấn luyện viên",
       icon: <MaterialIcons name="open-in-new" size={20} color="#111" />,
     },
     {
       key: "share",
-      label: "Share",
+      label: "Chia sẻ",
       icon: <MaterialIcons name="share" size={20} color="#111" />,
     },
     {
       key: "gift",
-      label: "Gift a Player",
+      label: "Tặng người chơi",
       icon: <Ionicons name="gift-outline" size={20} color="#111" />,
     },
     {
       key: "notifications",
-      label: "Notifications",
+      label: "Thông báo",
       icon: <Ionicons name="notifications-outline" size={20} color="#111" />,
     },
     {
