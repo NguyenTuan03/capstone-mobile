@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
   Dimensions,
@@ -7,7 +8,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 export function Stat({
   label,
@@ -490,7 +490,7 @@ export function VideoCardWithAI({
                 marginBottom: 6,
               }}
             >
-              🔍 Key AI Insights:
+              🔍 Phân tích
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
               {video.aiAnalysis.keyInsights
@@ -534,7 +534,7 @@ export function VideoCardWithAI({
           >
             <Ionicons name="play-circle-outline" size={18} color="#fff" />
             <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
-              View Analysis
+              Xem phân tích AI
             </Text>
           </Pressable>
         </View>
@@ -560,7 +560,7 @@ export function EmptyFilmCard({
           marginBottom: 24,
         }}
       >
-        You currently have no films
+        Hiện tại bạn chưa có video nào được phân tích bởi AI.
       </Text>
 
       <Pressable
@@ -578,7 +578,7 @@ export function EmptyFilmCard({
         }}
       >
         <Ionicons name="cloud-upload-outline" size={18} color="#fff" />
-        <Text style={{ color: "#fff", fontWeight: "800" }}>UPLOAD FILM</Text>
+        <Text style={{ color: "#fff", fontWeight: "800" }}>Đăng tải video</Text>
       </Pressable>
 
       <Pressable
@@ -603,7 +603,9 @@ export function EmptyFilmCard({
         }}
       >
         <Ionicons name="film-outline" size={18} color="#fff" />
-        <Text style={{ color: "#fff", fontWeight: "800" }}>VIEW ALL FILMS</Text>
+        <Text style={{ color: "#fff", fontWeight: "800" }}>
+          Xem tất cả video
+        </Text>
       </Pressable>
     </View>
   );

@@ -235,9 +235,9 @@ export default function CoachDetail() {
           <Pressable onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={20} color="#6b7280" />
           </Pressable>
-          <Text style={styles.title}>Coach Detail</Text>
+          <Text style={styles.title}>Thông tin Huấn Luyện Viên</Text>
           <Text style={{ color: "#6b7280", marginTop: 8 }}>
-            Coach not found.
+            Không tìm thấy huấn luyện viên.
           </Text>
         </View>
       </SafeAreaView>
@@ -259,7 +259,7 @@ export default function CoachDetail() {
           <Ionicons name="chevron-back" size={20} color="#6b7280" />
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Text style={styles.title}>Coach Detail</Text>
+        <Text style={styles.title}>Thông tin Huấn Luyện Viên</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -285,8 +285,10 @@ export default function CoachDetail() {
             </View>
 
             <View style={styles.priceContainer}>
-              <Text style={styles.price}>${coach.price}</Text>
-              <Text style={styles.priceUnit}>/hour</Text>
+              <Text style={styles.price}>
+                ₫{(coach.price * 25000).toLocaleString("vi-VN")}
+              </Text>
+              <Text style={styles.priceUnit}>/giờ</Text>
 
               {/* NEW: Book button */}
               <Pressable
@@ -295,7 +297,7 @@ export default function CoachDetail() {
                 }
                 style={styles.bookBtn}
               >
-                <Text style={styles.bookBtnText}>Book</Text>
+                <Text style={styles.bookBtnText}>Đặt lịch</Text>
               </Pressable>
             </View>
           </View>
@@ -303,7 +305,7 @@ export default function CoachDetail() {
 
         {/* Specialties */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Specialties</Text>
+          <Text style={styles.sectionTitle}>Chuyên môn</Text>
           <View style={styles.tagsContainer}>
             {coach.specialties.map((specialty) => (
               <View key={specialty} style={styles.tag}>
@@ -315,17 +317,18 @@ export default function CoachDetail() {
 
         {/* About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.sectionTitle}>Giới thiệu</Text>
           <Text style={styles.paragraph}>
-            {coach.name} is an experienced pickleball coach specializing in{" "}
-            {coach.specialties[0]} and modern doubles strategy. Sessions are
-            tailored to your level with clear drills and video feedback.
+            {coach.name} là một huấn luyện viên pickleball có kinh nghiệm,
+            chuyên về {coach.specialties[0]} và chiến lược đôi hiện đại. Các
+            buổi học được thiết kế theo trình độ của bạn với các bài tập rõ ràng
+            và phản hồi video.
           </Text>
         </View>
 
         {/* Teaching Methodology */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Teaching Methodology</Text>
+          <Text style={styles.sectionTitle}>Phương pháp Giảng dạy</Text>
           {typeof coach.methodology === "object" ? (
             <MethodologySection data={coach.methodology} />
           ) : (
@@ -335,7 +338,7 @@ export default function CoachDetail() {
 
         {/* Reviews */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Learner Feedback</Text>
+          <Text style={styles.sectionTitle}>Phản hồi từ Học viên</Text>
           <View style={styles.reviewsContainer}>
             {coach.reviews && coach.reviews.length > 0 ? (
               coach.reviews.map((review) => (
@@ -362,7 +365,7 @@ export default function CoachDetail() {
                 </View>
               ))
             ) : (
-              <Text style={styles.noReviews}>No reviews yet.</Text>
+              <Text style={styles.noReviews}>Chưa có đánh giá nào.</Text>
             )}
           </View>
         </View>
@@ -417,10 +420,10 @@ function MethodologySection({ data }: { data?: Methodology }) {
 
   return (
     <View style={styles.methodCard}>
-      <Row title="Session Structure" keyName="structure">
+      <Row title="Cấu trúc Buổi học" keyName="structure">
         {data.sessionStructure?.warmup?.length ? (
           <>
-            <Text style={styles.mutedBold}>Warm-up</Text>
+            <Text style={styles.mutedBold}>Khởi động</Text>
             {data.sessionStructure.warmup.map((x, i) => (
               <Bullet key={`wu-${i}`} text={x} />
             ))}
@@ -430,17 +433,17 @@ function MethodologySection({ data }: { data?: Methodology }) {
         {data.sessionStructure?.coreDrills?.length ? (
           <>
             <Text style={[styles.mutedBold, { marginTop: 8 }]}>
-              Core Drills
+              Bài tập Chính
             </Text>
             {data.sessionStructure.coreDrills.map((d, i) => (
               <View key={`cd-${i}`} style={{ marginBottom: 6 }}>
                 <Text style={[styles.paragraph, { fontWeight: "700" }]}>
                   {d.name}
                 </Text>
-                <Text style={styles.paragraph}>Goal: {d.goal}</Text>
+                <Text style={styles.paragraph}>Mục tiêu: {d.goal}</Text>
                 {d.metric ? (
                   <Text style={[styles.paragraph, { color: "#059669" }]}>
-                    Metric: {d.metric}
+                    Chỉ số: {d.metric}
                   </Text>
                 ) : null}
               </View>
@@ -451,7 +454,7 @@ function MethodologySection({ data }: { data?: Methodology }) {
         {data.sessionStructure?.situationalPlay?.length ? (
           <>
             <Text style={[styles.mutedBold, { marginTop: 8 }]}>
-              Situational Play
+              Chơi theo Tình huống
             </Text>
             {data.sessionStructure.situationalPlay.map((x, i) => (
               <Bullet key={`sp-${i}`} text={x} />
@@ -461,7 +464,7 @@ function MethodologySection({ data }: { data?: Methodology }) {
 
         {data.sessionStructure?.cooldown?.length ? (
           <>
-            <Text style={[styles.mutedBold, { marginTop: 8 }]}>Cool-down</Text>
+            <Text style={[styles.mutedBold, { marginTop: 8 }]}>Hạ nhiệt</Text>
             {data.sessionStructure.cooldown.map((x, i) => (
               <Bullet key={`cdl-${i}`} text={x} />
             ))}
@@ -469,24 +472,24 @@ function MethodologySection({ data }: { data?: Methodology }) {
         ) : null}
       </Row>
 
-      <Row title="Teaching Principles" keyName="principles">
+      <Row title="Nguyên tắc Giảng dạy" keyName="principles">
         {data.teachingPrinciples?.map((x, i) => (
           <Bullet key={`tp-${i}`} text={x} />
         ))}
       </Row>
 
-      <Row title="Level Guidelines" keyName="levels">
+      <Row title="Hướng dẫn theo Trình độ" keyName="levels">
         {data.levelGuidelines?.map((lv, i) => (
           <View key={`lv-${i}`} style={styles.levelBox}>
             <Text style={{ fontWeight: "800", color: "#111827" }}>
               {lv.level}
             </Text>
-            <Text style={styles.mutedBold}>Focus</Text>
+            <Text style={styles.mutedBold}>Trọng tâm</Text>
             {lv.focus.map((f, j) => (
               <Bullet key={`f-${i}-${j}`} text={f} />
             ))}
             <Text style={[styles.mutedBold, { marginTop: 6 }]}>
-              Success Criteria
+              Tiêu chí Thành công
             </Text>
             {lv.successCriteria.map((c, j) => (
               <Bullet key={`c-${i}-${j}`} text={c} />
@@ -496,7 +499,7 @@ function MethodologySection({ data }: { data?: Methodology }) {
       </Row>
 
       {data.equipment?.length ? (
-        <Row title="Equipment" keyName="equipment">
+        <Row title="Thiết bị" keyName="equipment">
           {data.equipment.map((x, i) => (
             <Bullet key={`eq-${i}`} text={x} />
           ))}
@@ -504,23 +507,23 @@ function MethodologySection({ data }: { data?: Methodology }) {
       ) : null}
 
       {(data.safetyNotes?.length ?? 0) > 0 ? (
-        <Row title="Safety Notes" keyName="safety">
+        <Row title="Lưu ý An toàn" keyName="safety">
           {data.safetyNotes!.map((x, i) => (
             <Bullet key={`sn-${i}`} text={x} />
           ))}
         </Row>
       ) : null}
 
-      <Row title="Video Feedback" keyName="feedback">
+      <Row title="Phản hồi Video" keyName="feedback">
         {data.videoFeedback?.used ? (
           <>
-            <Bullet text="Coach uses video for form review" />
+            <Bullet text="Huấn luyện viên sử dụng video để phân tích kỹ thuật" />
             {data.videoFeedback?.notes ? (
               <Bullet text={data.videoFeedback.notes} />
             ) : null}
           </>
         ) : (
-          <Text style={styles.paragraph}>Not used</Text>
+          <Text style={styles.paragraph}>Không sử dụng</Text>
         )}
       </Row>
     </View>

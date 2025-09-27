@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Image,
-  ScrollView,
-} from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
+import React, { useState } from "react";
+import {
+  Image,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CoachMenu() {
@@ -42,14 +42,18 @@ export default function CoachMenu() {
           />
           <View style={{ flex: 1, marginLeft: 12 }}>
             <Text style={st.name}>David Nguyen</Text>
-            <Text style={st.meta}>Pickleball Coach · HCMC</Text>
+            <Text style={st.meta}>Huấn luyện viên Pickleball · TP.HCM</Text>
             <View style={{ flexDirection: "row", marginTop: 6 }}>
               <Badge
                 color={verified ? "#16a34a" : "#f59e0b"}
                 icon={verified ? "shield-checkmark" : "shield-outline"}
-                text={verified ? "Verified" : "Verification pending"}
+                text={verified ? "Đã xác minh" : "Chờ xác minh"}
               />
-              <Badge color="#111827" icon="star-outline" text="Top Rated" />
+              <Badge
+                color="#111827"
+                icon="star-outline"
+                text="Được đánh giá cao"
+              />
             </View>
           </View>
           <Pressable
@@ -57,46 +61,56 @@ export default function CoachMenu() {
             style={st.primary}
           >
             <Ionicons name="create-outline" size={16} color="#fff" />
-            <Text style={st.primaryTxt}>Edit</Text>
+            <Text style={st.primaryTxt}>Chỉnh sửa</Text>
           </Pressable>
         </View>
 
         {/* ===== Coaching Tools (NEW) ===== */}
-        <Section title="Coaching Tools">
+        <Section title="Công cụ huấn luyện">
           <Row
             icon={
               <Ionicons name="calendar-outline" size={18} color="#111827" />
             }
-            title="Sessions & Notes"
-            subtitle="Lịch dạy, vào phiên, ghi chú"
+            title="Lịch & Buổi học"
+            subtitle="Xem lịch trình, chi tiết buổi học và ghi chú"
             onPress={() => router.push("/(coach)/calendar/index" as any)}
           />
           <Row
             icon={<Ionicons name="barbell-outline" size={18} color="#111827" />}
-            title="Drills & Assignments"
-            subtitle="Thư viện drill, giao bài"
-            onPress={() => router.push("/(coach)/drill" as any)}
+            title="Bài tập & Phân công"
+            subtitle="Thư viện bài tập, giao bài"
+            onPress={() => router.push("/(coach)/menu/drills" as any)}
+          />
+          <Row
+            icon={
+              <Ionicons
+                name="document-text-outline"
+                size={18}
+                color="#111827"
+              />
+            }
+            title="Ghi chú buổi học"
+            subtitle="Xem và quản lý ghi chú buổi học"
+            onPress={() => router.push("/(coach)/calendar/index" as any)}
+          />
+          <Row
+            icon={<Ionicons name="library-outline" size={18} color="#111827" />}
+            title="Khóa học"
+            subtitle="Tạo chương trình đào tạo & giáo trình"
+            onPress={() => router.push("/(coach)/menu/session-blocks" as any)}
           />
           <Row
             icon={
               <Ionicons name="add-circle-outline" size={18} color="#111827" />
             }
-            title="Create New Drill"
-            subtitle="Tạo template mới"
-            onPress={() => router.push("/(coach)/drill/new" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons name="clipboard-outline" size={18} color="#111827" />
-            }
-            title="Assign Drill"
-            subtitle="Giao bài cho học viên"
-            onPress={() => router.push("/(coach)/drill/assign" as any)}
+            title="Tạo Bài tập mới"
+            subtitle="Tạo mẫu mới"
+            onPress={() => router.push("/(coach)/menu/drills/new" as any)}
           />
         </Section>
 
         {/* Profile & Setup */}
-        <Section title="Profile & Setup">
+        <Section title="Hồ sơ & Cài đặt">
           <Row
             icon={
               <Ionicons
@@ -105,8 +119,8 @@ export default function CoachMenu() {
                 color="#111827"
               />
             }
-            title="Professional Profile"
-            subtitle="Headline, bio, experience, media"
+            title="Hồ sơ chuyên nghiệp"
+            subtitle="Tiêu đề, tiểu sử, kinh nghiệm, phương tiện"
             onPress={() => router.push("/(coach)/menu/profile" as any)}
           />
           <Row
@@ -117,12 +131,12 @@ export default function CoachMenu() {
                 color="#111827"
               />
             }
-            title="Credential Verification"
-            subtitle="ID & Certifications"
+            title="Xác minh thông tin"
+            subtitle="CMND/CCCD & Chứng chỉ"
             onPress={() => router.push("/(coach)/menu/verify" as any)}
             right={
               <Pill
-                text={verified ? "Verified" : "Start"}
+                text={verified ? "Đã xác minh" : "Bắt đầu"}
                 tone={verified ? "ok" : "warn"}
               />
             }
@@ -131,34 +145,34 @@ export default function CoachMenu() {
             icon={
               <MaterialIcons name="sports-tennis" size={18} color="#111827" />
             }
-            title="Teaching Specialty & Methodology"
-            subtitle="Areas of focus, coaching style"
+            title="Chuyên môn giảng dạy & Phương pháp luận"
+            subtitle="Lĩnh vực tập trung, phong cách huấn luyện"
             onPress={() => router.push("/(coach)/menu/teaching" as any)}
           />
           <Row
             icon={
               <Ionicons name="pricetag-outline" size={18} color="#111827" />
             }
-            title="Rates & Packages"
-            subtitle="Hourly, clinic, group"
+            title="Giá & Gói"
+            subtitle="Theo giờ, phòng khám, nhóm"
             onPress={() => router.push("/(coach)/menu/rates" as any)}
           />
         </Section>
 
         {/* Operations */}
-        <Section title="Operations">
+        <Section title="Vận hành">
           <Row
             icon={<Ionicons name="cash-outline" size={18} color="#111827" />}
-            title="Payouts & Bank"
-            subtitle="Connect Stripe / Bank account"
+            title="Thanh toán & Ngân hàng"
+            subtitle="Kết nối Stripe / Tài khoản ngân hàng"
             onPress={() => router.push("/(coach)/menu/payouts" as any)}
           />
           <Row
             icon={
               <Ionicons name="videocam-outline" size={18} color="#111827" />
             }
-            title="Integrations"
-            subtitle="Video conferencing provider"
+            title="Tích hợp"
+            subtitle="Nhà cung cấp dịch vụ hội nghị video"
             onPress={() => router.push("/(coach)/menu/integrations" as any)}
           />
           <Row
@@ -169,28 +183,28 @@ export default function CoachMenu() {
                 color="#111827"
               />
             }
-            title="Notifications"
-            subtitle="Booking, reminders, payouts"
+            title="Thông báo"
+            subtitle="Đặt lịch, nhắc nhở, thanh toán"
             onPress={() => router.push("/(coach)/menu/notifications" as any)}
           />
         </Section>
 
         {/* Account */}
-        <Section title="Account">
+        <Section title="Tài khoản">
           <Row
             icon={
               <Ionicons name="lock-closed-outline" size={18} color="#111827" />
             }
-            title="Security"
-            subtitle="Password, 2FA"
+            title="Bảo mật"
+            subtitle="Mật khẩu, Xác thực 2 lớp"
             onPress={() => router.push("/(coach)/menu/security" as any)}
           />
           <Row
             icon={
               <Ionicons name="help-circle-outline" size={18} color="#111827" />
             }
-            title="Support"
-            subtitle="Feedback / Contact us"
+            title="Hỗ trợ"
+            subtitle="Phản hồi / Liên hệ chúng tôi"
             onPress={() => router.push("/(coach)/menu/support" as any)}
           />
           <Row
@@ -201,8 +215,8 @@ export default function CoachMenu() {
                 color="#111827"
               />
             }
-            title="About"
-            subtitle="Terms · Privacy · App version"
+            title="Về chúng tôi"
+            subtitle="Điều khoản · Chính sách bảo mật · Phiên bản ứng dụng"
             onPress={() => router.push("/(coach)/menu/about" as any)}
           />
         </Section>
@@ -210,19 +224,19 @@ export default function CoachMenu() {
         {/* Toggles */}
         <View style={st.toggleWrap}>
           <ToggleRow
-            label="Push Notifications"
+            label="Thông báo đẩy"
             value={pushOn}
             onChange={setPushOn}
           />
           <ToggleRow
-            label="Email Notifications"
+            label="Thông báo email"
             value={emailOn}
             onChange={setEmailOn}
           />
         </View>
         <Row
           icon={<Ionicons name="log-out-outline" size={18} color="#111827" />}
-          title="Logout"
+          title="Đăng xuất"
           onPress={() => router.push("/(auth)" as Href)}
         />
       </ScrollView>

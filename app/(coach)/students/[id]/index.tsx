@@ -271,7 +271,7 @@ export default function StudentDetail() {
                         />
                         <QA
                           icon="barbell-outline"
-                          label="Assign Drills"
+                          label="Giao Bài tập"
                           onPress={() =>
                             setAssigns((prev) => [
                               {

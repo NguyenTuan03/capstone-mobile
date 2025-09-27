@@ -61,7 +61,7 @@ const DB = {
     ],
   },
   "2": {
-    title: "Serve & Return",
+    title: "Giao bóng cơ bản",
     sections: [
       {
         type: "video",

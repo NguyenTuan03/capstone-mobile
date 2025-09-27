@@ -2,6 +2,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
+import { useBookings } from "@/modules/learner/context/bookingContext";
 import {
   FlatList,
   Image,
@@ -19,7 +20,6 @@ type Coach = {
   name: string;
   avatar: string;
   rating: number;
-  price: number;
   location: string;
   specialties: string[];
 };
@@ -30,44 +30,39 @@ const COACHES: Coach[] = [
     name: "David Miller",
     avatar: "https://i.pravatar.cc/200?img=12",
     rating: 4.9,
-    price: 35,
-    location: "District 1, HCMC",
-    specialties: ["Dinking", "3rd Shot", "Strategy"],
+    location: "Quận 1, TP.HCM",
+    specialties: ["Bóng dink", "Cú thứ ba", "Chiến thuật"],
   },
   {
     id: "c2",
     name: "Sophia Nguyen",
     avatar: "https://i.pravatar.cc/200?img=32",
     rating: 4.8,
-    price: 25,
-    location: "Thu Duc City",
-    specialties: ["Serve", "Return", "Footwork"],
+    location: "Thủ Đức",
+    specialties: ["Phát bóng", "Đón bóng", "Chuyển động chân"],
   },
   {
     id: "c3",
     name: "Liam Tran",
     avatar: "https://i.pravatar.cc/200?img=68",
     rating: 5,
-    price: 40,
-    location: "District 7, HCMC",
-    specialties: ["Kitchen Readiness", "Doubles Tactics"],
+    location: "Quận 7, TP.HCM",
+    specialties: ["Sẵn sàng khu vực bếp", "Chiến thuật đôi"],
   },
 ];
 
 const SPECIALTIES = [
-  "Dinking",
-  "Serve",
-  "3rd Shot",
-  "Return",
-  "Footwork",
-  "Strategy",
+  "Bóng dink",
+  "Phát bóng",
+  "Cú thứ ba",
+  "Đón bóng",
+  "Chuyển động chân",
+  "Chiến thuật",
 ] as const;
-const PRICE_TIERS = ["$", "$$", "$$$"] as const;
 
 export default function Coaches() {
   const [q, setQ] = useState("");
   const [spec, setSpec] = useState<string | null>(null);
-  const [tier, setTier] = useState<(typeof PRICE_TIERS)[number] | null>(null);
   const insets = useSafeAreaInsets();
 
   const data = useMemo(() => {
@@ -76,15 +71,9 @@ export default function Coaches() {
         (!q ||
           c.name.toLowerCase().includes(q.toLowerCase()) ||
           c.location.toLowerCase().includes(q.toLowerCase())) &&
-        (!spec || c.specialties.includes(spec)) &&
-        (!tier ||
-          (tier === "$"
-            ? c.price <= 25
-            : tier === "$$"
-              ? c.price > 25 && c.price <= 35
-              : c.price > 35)),
+        (!spec || c.specialties.includes(spec)),
     );
-  }, [q, spec, tier]);
+  }, [q, spec]);
 
   return (
     <SafeAreaView
@@ -105,7 +94,7 @@ export default function Coaches() {
               style={s.hero}
             >
               <View style={s.heroHeader}>
-                <Text style={s.heroTitle}>Find a Coach</Text>
+                <Text style={s.heroTitle}>Tìm Huấn Luyện Viên</Text>
               </View>
 
               <Pressable
@@ -115,20 +104,20 @@ export default function Coaches() {
                 style={s.mySessionsBtn}
               >
                 <Ionicons name="calendar-outline" size={18} color="#111827" />
-                <Text style={s.mySessionsText}>My Sessions</Text>
+                <Text style={s.mySessionsText}>Buổi Học Của Tôi</Text>
                 <Ionicons name="chevron-forward" size={14} color="#111827" />
               </Pressable>
 
               <Text style={s.heroSub}>
-                Filter by location, specialty, and price — book a session in
-                30s.
+                Lọc theo địa điểm và chuyên môn — đăng ký khóa học đào tạo trong
+                30 giây.
               </Text>
 
               {/* Search */}
               <View style={s.searchWrap}>
                 <Ionicons name="search" size={18} color="#6b7280" />
                 <TextInput
-                  placeholder="Search coach or location..."
+                  placeholder="Tìm kiếm huấn luyện viên hoặc địa điểm..."
                   placeholderTextColor="#9ca3af"
                   value={q}
                   onChangeText={setQ}
@@ -148,14 +137,6 @@ export default function Coaches() {
                       size={14}
                       color={active ? "#111" : "#6b7280"}
                     />
-                  )}
-                />
-                <ScrollChips
-                  items={PRICE_TIERS as unknown as string[]}
-                  value={tier}
-                  onChange={setTier}
-                  icon={() => (
-                    <Ionicons name="cash-outline" size={14} color="#6b7280" />
                   )}
                 />
               </View>
@@ -206,24 +187,20 @@ function CoachCard({ coach }: { coach: Coach }) {
           ))}
         </View>
 
-        {/* Price & Actions */}
+        {/* Actions */}
         <View style={s.cardFooter}>
-          <View style={s.priceContainer}>
-            <Text style={s.price}>${coach.price}</Text>
-            <Text style={s.priceUnit}>/hour</Text>
-          </View>
           <View style={s.actionButtons}>
             <Pressable
               onPress={handleDetailPress}
               style={[s.actionBtn, s.detailBtn]}
             >
-              <Text style={s.detailBtnText}>Detail</Text>
+              <Text style={s.detailBtnText}>Xem Chi Tiết</Text>
             </Pressable>
             <Pressable
               onPress={handleBookPress}
               style={[s.actionBtn, s.bookBtn]}
             >
-              <Text style={s.bookBtnText}>Book</Text>
+              <Text style={s.bookBtnText}>Xem khóa học</Text>
             </Pressable>
           </View>
         </View>
@@ -288,151 +265,152 @@ const s = StyleSheet.create({
   },
   heroTitle: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "800",
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   mySessionsBtn: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   mySessionsText: {
     color: "#111827",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
     marginLeft: 8,
     flex: 1,
   },
-  heroSub: { color: "#d1d5db", marginTop: 4 },
+  heroSub: {
+    color: "#d1d5db",
+    marginTop: 4,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   searchWrap: {
-    marginTop: 12,
-    backgroundColor: "#111827",
+    marginTop: 16,
+    backgroundColor: "#1f2937",
     borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
+    paddingHorizontal: 16,
+    height: 48,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#27272a",
+    borderColor: "#374151",
   },
-  searchInput: { color: "#fff", marginLeft: 8, flex: 1 },
-  filters: { marginTop: 6 },
+  searchInput: {
+    color: "#fff",
+    marginLeft: 8,
+    flex: 1,
+    fontSize: 16,
+  },
+  filters: { marginTop: 8 },
   chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#374151",
     borderRadius: 999,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#4b5563",
   },
-  chipActive: { backgroundColor: "#fff", borderColor: "#111" },
-  chipText: { color: "#374151", fontWeight: "600" },
-  chipTextActive: { color: "#111" },
+  chipActive: { backgroundColor: "#fff", borderColor: "#111827" },
+  chipText: { color: "#f3f4f6", fontWeight: "600", fontSize: 13 },
+  chipTextActive: { color: "#111827", fontWeight: "700" },
 
-  name: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  ratingText: { color: "#6b7280", marginLeft: 4, fontWeight: "700" },
-  dot: { color: "#9ca3af", marginHorizontal: 6 },
-  locText: { color: "#6b7280", marginLeft: 4 },
+  name: { fontSize: 18, fontWeight: "700", color: "#111827" },
+  ratingText: { color: "#6b7280", marginLeft: 4, fontWeight: "600" },
+  dot: { color: "#d1d5db", marginHorizontal: 8 },
+  locText: { color: "#6b7280", marginLeft: 4, fontSize: 14 },
   tag: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e5e7eb",
+    backgroundColor: "#f0f9ff",
+    borderColor: "#0ea5e9",
     borderWidth: 1,
     borderRadius: 999,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  tagText: { color: "#111827", fontWeight: "600", fontSize: 12 },
+  tagText: { color: "#0369a1", fontWeight: "600", fontSize: 12 },
 
   price: { fontWeight: "800", color: "#111827", fontSize: 16 },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 20,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#f3f4f6",
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: 14,
+    gap: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 2,
-    borderColor: "#f3f4f6",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: "#f0f9ff",
   },
   cardContent: {
     flex: 1,
-    gap: 8,
+    gap: 12,
   },
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 4,
   },
   specialtiesRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 8,
   },
   cardFooter: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 4,
-  },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "baseline",
-  },
-  priceUnit: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-    marginLeft: 2,
+    marginTop: 16,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
   },
   actionBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
     borderWidth: 1,
   },
   detailBtn: {
-    backgroundColor: "#f9fafb",
-    borderColor: "#e5e7eb",
+    backgroundColor: "#f8fafc",
+    borderColor: "#e2e8f0",
   },
   detailBtnText: {
-    color: "#374151",
+    color: "#475569",
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: 13,
   },
   bookBtn: {
-    backgroundColor: "#111827",
-    borderColor: "#111827",
+    backgroundColor: "#0ea5e9",
+    borderColor: "#0ea5e9",
   },
   bookBtnText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: 13,
   },
 });

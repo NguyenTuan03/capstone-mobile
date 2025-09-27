@@ -34,7 +34,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="home/index"
         options={{
-          title: "Home",
+          title: "Trang chủ",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -47,7 +47,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="calendar/index"
         options={{
-          title: "Calendar",
+          title: "Lịch trình",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "calendar" : "calendar-outline"}
@@ -60,7 +60,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="students"
         options={{
-          title: "Students",
+          title: "Học viên",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "people" : "people-outline"}
@@ -73,7 +73,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="earnings/index"
         options={{
-          title: "Earnings",
+          title: "Thu nhập",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "cash" : "cash-outline"}
@@ -96,8 +96,6 @@ export default function CoachTabs() {
           ),
         }}
       />
-      <Tabs.Screen name="drill" options={{ href: null }} />
-      <Tabs.Screen name="session" options={{ href: null }} />
     </Tabs>
   );
 }

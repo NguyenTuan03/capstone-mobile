@@ -22,7 +22,6 @@ import Svg, { Rect } from "react-native-svg";
 import { useBookings } from "@/modules/learner/context/bookingContext"; // <- context đã làm ở trên
 import {
   DividerCurve,
-  EmptyFilmCard,
   OutlineButton,
   PrimaryButton,
   RoadmapButton,
@@ -36,14 +35,14 @@ const { height: H } = Dimensions.get("window");
 const HERO_H = Math.round(H * 0.5);
 
 const skills = [
-  "Serve",
-  "Return",
-  "Non Bounce Volley",
-  "Dinking",
-  "3rd Shot Drop",
-  "Kitchen Readiness",
-  "Court Position",
-  "Partner Chemistry",
+  "Phát bóng",
+  "Đón bóng",
+  "Volley không nảy",
+  "Bóng dink",
+  "Cú thứ ba rơi",
+  "Sẵn sàng khu vực bếp",
+  "Vị trí sân",
+  "Hóa học đôi",
 ];
 
 const sampleVideos = [
@@ -153,9 +152,9 @@ export default function HomeScreen() {
 
               {/* 3 stats */}
               <View style={styles.statsRow}>
-                <Stat label="DUPR" value="NR +" sub="Not Rated" />
-                <Stat label="Your DUPR Goal" value="NR" sub="Not Rated" />
-                <Stat label="DUPR Coach" value="David" emphasis />
+                <Stat label="Hiện tại" value="1.0" sub="Chưa xếp hạng" />
+                <Stat label="Mục tiêu" value="2.0" sub="Chưa xếp hạng" />
+                <Stat label="HLV DUPR" value="David" emphasis />
               </View>
 
               {/* Achievements */}
@@ -165,8 +164,8 @@ export default function HomeScreen() {
 
               {/* CTA */}
               <View style={{ flexDirection: "row", gap: 12 }}>
-                <PrimaryButton title="✨ AI ANALYZER" onPress={() => {}} />
-                <OutlineButton title="VIEW ROADMAP" onPress={() => {}} light />
+                <PrimaryButton title="✨ AI PHÂN TÍCH" onPress={() => {}} />
+                <OutlineButton title="XEM LỘ TRÌNH" onPress={() => {}} light />
               </View>
             </LinearGradient>
           </ImageBackground>
@@ -183,13 +182,16 @@ export default function HomeScreen() {
           ]}
         >
           {/* NEXT SESSION */}
-          <SectionTitle title="NEXT SESSION" caption="Your next session" />
+          <SectionTitle
+            title="BUỔI HỌC TIẾP THEO"
+            caption="Buổi học tiếp theo của bạn"
+          />
           <NextSessionCard session={next} />
 
           {/* DUPR SKILLS */}
           <SectionTitle
-            title="Personal Skills"
-            caption={`See below your scores for your game areas. Your coach has\nrated each area on a DUPR scale of 2 to 8.`}
+            title="Kỹ Năng Cá Nhân"
+            caption={`Xem điểm số của bạn ở các khu vực trò chơi dưới đây. Huấn luyện viên đã\nchấm điểm từng khu vực trên thang DUPR từ 2 đến 8.`}
           />
           <View style={styles.skillGrid}>
             {skills.map((label) => (
@@ -238,7 +240,7 @@ export default function HomeScreen() {
               <Text
                 style={{ color: "#6b7280", fontWeight: "600", fontSize: 14 }}
               >
-                Upload More Videos
+                Đăng tải thêm video
               </Text>
             </Pressable>
           </View>
@@ -356,19 +358,19 @@ function BadgesRow() {
   const items = [
     {
       id: "streak",
-      label: "7-Day Streak",
+      label: "7 ngày học liên tục",
       icon: "flame" as const,
       from: ["#f97316", "#fb923c"],
     },
     {
       id: "uploads",
-      label: "5 Uploads",
+      label: "Đã tải lên 5 video",
       icon: "cloud-upload-outline" as const,
       from: ["#0ea5e9", "#38bdf8"],
     },
     {
       id: "first",
-      label: "First Session",
+      label: "Hoàn thành buổi học đầu tiên",
       icon: "sparkles-outline" as const,
       from: ["#a78bfa", "#c4b5fd"],
     },

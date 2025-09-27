@@ -38,10 +38,16 @@ export function Segmented({
 export function GradientItem({
   title,
   value,
+  subtitle,
+  color,
+  level,
   onPress,
 }: {
   title: string;
   value: string;
+  subtitle?: string;
+  color?: string;
+  level?: number;
   onPress: () => void;
 }) {
   return (
@@ -52,8 +58,16 @@ export function GradientItem({
         end={{ x: 1, y: 0 }}
         style={s.card}
       >
-        <Text style={s.cardTitle}>{title}</Text>
-        <Text style={s.cardValue}>{value}</Text>
+        <View style={s.cardContent}>
+          <View>
+            <Text style={s.cardTitle}>{title}</Text>
+            {level && <Text style={s.cardLevel}>Level {level}</Text>}
+            {subtitle && <Text style={s.cardSubtitle}>{subtitle}</Text>}
+          </View>
+          <Text style={[s.cardValue, { color: color || "#9ca3af" }]}>
+            {value}
+          </Text>
+        </View>
       </LinearGradient>
     </Pressable>
   );
@@ -113,15 +127,19 @@ const s = StyleSheet.create({
   tipText: { color: "#7c3aed", fontWeight: "600" },
 
   card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     borderRadius: 22,
     paddingVertical: 18,
     paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
+  cardContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   cardTitle: { fontSize: 18, color: "#111", fontWeight: "600" },
-  cardValue: { color: "#9ca3af", fontWeight: "600" },
+  cardLevel: { fontSize: 12, color: "#6b7280", marginTop: 2 },
+  cardSubtitle: { fontSize: 12, color: "#6b7280", marginTop: 1 },
+  cardValue: { fontSize: 14, fontWeight: "600" },
 });
