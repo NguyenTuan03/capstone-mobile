@@ -48,39 +48,39 @@ const skills = [
 const sampleVideos = [
   {
     id: "1",
-    title: "Pickleball Practice Session - Backhand Returns",
+    title: "Buổi Luyện Tập Pickleball - Trả Bóng Backhand",
     thumbnail:
       "https://images.unsplash.com/photo-1591696205602-2f950c4bcb86?q=80&w=1200&auto=format&fit=crop",
     duration: "3:45",
-    date: "2 days ago",
+    date: "2 ngày trước",
     aiAnalysis: {
       overallScore: 85,
       keyInsights: [
-        "Strong footwork",
-        "Consistent contact point",
-        "Good body rotation",
+        "Bước chân vững chắc",
+        "Điểm chạm bóng ổn định",
+        "Xoay người tốt",
       ],
       recommendations: [
-        "Focus on follow-through",
-        "Increase racquet head speed",
+        "Tập trung vào động tác hoàn thành",
+        "Tăng tốc độ đầu vợt",
       ],
-      strengths: ["Excellent timing", "Solid stance"],
-      areasForImprovement: ["Backswing too early", "Weight transfer"],
+      strengths: ["Thời điểm xuất sắc", "Tư thế vững"],
+      areasForImprovement: ["Backswing quá sớm", "Chuyển trọng tâm"],
     },
   },
   {
     id: "2",
-    title: "Dinking Practice - Kitchen Line Drills",
+    title: "Luyện Tập Dink - Bài Tập Đường Biên Kitchen",
     thumbnail:
       "https://images.unsplash.com/photo-1591696205602-2f950c4bcb86?q=80&w=1200&auto=format&fit=crop",
     duration: "5:12",
-    date: "1 week ago",
+    date: "1 tuần trước",
     aiAnalysis: {
       overallScore: 72,
-      keyInsights: ["Good touch", "Patient play", "Shot variety"],
-      recommendations: ["Lower center of gravity", "Better net clearance"],
-      strengths: ["Soft hands", "Shot placement"],
-      areasForImprovement: ["Footwork at kitchen", "Consistency"],
+      keyInsights: ["Cảm giác tốt", "Chơi kiên nhẫn", "Đa dạng cú đánh"],
+      recommendations: ["Hạ thấp trọng tâm", "Khoảng cách lưới tốt hơn"],
+      strengths: ["Tay mềm", "Đặt bóng chính xác"],
+      areasForImprovement: ["Bước chân tại kitchen", "Tính ổn định"],
     },
   },
 ];
@@ -201,8 +201,8 @@ export default function HomeScreen() {
 
           {/* Week progress */}
           <SectionTitle
-            title="WEEKLY PROGRESS"
-            caption="Practice minutes in the last 7 days"
+            title="TIẾN ĐỘ TUẦN"
+            caption="Phút luyện tập trong 7 ngày qua"
           />
           <WeekBarChart data={[20, 0, 35, 50, 15, 60, 30]} />
 
@@ -213,8 +213,8 @@ export default function HomeScreen() {
 
           {/* LATEST FILM */}
           <SectionTitle
-            title="LATEST FILM"
-            caption="See below your latest film upload with AI-powered analysis and insights."
+            title="VIDEO MỚI NHẤT"
+            caption="Xem video tải lên mới nhất với phân tích và thông tin chi tiết bằng AI."
           />
           {sampleVideos.map((video) => (
             <VideoCardWithAI key={video.id} video={video} onPress={() => {}} />
@@ -263,10 +263,10 @@ function NextSessionCard({ session }: { session?: any }) {
       >
         <Ionicons name="calendar-outline" size={20} color="#4b5563" />
         <Text style={styles.nextText}>
-          you don&apos;t have a session — book one now!
+          Bạn chưa có buổi học nào — đặt lịch ngay!
         </Text>
         <Pressable style={styles.nextBtn}>
-          <Text style={styles.nextBtnText}>Find a Coach</Text>
+          <Text style={styles.nextBtnText}>Tìm Huấn Luyện Viên</Text>
         </Pressable>
       </LinearGradient>
     );
@@ -293,7 +293,7 @@ function NextSessionCard({ session }: { session?: any }) {
         </View>
       </View>
       <Pressable style={[styles.nextBtn, { backgroundColor: "#fff" }]}>
-        <Text style={[styles.nextBtnText, { color: "#111827" }]}>Join</Text>
+        <Text style={[styles.nextBtnText, { color: "#111827" }]}>Tham Gia</Text>
       </Pressable>
     </LinearGradient>
   );

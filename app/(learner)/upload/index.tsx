@@ -219,13 +219,13 @@ export default function UploadScreen() {
     try {
     } catch (err) {
       console.error("Error picking document:", err);
-      Alert.alert("Error", "Failed to pick file. Please try again.");
+      Alert.alert("Lỗi", "Không thể chọn file. Vui lòng thử lại.");
     }
   };
 
   const uploadFile = async () => {
     if (!selectedFile) {
-      Alert.alert("No File Selected", "Please select a video file first.");
+      Alert.alert("Chưa chọn file", "Vui lòng chọn file video trước.");
       return;
     }
 
@@ -486,386 +486,406 @@ export default function UploadScreen() {
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top + 12 }}
     >
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 12 }}>
-          <Text
-            style={{
-              fontSize: 32,
-              fontWeight: "900",
-              color: "#111827",
-              marginBottom: 8,
-            }}
-          >
-            ĐĂNG TẢI
-          </Text>
-          <Text
-            style={{
-              color: "#6b7280",
-              marginBottom: 32,
-              lineHeight: 22,
-              fontSize: 16,
-            }}
-          >
-            Đăng tải video của bạn để phân tích AI
-          </Text>
-        </View>
-
-        {/* File Upload Area */}
-        <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "800",
-              color: "#111827",
-              marginBottom: 16,
-            }}
-          >
-            Chọn video để phân tích AI
-          </Text>
-
-          {selectedFile ? (
-            <View
-              style={{
-                backgroundColor: "#F3F4F6",
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 16,
-              }}
-            >
-              <View
+      <FlatList
+        data={getFilteredVideos()}
+        renderItem={({ item }) => <VideoCard video={item} />}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        ListHeaderComponent={
+          <View>
+            {/* Header */}
+            <View style={{ paddingHorizontal: 24, paddingTop: 12 }}>
+              <Text
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 12,
+                  fontSize: 32,
+                  fontWeight: "900",
+                  color: "#111827",
+                  marginBottom: 8,
                 }}
               >
-                <Ionicons name="videocam-outline" size={24} color="#8B5CF6" />
-                <View style={{ marginLeft: 12, flex: 1 }}>
+                ĐĂNG TẢI
+              </Text>
+              <Text
+                style={{
+                  color: "#6b7280",
+                  marginBottom: 32,
+                  lineHeight: 22,
+                  fontSize: 16,
+                }}
+              >
+                Đăng tải video của bạn để phân tích AI
+              </Text>
+            </View>
+
+            {/* File Upload Area */}
+            <View style={{ paddingHorizontal: 24, marginBottom: 24 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontWeight: "800",
+                  color: "#111827",
+                  marginBottom: 16,
+                }}
+              >
+                Chọn video để phân tích AI
+              </Text>
+
+              {selectedFile ? (
+                <View
+                  style={{
+                    backgroundColor: "#F3F4F6",
+                    borderRadius: 16,
+                    padding: 20,
+                    marginBottom: 16,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Ionicons
+                      name="videocam-outline"
+                      size={24}
+                      color="#8B5CF6"
+                    />
+                    <View style={{ marginLeft: 12, flex: 1 }}>
+                      <Text
+                        style={{
+                          fontWeight: "700",
+                          color: "#111827",
+                          fontSize: 16,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {selectedFile.name}
+                      </Text>
+                      <Text style={{ color: "#6b7280", fontSize: 14 }}>
+                        {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setSelectedFile(null)}>
+                      <Ionicons name="close-circle" size={24} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {isUploading && (
+                    <View style={{ marginBottom: 16 }}>
+                      <View
+                        style={{
+                          height: 8,
+                          backgroundColor: "#E5E7EB",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <View
+                          style={{
+                            height: "100%",
+                            width: `${uploadProgress}%`,
+                            backgroundColor: "#8B5CF6",
+                            borderRadius: 4,
+                          }}
+                        />
+                      </View>
+                      <Text
+                        style={{
+                          color: "#6b7280",
+                          fontSize: 12,
+                          marginTop: 4,
+                          textAlign: "center",
+                        }}
+                      >
+                        Đang tải... {uploadProgress}%
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <Pressable
+                  onPress={pickDocument}
+                  style={{
+                    borderStyle: "dashed",
+                    borderWidth: 2,
+                    borderColor: "#8B5CF6",
+                    borderRadius: 16,
+                    padding: 40,
+                    alignItems: "center",
+                    backgroundColor: "#F9FAFB",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Ionicons
+                    name="cloud-upload-outline"
+                    size={48}
+                    color="#8B5CF6"
+                  />
                   <Text
                     style={{
                       fontWeight: "700",
                       color: "#111827",
                       fontSize: 16,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {selectedFile.name}
-                  </Text>
-                  <Text style={{ color: "#6b7280", fontSize: 14 }}>
-                    {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={() => setSelectedFile(null)}>
-                  <Ionicons name="close-circle" size={24} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-
-              {isUploading && (
-                <View style={{ marginBottom: 16 }}>
-                  <View
-                    style={{
-                      height: 8,
-                      backgroundColor: "#E5E7EB",
-                      borderRadius: 4,
-                      overflow: "hidden",
+                      marginTop: 12,
                     }}
                   >
-                    <View
-                      style={{
-                        height: "100%",
-                        width: `${uploadProgress}%`,
-                        backgroundColor: "#8B5CF6",
-                        borderRadius: 4,
-                      }}
-                    />
-                  </View>
+                    Chọn File Video
+                  </Text>
                   <Text
                     style={{
                       color: "#6b7280",
-                      fontSize: 12,
+                      fontSize: 14,
                       marginTop: 4,
                       textAlign: "center",
                     }}
                   >
-                    Đang tải... {uploadProgress}%
+                    MP4, MOV, AVI tối đa 500MB
                   </Text>
-                </View>
+                </Pressable>
               )}
-            </View>
-          ) : (
-            <Pressable
-              onPress={pickDocument}
-              style={{
-                borderStyle: "dashed",
-                borderWidth: 2,
-                borderColor: "#8B5CF6",
-                borderRadius: 16,
-                padding: 40,
-                alignItems: "center",
-                backgroundColor: "#F9FAFB",
-                marginBottom: 16,
-              }}
-            >
-              <Ionicons name="cloud-upload-outline" size={48} color="#8B5CF6" />
-              <Text
-                style={{
-                  fontWeight: "700",
-                  color: "#111827",
-                  fontSize: 16,
-                  marginTop: 12,
-                }}
-              >
-                Choose Video File
-              </Text>
-              <Text
-                style={{
-                  color: "#6b7280",
-                  fontSize: 14,
-                  marginTop: 4,
-                  textAlign: "center",
-                }}
-              >
-                MP4, MOV, AVI up to 500MB
-              </Text>
-            </Pressable>
-          )}
 
-          <Pressable
-            onPress={uploadFile}
-            disabled={!selectedFile || isUploading}
-            style={{
-              backgroundColor:
-                selectedFile && !isUploading ? "#111827" : "#9CA3AF",
-              paddingVertical: 16,
-              borderRadius: 12,
-              alignItems: "center",
-              flexDirection: "row",
-              justifyContent: "center",
-              gap: 8,
-            }}
-          >
-            {isUploading ? (
-              <ActivityIndicator color="#fff" size={20} />
-            ) : (
-              <Ionicons name="play-outline" size={20} color="#fff" />
-            )}
-            <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
-              {isUploading ? "Đang tải lên..." : "Đăng tải lên"}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Uploaded Videos */}
-        {uploadedVideos.length > 0 && (
-          <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "800",
-                color: "#111827",
-                marginBottom: 16,
-              }}
-            >
-              Your Videos
-            </Text>
-            {uploadedVideos.map((video) => (
-              <View
-                key={video.id}
+              <Pressable
+                onPress={uploadFile}
+                disabled={!selectedFile || isUploading}
                 style={{
-                  backgroundColor: "#fff",
+                  backgroundColor:
+                    selectedFile && !isUploading ? "#111827" : "#9CA3AF",
+                  paddingVertical: 16,
                   borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: "#E5E7EB",
-                  padding: 16,
-                  marginBottom: 12,
-                  flexDirection: "row",
                   alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
               >
-                <View
+                {isUploading ? (
+                  <ActivityIndicator color="#fff" size={20} />
+                ) : (
+                  <Ionicons name="play-outline" size={20} color="#fff" />
+                )}
+                <Text
+                  style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+                >
+                  {isUploading ? "Đang tải lên..." : "Đăng tải lên"}
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Uploaded Videos */}
+            {uploadedVideos.length > 0 && (
+              <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
+                <Text
                   style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 8,
-                    backgroundColor: "#F3F4F6",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginRight: 12,
+                    fontSize: 18,
+                    fontWeight: "800",
+                    color: "#111827",
+                    marginBottom: 16,
                   }}
                 >
-                  <Ionicons name="videocam-outline" size={24} color="#6b7280" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      fontWeight: "700",
-                      color: "#111827",
-                      fontSize: 14,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {video.name}
-                  </Text>
-                  <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                    {video.size} • {video.date}
-                  </Text>
+                  Video Của Bạn
+                </Text>
+                {uploadedVideos.map((video) => (
                   <View
+                    key={video.id}
                     style={{
+                      backgroundColor: "#fff",
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "#E5E7EB",
+                      padding: 16,
+                      marginBottom: 12,
                       flexDirection: "row",
                       alignItems: "center",
-                      marginTop: 4,
                     }}
                   >
-                    {video.status === "analyzed" && video.aiScore && (
-                      <>
-                        <Ionicons
-                          name="analytics-outline"
-                          size={12}
-                          color="#10B981"
-                        />
-                        <Text
-                          style={{
-                            color: "#10B981",
-                            fontSize: 12,
-                            fontWeight: "600",
-                            marginLeft: 4,
-                          }}
-                        >
-                          AI Score: {video.aiScore}%
-                        </Text>
-                      </>
-                    )}
-                    {video.status === "processing" && (
-                      <>
-                        <ActivityIndicator size={12} color="#F59E0B" />
-                        <Text
-                          style={{
-                            color: "#F59E0B",
-                            fontSize: 12,
-                            fontWeight: "600",
-                            marginLeft: 4,
-                          }}
-                        >
-                          Processing...
-                        </Text>
-                      </>
-                    )}
+                    <View
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 8,
+                        backgroundColor: "#F3F4F6",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginRight: 12,
+                      }}
+                    >
+                      <Ionicons
+                        name="videocam-outline"
+                        size={24}
+                        color="#6b7280"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontWeight: "700",
+                          color: "#111827",
+                          fontSize: 14,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {video.name}
+                      </Text>
+                      <Text style={{ color: "#6b7280", fontSize: 12 }}>
+                        {video.size} • {video.date}
+                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginTop: 4,
+                        }}
+                      >
+                        {video.status === "analyzed" && video.aiScore && (
+                          <>
+                            <Ionicons
+                              name="analytics-outline"
+                              size={12}
+                              color="#10B981"
+                            />
+                            <Text
+                              style={{
+                                color: "#10B981",
+                                fontSize: 12,
+                                fontWeight: "600",
+                                marginLeft: 4,
+                              }}
+                            >
+                              AI Score: {video.aiScore}%
+                            </Text>
+                          </>
+                        )}
+                        {video.status === "processing" && (
+                          <>
+                            <ActivityIndicator size={12} color="#F59E0B" />
+                            <Text
+                              style={{
+                                color: "#F59E0B",
+                                fontSize: 12,
+                                fontWeight: "600",
+                                marginLeft: 4,
+                              }}
+                            >
+                              Processing...
+                            </Text>
+                          </>
+                        )}
+                      </View>
+                    </View>
+                    <TouchableOpacity>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color="#6b7280"
+                      />
+                    </TouchableOpacity>
                   </View>
-                </View>
-                <TouchableOpacity>
-                  <Ionicons name="chevron-forward" size={20} color="#6b7280" />
-                </TouchableOpacity>
+                ))}
               </View>
-            ))}
-          </View>
-        )}
+            )}
 
-        {/* Available Videos Section */}
-        <View style={{ paddingHorizontal: 24, marginBottom: 32 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 16,
-            }}
-          >
-            <Text style={{ fontSize: 24, fontWeight: "900", color: "#111827" }}>
-              Available Videos
-            </Text>
-            <TouchableOpacity onPress={() => {}}>
-              <Ionicons name="filter-outline" size={20} color="#8B5CF6" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Search Bar */}
-          <View
-            style={{
-              backgroundColor: "#F3F4F6",
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              marginBottom: 16,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <Ionicons name="search-outline" size={18} color="#6b7280" />
-            <TextInput
-              placeholder="Search videos..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={{ flex: 1, color: "#111827", fontSize: 14 }}
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
-
-          {/* Filter Tabs */}
-          <View
-            style={{
-              flexDirection: "row",
-              gap: 8,
-              marginBottom: 16,
-            }}
-          >
-            {[
-              { id: "all", label: "All Videos" },
-              { id: "analyzed", label: "Top Rated" },
-              { id: "recent", label: "Recent" },
-            ].map((filter, idx, arr) => (
-              <TouchableOpacity
-                key={filter.id}
-                onPress={() => setFilterType(filter.id as any)}
+            {/* Available Videos Section Header */}
+            <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
+              <View
                 style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  borderRadius: 20,
-                  backgroundColor:
-                    filterType === filter.id ? "#8B5CF6" : "#F3F4F6",
-                  marginRight: idx < arr.length - 1 ? 8 : 0,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 16,
                 }}
               >
                 <Text
-                  style={{
-                    color: filterType === filter.id ? "#fff" : "#6b7280",
-                    fontSize: 12,
-                    fontWeight: "600",
-                    textAlign: "center",
-                  }}
+                  style={{ fontSize: 24, fontWeight: "900", color: "#111827" }}
                 >
-                  {filter.label}
+                  Video Có Sẵn
                 </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Video List */}
-          <FlatList
-            data={getFilteredVideos()}
-            renderItem={({ item }) => <VideoCard video={item} />}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={{ alignItems: "center", paddingVertical: 40 }}>
-                <Ionicons
-                  name="videocam-off-outline"
-                  size={48}
-                  color="#D1D5DB"
-                />
-                <Text style={{ color: "#6b7280", fontSize: 16, marginTop: 12 }}>
-                  No videos found
-                </Text>
-                <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 4 }}>
-                  Try adjusting your search or filters
-                </Text>
+                <TouchableOpacity onPress={() => {}}>
+                  <Ionicons name="filter-outline" size={20} color="#8B5CF6" />
+                </TouchableOpacity>
               </View>
-            }
-          />
-        </View>
-      </ScrollView>
+
+              {/* Search Bar */}
+              <View
+                style={{
+                  backgroundColor: "#F3F4F6",
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  marginBottom: 16,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <Ionicons name="search-outline" size={18} color="#6b7280" />
+                <TextInput
+                  placeholder="Tìm kiếm video..."
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  style={{ flex: 1, color: "#111827", fontSize: 14 }}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              {/* Filter Tabs */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  marginBottom: 16,
+                }}
+              >
+                {[
+                  { id: "all", label: "Tất Cả Video" },
+                  { id: "analyzed", label: "Đánh Giá Cao" },
+                  { id: "recent", label: "Gần Đây" },
+                ].map((filter, idx, arr) => (
+                  <TouchableOpacity
+                    key={filter.id}
+                    onPress={() => setFilterType(filter.id as any)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 8,
+                      paddingHorizontal: 12,
+                      borderRadius: 20,
+                      backgroundColor:
+                        filterType === filter.id ? "#8B5CF6" : "#F3F4F6",
+                      marginRight: idx < arr.length - 1 ? 8 : 0,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: filterType === filter.id ? "#fff" : "#6b7280",
+                        fontSize: 12,
+                        fontWeight: "600",
+                        textAlign: "center",
+                      }}
+                    >
+                      {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        }
+        ItemSeparatorComponent={() => (
+          <View style={{ height: 12, marginHorizontal: 24 }} />
+        )}
+        ListEmptyComponent={
+          <View style={{ alignItems: "center", paddingVertical: 40 }}>
+            <Ionicons name="videocam-off-outline" size={48} color="#D1D5DB" />
+            <Text style={{ color: "#6b7280", fontSize: 16, marginTop: 12 }}>
+              Không tìm thấy video
+            </Text>
+            <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 4 }}>
+              Thử điều chỉnh tìm kiếm hoặc bộ lọc
+            </Text>
+          </View>
+        }
+      />
 
       {/* Video Details Modal */}
       <Modal

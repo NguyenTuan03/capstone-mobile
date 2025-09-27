@@ -292,7 +292,7 @@ export function RoadmapButton({ onPress }: { onPress: () => void }) {
                 letterSpacing: 0.5,
               }}
             >
-              View Full Roadmap
+              Xem Lộ Trình Đầy Đủ
             </Text>
             <Ionicons name="arrow-forward" size={16} color="#fff" />
           </View>
@@ -307,7 +307,7 @@ export function RoadmapButton({ onPress }: { onPress: () => void }) {
           fontWeight: "500",
         }}
       >
-        Track your learning journey
+        Theo dõi hành trình học tập của bạn
       </Text>
     </View>
   );
@@ -399,7 +399,7 @@ export function VideoCardWithAI({
           >
             <Ionicons name="analytics-outline" size={14} color="#fff" />
             <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>
-              AI ANALYZED
+              PHÂN TÍCH AI
             </Text>
           </View>
 
@@ -461,7 +461,7 @@ export function VideoCardWithAI({
               <Text
                 style={{ color: "#6b7280", fontSize: 12, fontWeight: "600" }}
               >
-                AI Score:
+                Điểm AI:
               </Text>
               <Text
                 style={{

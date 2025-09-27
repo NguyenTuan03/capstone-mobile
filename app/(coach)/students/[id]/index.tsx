@@ -8,7 +8,6 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -150,14 +149,14 @@ export default function StudentDetail() {
           backgroundColor: "#fff",
         }}
       >
-        <Text>Student not found</Text>
+        <Text>Không tìm thấy học viên</Text>
       </SafeAreaView>
     );
   }
 
   const nextTxt = s.nextSession
-    ? `${new Date(s.nextSession.dateISO).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · ${s.nextSession.mode === "online" ? "Online" : s.nextSession.place}`
-    : "No upcoming session";
+    ? `${new Date(s.nextSession.dateISO).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · ${s.nextSession.mode === "online" ? "Trực tuyến" : s.nextSession.place}`
+    : "Không có buổi học sắp tới";
 
   return (
     <SafeAreaView
@@ -168,7 +167,7 @@ export default function StudentDetail() {
         paddingBottom: insets.bottom,
       }}
     >
-      <ScrollView>
+      <View style={{ flex: 1 }}>
         {/* Header */}
         <View
           style={{
@@ -191,7 +190,7 @@ export default function StudentDetail() {
           </Pressable>
           <View style={{ flex: 1 }} />
           <Text style={{ fontWeight: "900", color: "#111827", fontSize: 16 }}>
-            Student Profile
+            Hồ Sơ Học Viên
           </Text>
           <View style={{ width: 36 }} />
         </View>
@@ -224,23 +223,30 @@ export default function StudentDetail() {
             style={st.primary}
           >
             <Ionicons name="calendar-outline" size={16} color="#111827" />
-            <Text style={st.primaryTxt}>Schedule</Text>
+            <Text style={st.primaryTxt}>Lịch học</Text>
           </Pressable>
         </LinearGradient>
 
         {/* Segmented */}
         <View style={st.tabs}>
-          {(["overview", "progress", "sessions"] as const).map((t: any) => (
-            <Pressable
-              key={t}
-              onPress={() => setTab(t)}
-              style={[st.tab, tab === t && st.tabActive]}
-            >
-              <Text style={[st.tabTxt, tab === t && st.tabTxtActive]}>
-                {t[0].toUpperCase() + t.slice(1)}
-              </Text>
-            </Pressable>
-          ))}
+          {(["overview", "progress", "sessions"] as const).map((t: any) => {
+            const tabNames = {
+              overview: "Tổng quan",
+              progress: "Tiến độ",
+              sessions: "Buổi học",
+            };
+            return (
+              <Pressable
+                key={t}
+                onPress={() => setTab(t)}
+                style={[st.tab, tab === t && st.tabActive]}
+              >
+                <Text style={[st.tabTxt, tab === t && st.tabTxtActive]}>
+                  {tabNames[t as keyof typeof tabNames]}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* Body */}
@@ -252,16 +258,15 @@ export default function StudentDetail() {
               { key: "assign" },
               { key: "notes" },
             ]}
-            scrollEnabled={false}
             renderItem={({ item }) => {
               switch (item.key) {
                 case "qa":
                   return (
-                    <Section title="Quick Actions">
+                    <Section title="Thao Tác Nhanh">
                       <View style={st.qaRow}>
                         <QA
                           icon="videocam-outline"
-                          label="Start Session"
+                          label="Bắt Đầu Buổi Học"
                           onPress={() =>
                             router.push({
                               pathname: "/(coach)/call/[sessionId]" as any,
@@ -285,7 +290,7 @@ export default function StudentDetail() {
                         />
                         <QA
                           icon="clipboard-outline"
-                          label="Add Note"
+                          label="Thêm Ghi Chú"
                           onPress={() => setShowNote(true)}
                         />
                       </View>
@@ -294,8 +299,8 @@ export default function StudentDetail() {
                 case "prog":
                   return (
                     <Section
-                      title="Skill Progress"
-                      caption="DUPR trend (last 5 checkpoints)"
+                      title="Tiến Độ Kỹ Năng"
+                      caption="Xu hướng DUPR (5 điểm gần nhất)"
                     >
                       <Card>
                         <Sparkline values={chartData} />
@@ -304,16 +309,10 @@ export default function StudentDetail() {
                   );
                 case "assign":
                   return (
-                    <Section title="Assignments">
-                      <FlatList
-                        data={assigns}
-                        keyExtractor={(x) => x.id}
-                        scrollEnabled={false}
-                        ItemSeparatorComponent={() => (
-                          <View style={{ height: 8 }} />
-                        )}
-                        renderItem={({ item }) => (
-                          <Card>
+                    <Section title="Bài Tập">
+                      <View style={{ gap: 8 }}>
+                        {assigns.map((item) => (
+                          <Card key={item.id}>
                             <View
                               style={{
                                 flexDirection: "row",
@@ -343,7 +342,7 @@ export default function StudentDetail() {
                               </Text>
                               {item.status === "open" ? (
                                 <RoundBtn
-                                  label="Mark done"
+                                  label="Hoàn thành"
                                   solid
                                   onPress={() =>
                                     setAssigns((prev) =>
@@ -357,7 +356,7 @@ export default function StudentDetail() {
                                 />
                               ) : (
                                 <RoundBtn
-                                  label="Reopen"
+                                  label="Mở lại"
                                   onPress={() =>
                                     setAssigns((prev) =>
                                       prev.map((a) =>
@@ -371,22 +370,16 @@ export default function StudentDetail() {
                               )}
                             </View>
                           </Card>
-                        )}
-                      />
+                        ))}
+                      </View>
                     </Section>
                   );
                 case "notes":
                   return (
-                    <Section title="Notes">
-                      <FlatList
-                        data={notes}
-                        keyExtractor={(x) => x.id}
-                        scrollEnabled={false}
-                        ItemSeparatorComponent={() => (
-                          <View style={{ height: 8 }} />
-                        )}
-                        renderItem={({ item }) => (
-                          <Card>
+                    <Section title="Ghi Chú">
+                      <View style={{ gap: 8 }}>
+                        {notes.map((item) => (
+                          <Card key={item.id}>
                             <Text style={{ color: "#6b7280", fontSize: 12 }}>
                               {new Date(item.createdISO).toLocaleString()}
                             </Text>
@@ -400,8 +393,8 @@ export default function StudentDetail() {
                               {item.content}
                             </Text>
                           </Card>
-                        )}
-                      />
+                        ))}
+                      </View>
                     </Section>
                   );
                 default:
@@ -415,131 +408,153 @@ export default function StudentDetail() {
         )}
 
         {tab === "progress" && (
-          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-            <Section title="Weekly Practice Minutes" caption="Last 7 days">
-              <Card>
-                <Bars values={[20, 45, 10, 60, 35, 0, 25]} />
-              </Card>
-            </Section>
-            <Section
-              title="Skill Breakdown"
-              caption="Serve · Return · Dink · 3rd Shot · Position"
-            >
-              <Card>
-                <RadarStub />
-              </Card>
-            </Section>
-          </View>
+          <FlatList
+            data={[{ key: "weekly" }, { key: "breakdown" }]}
+            renderItem={({ item }) => {
+              switch (item.key) {
+                case "weekly":
+                  return (
+                    <Section
+                      title="Phút Luyện Tập Hàng Tuần"
+                      caption="7 ngày qua"
+                    >
+                      <Card>
+                        <Bars values={[20, 45, 10, 60, 35, 0, 25]} />
+                      </Card>
+                    </Section>
+                  );
+                case "breakdown":
+                  return (
+                    <Section
+                      title="Phân Tích Kỹ Năng"
+                      caption="Giao bóng · Trả bóng · Dink · Cú thứ 3 · Vị trí"
+                    >
+                      <Card>
+                        <RadarStub />
+                      </Card>
+                    </Section>
+                  );
+                default:
+                  return null;
+              }
+            }}
+            keyExtractor={(i) => i.key}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+            ListHeaderComponent={<View style={{ height: 16 }} />}
+          />
         )}
 
         {tab === "notes" && (
-          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-            <Pressable
-              onPress={() => setShowNote(true)}
-              style={[st.primary, { alignSelf: "flex-start" }]}
-            >
-              <Ionicons name="add" size={16} color="#111827" />
-              <Text style={st.primaryTxt}>New Note</Text>
-            </Pressable>
-            <FlatList
-              data={notes}
-              keyExtractor={(x) => x.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-              contentContainerStyle={{ paddingVertical: 12 }}
-              renderItem={({ item }) => (
-                <Card>
-                  <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                    {new Date(item.createdISO).toLocaleString()}
-                  </Text>
-                  <Text
-                    style={{
-                      marginTop: 6,
-                      color: "#111827",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {item.content}
-                  </Text>
-                </Card>
-              )}
-            />
-          </View>
+          <FlatList
+            data={notes}
+            keyExtractor={(x) => x.id}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              paddingBottom: 24,
+            }}
+            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+            ListHeaderComponent={
+              <Pressable
+                onPress={() => setShowNote(true)}
+                style={[
+                  st.primary,
+                  { alignSelf: "flex-start", marginBottom: 12 },
+                ]}
+              >
+                <Ionicons name="add" size={16} color="#111827" />
+                <Text style={st.primaryTxt}>Ghi Chú Mới</Text>
+              </Pressable>
+            }
+            renderItem={({ item }) => (
+              <Card>
+                <Text style={{ color: "#6b7280", fontSize: 12 }}>
+                  {new Date(item.createdISO).toLocaleString()}
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 6,
+                    color: "#111827",
+                    fontWeight: "700",
+                  }}
+                >
+                  {item.content}
+                </Text>
+              </Card>
+            )}
+          />
         )}
 
         {tab === "sessions" && (
-          <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-            <FlatList
-              data={MOCK_SESSIONS}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-              contentContainerStyle={{ paddingBottom: 24 }}
-              renderItem={({ item }) => (
-                <View style={st.sessionCard}>
-                  {/* Session Header */}
-                  <View style={st.sessionHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={st.sessionTitle}>{item.type}</Text>
-                      <View style={st.sessionMeta}>
-                        <Ionicons
-                          name="calendar-outline"
-                          size={14}
-                          color="#6b7280"
-                        />
-                        <Text style={st.sessionMetaText}>
-                          {item.date} • {item.time}
-                        </Text>
-                        <Text style={st.sessionDot}>•</Text>
-                        <Ionicons
-                          name="time-outline"
-                          size={14}
-                          color="#6b7280"
-                        />
-                        <Text style={st.sessionMetaText}>{item.duration}</Text>
-                      </View>
-                    </View>
-                    <View
-                      style={[
-                        st.statusBadge,
-                        {
-                          backgroundColor:
-                            item.status === "completed" ? "#10b981" : "#f59e0b",
-                        },
-                      ]}
-                    >
-                      <Text style={st.statusText}>
-                        {item.status === "completed" ? "Completed" : "Upcoming"}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Session Notes */}
-                  {item.status === "completed" && (
-                    <View style={st.sessionNotesContainer}>
-                      <SessionNotes
-                        sessionId={item.id}
-                        title={`Notes for ${item.type}`}
-                      />
-                    </View>
-                  )}
-
-                  {item.status === "upcoming" && (
-                    <View style={st.upcomingNote}>
+          <FlatList
+            data={MOCK_SESSIONS}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              paddingBottom: 24,
+            }}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            renderItem={({ item }) => (
+              <View style={st.sessionCard}>
+                {/* Session Header */}
+                <View style={st.sessionHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={st.sessionTitle}>{item.type}</Text>
+                    <View style={st.sessionMeta}>
                       <Ionicons
-                        name="information-circle-outline"
-                        size={16}
+                        name="calendar-outline"
+                        size={14}
                         color="#6b7280"
                       />
-                      <Text style={st.upcomingNoteText}>
-                        Notes will be available after the session is completed
+                      <Text style={st.sessionMetaText}>
+                        {item.date} • {item.time}
                       </Text>
+                      <Text style={st.sessionDot}>•</Text>
+                      <Ionicons name="time-outline" size={14} color="#6b7280" />
+                      <Text style={st.sessionMetaText}>{item.duration}</Text>
                     </View>
-                  )}
+                  </View>
+                  <View
+                    style={[
+                      st.statusBadge,
+                      {
+                        backgroundColor:
+                          item.status === "completed" ? "#10b981" : "#f59e0b",
+                      },
+                    ]}
+                  >
+                    <Text style={st.statusText}>
+                      {item.status === "completed" ? "Hoàn thành" : "Sắp tới"}
+                    </Text>
+                  </View>
                 </View>
-              )}
-            />
-          </View>
+
+                {/* Session Notes */}
+                {item.status === "completed" && (
+                  <View style={st.sessionNotesContainer}>
+                    <SessionNotes
+                      sessionId={item.id}
+                      title={`Notes for ${item.type}`}
+                    />
+                  </View>
+                )}
+
+                {item.status === "upcoming" && (
+                  <View style={st.upcomingNote}>
+                    <Ionicons
+                      name="information-circle-outline"
+                      size={16}
+                      color="#6b7280"
+                    />
+                    <Text style={st.upcomingNoteText}>
+                      Ghi chú sẽ có sau khi buổi học hoàn thành
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+          />
         )}
 
         {/* Add Note Modal */}
@@ -547,10 +562,10 @@ export default function StudentDetail() {
           <Pressable style={st.backdrop} onPress={() => setShowNote(false)} />
           <View style={st.sheet}>
             <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }}>
-              New Note
+              Ghi Chú Mới
             </Text>
             <TextInput
-              placeholder="Type feedback/notes..."
+              placeholder="Nhập phản hồi/ghi chú..."
               placeholderTextColor="#9ca3af"
               value={noteText}
               onChangeText={setNoteText}
@@ -574,18 +589,18 @@ export default function StudentDetail() {
                   setShowNote(false);
                 }}
               >
-                <Text style={st.primaryTxt}>Save</Text>
+                <Text style={st.primaryTxt}>Lưu</Text>
               </Pressable>
               <Pressable
                 style={[st.secondary, { flex: 1 }]}
                 onPress={() => setShowNote(false)}
               >
-                <Text style={st.secondaryTxt}>Cancel</Text>
+                <Text style={st.secondaryTxt}>Hủy</Text>
               </Pressable>
             </View>
           </View>
         </Modal>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -608,7 +623,7 @@ function Section({
     </View>
   );
 }
-function Card({ children }: React.PropsWithChildren<{}>) {
+function Card({ children }: React.PropsWithChildren) {
   return <View style={st.card}>{children}</View>;
 }
 function QA({

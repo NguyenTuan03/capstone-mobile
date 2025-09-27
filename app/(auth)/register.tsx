@@ -1,8 +1,8 @@
 import AppForm from "@/components/common/AppForm";
 import { useJWTAuthActions } from "@/services/jwt-auth/JWTAuthProvider";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Text, Pressable } from "react-native";
+import { useState } from "react";
+import { Pressable, Text } from "react-native";
 
 const Register = () => {
   const { signInUser } = useJWTAuthActions();
@@ -12,7 +12,7 @@ const Register = () => {
 
   const handleRegister = async (values: Record<string, string>) => {
     if (values.password !== values.confirm) {
-      setError("Passwords do not match");
+      setError("Mật khẩu không khớp");
       return;
     }
 
@@ -22,7 +22,7 @@ const Register = () => {
       await signInUser({ email: values.email, password: values.password });
       router.replace("/(tabs)");
     } catch {
-      setError("Register failed");
+      setError("Đăng ký thất bại");
     } finally {
       setSubmitting(false);
     }
@@ -30,23 +30,23 @@ const Register = () => {
   return (
     <>
       <AppForm
-        title="Create Account"
+        title="Tạo Tài Khoản"
         items={[
           {
             name: "email",
             label: "Email",
-            placeholder: "you@example.com",
+            placeholder: "ban@example.com",
             keyboardType: "email-address",
           },
           {
             name: "password",
-            label: "Password",
+            label: "Mật khẩu",
             placeholder: "••••••••",
             secureTextEntry: true,
           },
           {
             name: "confirm",
-            label: "Confirm Password",
+            label: "Xác nhận mật khẩu",
             placeholder: "••••••••",
             secureTextEntry: true,
           },
@@ -54,12 +54,12 @@ const Register = () => {
         onSubmit={handleRegister}
         submitting={submitting}
         error={error}
-        submitText="Sign up"
+        submitText="Đăng ký"
         footer={
           <>
-            <Text style={{ color: "#6b7280" }}>Already have an account?</Text>
+            <Text style={{ color: "#6b7280" }}>Đã có tài khoản?</Text>
             <Pressable onPress={() => router.replace("/(auth)")}>
-              <Text style={{ color: "#3b82f6" }}>Login</Text>
+              <Text style={{ color: "#3b82f6" }}>Đăng nhập</Text>
             </Pressable>
           </>
         }

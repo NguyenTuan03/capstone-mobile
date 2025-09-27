@@ -1,18 +1,18 @@
-import React, { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
 import {
+  FlatList,
+  Image,
+  Platform,
+  Pressable,
   SafeAreaView,
-  View,
+  StyleSheet,
   Text,
   TextInput,
-  FlatList,
-  Pressable,
-  Image,
-  StyleSheet,
-  Platform,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Player = {
@@ -74,7 +74,12 @@ export default function PartnerMatching() {
   const [q, setQ] = useState("");
   const [tag, setTag] = useState<string | null>(null);
   const [maxKm, setMaxKm] = useState<number>(15);
-
+  const [invites] = useState([
+    { id: "i1", from: "Lan Tran", status: "pending" },
+    { id: "i2", from: "Huy Le", status: "pending" },
+    { id: "i3", from: "Quang", status: "accepted" },
+  ]);
+  const pendingCount = invites.filter((i) => i.status === "pending").length;
   const data = useMemo(() => {
     return DATA.filter((p) => {
       const hitQ =
@@ -95,14 +100,17 @@ export default function PartnerMatching() {
       <TopTabs current="partner" />
 
       <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
-        <Text style={st.h1}>Partner Matching</Text>
+        <Text style={st.h1}>Tìm Đối Tác</Text>
         <Text style={st.sub}>Tìm bạn đánh chung theo trình độ & vị trí</Text>
-
+        <InvitesButton
+          count={pendingCount}
+          onPress={() => router.push("/menu/community/invites")}
+        />
         {/* Search */}
         <View style={st.search}>
           <Ionicons name="search" size={18} color="#6b7280" />
           <TextInput
-            placeholder="Search by name or location"
+            placeholder="Tìm theo tên hoặc địa điểm"
             placeholderTextColor="#9ca3af"
             value={q}
             onChangeText={setQ}
@@ -181,9 +189,12 @@ function PartnerCard({ p }: { p: Player }) {
             ))}
           </View>
         </View>
-        <Pressable onPress={() => alert("Invite sent 🎾")} style={st.inviteBtn}>
+        <Pressable
+          onPress={() => alert("Đã gửi lời mời 🎾")}
+          style={st.inviteBtn}
+        >
           <Ionicons name="add" size={16} color="#fff" />
-          <Text style={st.inviteText}>Invite</Text>
+          <Text style={st.inviteText}>Mời</Text>
         </Pressable>
       </View>
     </LinearGradient>
@@ -200,7 +211,7 @@ function TopTabs({ current }: { current: "partner" | "events" }) {
         <Text
           style={[st.topTabText, current === "partner" && st.topTabTextActive]}
         >
-          Partner
+          Đối Tác
         </Text>
       </Pressable>
       <Pressable
@@ -210,16 +221,63 @@ function TopTabs({ current }: { current: "partner" | "events" }) {
         <Text
           style={[st.topTabText, current === "events" && st.topTabTextActive]}
         >
-          Events
+          Sự Kiện
         </Text>
       </Pressable>
     </View>
   );
 }
-
+function InvitesButton({
+  count,
+  onPress,
+}: {
+  count: number;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable onPress={onPress} style={st.invitesBtn}>
+      <Ionicons name="mail-unread-outline" size={18} color="#111827" />
+      <Text style={st.invitesText}>Lời mời</Text>
+      {count > 0 && (
+        <View style={st.badge}>
+          <Text style={st.badgeText}>{count}</Text>
+        </View>
+      )}
+    </Pressable>
+  );
+}
 const st = StyleSheet.create({
   h1: { fontSize: 22, fontWeight: "800", color: "#111827" },
   sub: { color: "#6b7280", marginTop: 4 },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  invitesBtn: {
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: "#f3f4f6",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  invitesText: { marginLeft: 6, fontWeight: "800", color: "#111827" },
+  badge: {
+    marginLeft: 8,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
   search: {
     marginTop: 12,
     borderWidth: 1,

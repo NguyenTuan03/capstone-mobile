@@ -1,19 +1,19 @@
-import React, { useMemo, useState } from "react";
+import { useBookings } from "@/modules/learner/context/bookingContext";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import {
-  SafeAreaView,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  TextInput,
   ActivityIndicator,
   Alert,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { useBookings } from "@/modules/learner/context/bookingContext";
 
 type PayMethod = "payos" | "card";
 
@@ -33,7 +33,7 @@ export default function Payment() {
     return {
       id: "mock-1",
       coachId: "c1",
-      coachName: "Selected coach",
+      coachName: "Huấn luyện viên đã chọn",
       price: 25,
       mode: "online",
       meetingUrl: "",
@@ -67,7 +67,7 @@ export default function Payment() {
 
   const onPay = async () => {
     if (!session) {
-      Alert.alert("No order", "Session not found.");
+      Alert.alert("Không có đơn hàng", "Không tìm thấy buổi học.");
       return;
     }
     setProcessing(true);
@@ -97,7 +97,7 @@ export default function Payment() {
               color: "#111827",
             }}
           >
-            Payment
+            Thanh Toán
           </Text>
           <Text style={{ marginTop: 8, color: "#6b7280" }}>
             Session not found.
@@ -221,7 +221,7 @@ export default function Payment() {
               />
             </View>
             <TextInput
-              placeholder="Card holder name"
+              placeholder="Tên chủ thẻ"
               placeholderTextColor="#9ca3af"
               style={styles.input}
             />
@@ -242,28 +242,28 @@ export default function Payment() {
           <Pressable
             onPress={() => {
               if (coupon.trim().toUpperCase() === "PICKLE10") {
-                Alert.alert("Applied", "10% off applied.");
+                Alert.alert("Đã áp dụng", "Giảm giá 10% đã được áp dụng.");
               } else {
-                Alert.alert("Invalid code", "Please try another code.");
+                Alert.alert("Mã không hợp lệ", "Vui lòng thử mã khác.");
               }
             }}
             style={styles.applyBtn}
           >
-            <Text style={styles.applyText}>Apply</Text>
+            <Text style={styles.applyText}>Áp dụng</Text>
           </Pressable>
         </View>
 
         {/* Totals */}
         <View style={styles.totals}>
           <View style={styles.row}>
-            <Text style={styles.muted}>Price</Text>
+            <Text style={styles.muted}>Giá</Text>
             <Text style={styles.bold}>
               ₫{(price * 25000).toLocaleString("vi-VN")}
             </Text>
           </View>
           {fee > 0 && (
             <View style={styles.row}>
-              <Text style={styles.muted}>Fee</Text>
+              <Text style={styles.muted}>Phí</Text>
               <Text style={styles.bold}>
                 ₫{(fee * 25000).toLocaleString("vi-VN")}
               </Text>
@@ -271,14 +271,14 @@ export default function Payment() {
           )}
           {discount > 0 && (
             <View style={styles.row}>
-              <Text style={[styles.muted, { color: "#059669" }]}>Discount</Text>
+              <Text style={[styles.muted, { color: "#059669" }]}>Giảm giá</Text>
               <Text style={[styles.bold, { color: "#059669" }]}>
                 - ₫{(discount * 25000).toLocaleString("vi-VN")}
               </Text>
             </View>
           )}
           <View style={[styles.row, { marginTop: 8 }]}>
-            <Text style={[styles.bold, { fontSize: 16 }]}>Total</Text>
+            <Text style={[styles.bold, { fontSize: 16 }]}>Tổng cộng</Text>
             <Text style={[styles.bold, { fontSize: 16 }]}>
               ₫{(total * 25000).toLocaleString("vi-VN")}
             </Text>
@@ -296,15 +296,15 @@ export default function Payment() {
           ) : (
             <>
               <Ionicons name="lock-closed-outline" size={16} color="#fff" />
-              <Text style={styles.payText}>Pay now</Text>
+              <Text style={styles.payText}>Thanh toán ngay</Text>
             </>
           )}
         </Pressable>
 
         {/* Note */}
         <Text style={{ color: "#6b7280", marginTop: 12, textAlign: "center" }}>
-          This is a mock checkout. In production, redirect to PayOS checkout URL
-          after creating an order on your server.
+          Đây là màn hình thanh toán mô phỏng. Trong thực tế, sẽ chuyển hướng
+          đến trang thanh toán PayOS sau khi tạo đơn hàng trên server.
         </Text>
       </View>
     </SafeAreaView>

@@ -40,24 +40,24 @@ export default function DrillAssignmentModal({
   const [isOptional, setIsOptional] = useState(false);
   const [customInstructions, setCustomInstructions] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSkill, setSelectedSkill] = useState<string>("All");
-  const [selectedLevel, setSelectedLevel] = useState<string>("All");
+  const [selectedSkill, setSelectedSkill] = useState<string>("Tất cả");
+  const [selectedLevel, setSelectedLevel] = useState<string>("Tất cả");
 
   useEffect(() => {
     if (visible) {
       setAssignments(currentAssignments);
       setSearchQuery("");
-      setSelectedSkill("All");
-      setSelectedLevel("All");
+      setSelectedSkill("Tất cả");
+      setSelectedLevel("Tất cả");
     }
   }, [visible, currentAssignments]);
 
   const skills = [
-    "All",
+    "Tất cả",
     ...Array.from(new Set(MOCK_DRILLS.map((d) => d.skill))),
   ];
   const levels = [
-    "All",
+    "Tất cả",
     ...Array.from(new Set(MOCK_DRILLS.map((d) => d.level))),
   ];
 
@@ -67,9 +67,9 @@ export default function DrillAssignmentModal({
       drill.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       drill.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSkill =
-      selectedSkill === "All" || drill.skill === selectedSkill;
+      selectedSkill === "Tất cả" || drill.skill === selectedSkill;
     const matchesLevel =
-      selectedLevel === "All" || drill.level === selectedLevel;
+      selectedLevel === "Tất cả" || drill.level === selectedLevel;
     const isAlreadyAssigned = assignments.some((a) => a.drillId === drill.id);
 
     return matchesSearch && matchesSkill && matchesLevel && !isAlreadyAssigned;
@@ -77,7 +77,7 @@ export default function DrillAssignmentModal({
 
   const handleAddDrill = () => {
     if (!selectedDrill) {
-      Alert.alert("Error", "Please select a drill");
+      Alert.alert("Lỗi", "Vui lòng chọn một bài tập");
       return;
     }
 
@@ -96,10 +96,10 @@ export default function DrillAssignmentModal({
   };
 
   const handleRemoveDrill = (assignmentId: string) => {
-    Alert.alert("Remove Drill", "Are you sure you want to remove this drill?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("Xóa bài tập", "Bạn có chắc chắn muốn xóa bài tập này?", [
+      { text: "Hủy", style: "cancel" },
       {
-        text: "Remove",
+        text: "Xóa",
         onPress: () => {
           const updated = assignments.filter((a) => a.id !== assignmentId);
           setAssignments(updated);

@@ -25,20 +25,20 @@ export default function AuthScreen() {
 
   return (
     <AppForm
-      title="Welcome back 👋"
-      subtitle="login to continue your training journey."
+      title="Chào mừng trở lại 👋"
+      subtitle="Đăng nhập để tiếp tục hành trình tập luyện của bạn."
       skipValidation={true}
       items={[
         {
           name: "email",
           label: "Email",
-          placeholder: "you@example.com",
+          placeholder: "ban@example.com",
           keyboardType: "email-address",
           leftIcon: null, // dùng default mail icon
         },
         {
           name: "password",
-          label: "Password",
+          label: "Mật khẩu",
           placeholder: "••••••••",
           secureTextEntry: true,
           leftIcon: null, // dùng default lock icon
@@ -47,23 +47,21 @@ export default function AuthScreen() {
       onSubmit={handleLogin}
       submitting={submitting}
       error={error}
-      submitText="Sign in"
+      submitText="Đăng nhập"
       footer={
         <View style={{ gap: 8, alignItems: "center" }}>
           <Pressable
             onPress={() => router.push("/(auth)/forgot-password" as Href)}
           >
             <Text style={{ color: "#6b7280", textDecorationLine: "underline" }}>
-              Forgot password?
+              Quên mật khẩu?
             </Text>
           </Pressable>
           <View style={{ flexDirection: "row", gap: 6 }}>
-            <Text style={{ color: "#6b7280" }}>
-              Don&apos;t have an account?
-            </Text>
+            <Text style={{ color: "#6b7280" }}>Chưa có tài khoản?</Text>
             <Pressable onPress={() => router.push("/(auth)/register" as Href)}>
               <Text style={{ color: "#2563eb", fontWeight: "700" }}>
-                Register
+                Đăng ký
               </Text>
             </Pressable>
           </View>

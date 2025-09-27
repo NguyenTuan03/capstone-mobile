@@ -105,7 +105,7 @@ export default function StudentProgressTracker({
     };
 
     // TODO: Update progress data
-    Alert.alert("Success", "Progress saved successfully!");
+    Alert.alert("Thành công", "Tiến độ đã được lưu thành công!");
     onUpdateProgress([...progressData, newProgress]);
     onClose();
   };
@@ -113,19 +113,19 @@ export default function StudentProgressTracker({
   const handleMarkSessionComplete = () => {
     if (completedDrills.length === 0) {
       Alert.alert(
-        "Incomplete Session",
-        "Please mark at least one drill as complete",
+        "Buổi học chưa hoàn thành",
+        "Vui lòng đánh dấu ít nhất một bài tập đã hoàn thành",
       );
       return;
     }
 
     Alert.alert(
-      "Complete Session",
-      "Mark this session as complete? This will update the student's progress.",
+      "Hoàn thành buổi học",
+      "Đánh dấu buổi học này đã hoàn thành? Điều này sẽ cập nhật tiến độ của học viên.",
       [
-        { text: "Cancel", style: "cancel" },
+        { text: "Hủy", style: "cancel" },
         {
-          text: "Complete",
+          text: "Hoàn thành",
           onPress: handleSaveProgress,
         },
       ],
@@ -420,8 +420,8 @@ export default function StudentProgressTracker({
           >
             <Text style={styles.buttonTextPrimary}>
               {selectedSession === sessionBlock.totalSessions
-                ? "Complete Program"
-                : "Complete Session"}
+                ? "Hoàn thành chương trình"
+                : "Hoàn thành buổi học"}
             </Text>
           </TouchableOpacity>
         </View>
