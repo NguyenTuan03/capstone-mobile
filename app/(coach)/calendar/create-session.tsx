@@ -337,16 +337,28 @@ const CreateSessionScreen: React.FC = () => {
         ))}
       </View>
 
-      {/* Next Step Button */}
-      <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
-        <LinearGradient
-          colors={["#3b82f6", "#1d4ed8"]}
-          style={styles.nextStepGradient}
-        >
-          <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Step Navigation Buttons */}
+      <View style={styles.stepNavigationContainer}>
+        {currentStepIndex > 0 && (
+          <TouchableOpacity
+            style={styles.backStepButton}
+            onPress={handlePrevious}
+          >
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
+            <Text style={styles.backStepButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
+          <LinearGradient
+            colors={["#3b82f6", "#1d4ed8"]}
+            style={styles.nextStepGradient}
+          >
+            <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -462,16 +474,28 @@ const CreateSessionScreen: React.FC = () => {
         );
       })}
 
-      {/* Next Step Button */}
-      <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
-        <LinearGradient
-          colors={["#3b82f6", "#1d4ed8"]}
-          style={styles.nextStepGradient}
-        >
-          <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Step Navigation Buttons */}
+      <View style={styles.stepNavigationContainer}>
+        {currentStepIndex > 0 && (
+          <TouchableOpacity
+            style={styles.backStepButton}
+            onPress={handlePrevious}
+          >
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
+            <Text style={styles.backStepButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
+          <LinearGradient
+            colors={["#3b82f6", "#1d4ed8"]}
+            style={styles.nextStepGradient}
+          >
+            <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -660,16 +684,28 @@ const CreateSessionScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Next Step Button */}
-      <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
-        <LinearGradient
-          colors={["#3b82f6", "#1d4ed8"]}
-          style={styles.nextStepGradient}
-        >
-          <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
-          <Ionicons name="chevron-forward" size={20} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Step Navigation Buttons */}
+      <View style={styles.stepNavigationContainer}>
+        {currentStepIndex > 0 && (
+          <TouchableOpacity
+            style={styles.backStepButton}
+            onPress={handlePrevious}
+          >
+            <Ionicons name="chevron-back" size={20} color="#6b7280" />
+            <Text style={styles.backStepButtonText}>Quay lại</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.nextStepButton} onPress={handleNext}>
+          <LinearGradient
+            colors={["#3b82f6", "#1d4ed8"]}
+            style={styles.nextStepGradient}
+          >
+            <Text style={styles.nextStepButtonText}>Tiếp tục</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -1404,6 +1440,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#3b82f6",
+  },
+  stepNavigationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 24,
+    gap: 12,
+  },
+  backStepButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    backgroundColor: "#fff",
+    gap: 8,
+  },
+  backStepButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6b7280",
   },
 });
 
