@@ -1,945 +1,1085 @@
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
 import {
-  FlatList,
+  Alert,
   Image,
   Modal,
-  Pressable,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path, Rect } from "react-native-svg";
 import SessionNotes from "../sessionNotes";
-/** --- same mock DB (đổi sang API/Context sau) --- */
-type Student = {
+
+// TypeScript interfaces
+interface Student {
   id: string;
   name: string;
   avatar: string;
-  dupr: number;
-  tags: string[];
-  nextSession?: { dateISO: string; mode: "online" | "offline"; place?: string };
+  level: "Beginner" | "Intermediate" | "Advanced";
+  rating: number;
   progress: number;
-};
-const DB: Record<string, Student> = {
-  u1: {
-    id: "u1",
-    name: "Tuấn",
-    avatar: "https://i.pravatar.cc/150?img=15",
-    dupr: 3.1,
-    tags: ["2.5-3.0", "Doubles"],
-    nextSession: {
-      dateISO: new Date(Date.now() + 36e5).toISOString(),
-      mode: "online",
-    },
-    progress: 0.35,
-  },
-  u2: {
-    id: "u2",
-    name: "Lan",
-    avatar: "https://i.pravatar.cc/150?img=5",
-    dupr: 3.9,
-    tags: ["3.5-4.0", "Singles"],
-    nextSession: {
-      dateISO: new Date(Date.now() + 2 * 86400e3).toISOString(),
-      mode: "offline",
-      place: "Crescent Court",
-    },
-    progress: 0.6,
-  },
-  u3: {
-    id: "u3",
-    name: "Huy",
-    avatar: "https://i.pravatar.cc/150?img=12",
-    dupr: 4.3,
-    tags: ["4.5+", "Doubles"],
-    progress: 0.12,
-  },
-};
+  sessions: number;
+  nextSession?: {
+    date: string;
+    time: string;
+    type: "Online" | "Offline";
+    location?: string;
+  };
+  strengths: string[];
+  improvements: string[];
+  goals: string[];
+  notes: string;
+}
 
-type Assignment = {
+interface Session {
+  id: string;
+  date: string;
+  time: string;
+  duration: string;
+  type: string;
+  status: "completed" | "upcoming" | "cancelled";
+  notes?: string;
+}
+
+interface Assignment {
   id: string;
   title: string;
-  dueISO?: string;
-  status: "open" | "done";
+  description: string;
+  dueDate?: string;
+  status: "pending" | "completed";
+  category: "technique" | "strategy" | "fitness" | "homework";
+}
+
+// Mock data
+const STUDENTS_DB: Record<string, Student> = {
+  "1": {
+    id: "1",
+    name: "John Smith",
+    avatar: "https://i.pravatar.cc/150?img=1",
+    level: "Beginner",
+    rating: 4.8,
+    progress: 75,
+    sessions: 8,
+    nextSession: {
+      date: "2024-01-20",
+      time: "2:00 PM",
+      type: "Online",
+    },
+    strengths: ["Consistency", "Footwork"],
+    improvements: ["Backhand", "Serve"],
+    goals: ["Master Forehand", "Improve Net Play"],
+    notes: "Focused student, responds well to technical corrections.",
+  },
+  "2": {
+    id: "2",
+    name: "Sarah Johnson",
+    avatar: "https://i.pravatar.cc/150?img=2",
+    level: "Intermediate",
+    rating: 4.9,
+    progress: 60,
+    sessions: 12,
+    nextSession: {
+      date: "2024-01-18",
+      time: "4:30 PM",
+      type: "Offline",
+      location: "Court 1",
+    },
+    strengths: ["Power", "Strategy"],
+    improvements: ["Net Play", "Consistency"],
+    goals: ["Tournament Ready", "Mental Game"],
+    notes:
+      "Strong player with good court awareness. Needs work on consistency.",
+  },
+  "3": {
+    id: "3",
+    name: "Mike Wilson",
+    avatar: "https://i.pravatar.cc/150?img=3",
+    level: "Advanced",
+    rating: 5.0,
+    progress: 90,
+    sessions: 20,
+    strengths: ["All-around", "Mental Game"],
+    improvements: ["Fine-tuning"],
+    goals: ["Competition Level", "Teaching Others"],
+    notes: "Excellent student, ready for competitive play.",
+  },
 };
-type Note = { id: string; content: string; createdISO: string };
 
-const INIT_ASSIGN: Assignment[] = [
+const MOCK_SESSIONS: Session[] = [
   {
-    id: "a1",
-    title: "3rd Shot Drop – 15 mins",
-    dueISO: new Date(Date.now() + 2 * 86400e3).toISOString(),
-    status: "open",
-  },
-  { id: "a2", title: "Dinking cross-court – 10 mins", status: "done" },
-];
-const INIT_NOTES: Note[] = [
-  {
-    id: "n1",
-    content: "Footwork ok, cần giữ paddle cao hơn khi ở kitchen.",
-    createdISO: new Date().toISOString(),
-  },
-];
-
-// Mock sessions data
-const MOCK_SESSIONS = [
-  {
-    id: "session_1",
+    id: "1",
     date: "2024-01-15",
     time: "10:00 AM",
     duration: "60 min",
     type: "Individual Training",
-    status: "completed" as const,
+    status: "completed",
+    notes: "Great progress on forehand technique",
   },
   {
-    id: "session_2",
-    date: "2024-01-18",
+    id: "2",
+    date: "2024-01-10",
     time: "2:00 PM",
     duration: "60 min",
-    type: "Technique Focus",
-    status: "completed" as const,
+    type: "Match Play",
+    status: "completed",
+    notes: "Good court coverage, need to work on volleys",
   },
   {
-    id: "session_3",
-    date: "2024-01-22",
-    time: "10:00 AM",
-    duration: "90 min",
-    type: "Match Practice",
-    status: "completed" as const,
-  },
-  {
-    id: "session_4",
-    date: "2024-01-25",
-    time: "4:00 PM",
+    id: "3",
+    date: "2024-01-20",
+    time: "2:00 PM",
     duration: "60 min",
     type: "Individual Training",
-    status: "upcoming" as const,
+    status: "upcoming",
+  },
+];
+
+const MOCK_ASSIGNMENTS: Assignment[] = [
+  {
+    id: "1",
+    title: "Forehand Practice",
+    description: "Practice forehand strokes for 30 minutes daily",
+    dueDate: "2024-01-25",
+    status: "pending",
+    category: "technique",
+  },
+  {
+    id: "2",
+    title: "Footwork Drills",
+    description: "Complete ladder drills and cone exercises",
+    status: "completed",
+    category: "fitness",
   },
 ];
 
 export default function StudentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const s = id ? DB[id] : undefined;
-  const [tab, setTab] = useState<
-    "overview" | "progress" | "notes" | "sessions"
-  >("overview");
-  const [assigns, setAssigns] = useState<Assignment[]>(INIT_ASSIGN);
-  const [notes, setNotes] = useState<Note[]>(INIT_NOTES);
-
-  // add note modal
-  const [showNote, setShowNote] = useState(false);
-  const [noteText, setNoteText] = useState("");
-
-  const chartData = useMemo(() => [2.9, 3.0, 3.1, 3.2, 3.3], []); // giả lập DUPR history
   const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "sessions" | "assignments" | "notes"
+  >("overview");
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [newAssignment, setNewAssignment] = useState({
+    title: "",
+    description: "",
+    category: "technique" as Assignment["category"],
+    dueDate: "",
+  });
 
-  if (!s) {
+  const student = id ? STUDENTS_DB[id] : null;
+  const sessions = MOCK_SESSIONS.filter(
+    (session) => session.status === "completed",
+  );
+  const [assignments, setAssignments] =
+    useState<Assignment[]>(MOCK_ASSIGNMENTS);
+
+  if (!student) {
     return (
-      <SafeAreaView
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#fff",
-        }}
-      >
-        <Text>Không tìm thấy học viên</Text>
-      </SafeAreaView>
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Feather name="user-x" size={48} color="#6b7280" />
+          <Text style={styles.errorText}>Student not found</Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backToListButton}
+          >
+            <Text style={styles.backToListText}>Back to Students</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     );
   }
 
-  const nextTxt = s.nextSession
-    ? `${new Date(s.nextSession.dateISO).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · ${s.nextSession.mode === "online" ? "Trực tuyến" : s.nextSession.place}`
-    : "Không có buổi học sắp tới";
+  const addAssignment = () => {
+    if (!newAssignment.title.trim()) return;
 
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#fff",
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-      }}
-    >
-      <View style={{ flex: 1 }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 16,
-            paddingTop: 10,
-            paddingBottom: 8,
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              padding: 8,
-              borderRadius: 8,
-              backgroundColor: "rgba(107, 114, 128, 0.1)",
-            }}
-          >
-            <Ionicons name="chevron-back" size={20} color="#6b7280" />
-          </Pressable>
-          <View style={{ flex: 1 }} />
-          <Text style={{ fontWeight: "900", color: "#111827", fontSize: 16 }}>
-            Hồ Sơ Học Viên
-          </Text>
-          <View style={{ width: 36 }} />
-        </View>
+    const assignment: Assignment = {
+      id: Date.now().toString(),
+      ...newAssignment,
+      status: "pending",
+    };
 
-        {/* Hero */}
-        <LinearGradient
-          colors={["#111827", "#0f172a"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={st.hero}
-        >
-          <Image source={{ uri: s.avatar }} style={st.avatar} />
-          <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={st.name}>{s.name}</Text>
-            <Text style={st.meta}>{nextTxt}</Text>
-            <View style={{ flexDirection: "row", marginTop: 6 }}>
-              <View style={st.duprPill}>
-                <Ionicons name="podium-outline" size={12} color="#111827" />
-                <Text style={st.duprTxt}> {s.dupr.toFixed(1)}</Text>
-              </View>
-              {s.tags.map((t) => (
-                <View key={t} style={st.tag}>
-                  <Text style={st.tagTxt}>{t}</Text>
-                </View>
-              ))}
-            </View>
+    setAssignments([...assignments, assignment]);
+    setNewAssignment({
+      title: "",
+      description: "",
+      category: "technique",
+      dueDate: "",
+    });
+    setShowAssignmentModal(false);
+  };
+
+  const toggleAssignmentStatus = (assignmentId: string) => {
+    setAssignments(
+      assignments.map((assignment) =>
+        assignment.id === assignmentId
+          ? {
+              ...assignment,
+              status:
+                assignment.status === "completed"
+                  ? "pending"
+                  : ("completed" as const),
+            }
+          : assignment,
+      ),
+    );
+  };
+
+  const deleteAssignment = (assignmentId: string) => {
+    Alert.alert(
+      "Delete Assignment",
+      "Are you sure you want to delete this assignment?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () =>
+            setAssignments(assignments.filter((a) => a.id !== assignmentId)),
+        },
+      ],
+    );
+  };
+
+  const renderOverview = () => (
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      {/* Next Session Card */}
+      {student.nextSession && (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Feather name="calendar" size={20} color="#4f46e5" />
+            <Text style={styles.cardTitle}>Next Session</Text>
           </View>
-          <Pressable
-            onPress={() => router.push("/calendar")}
-            style={st.primary}
-          >
-            <Ionicons name="calendar-outline" size={16} color="#111827" />
-            <Text style={st.primaryTxt}>Lịch học</Text>
-          </Pressable>
-        </LinearGradient>
-
-        {/* Segmented */}
-        <View style={st.tabs}>
-          {(["overview", "progress", "sessions"] as const).map((t: any) => {
-            const tabNames = {
-              overview: "Tổng quan",
-              progress: "Tiến độ",
-              sessions: "Buổi học",
-            };
-            return (
-              <Pressable
-                key={t}
-                onPress={() => setTab(t)}
-                style={[st.tab, tab === t && st.tabActive]}
-              >
-                <Text style={[st.tabTxt, tab === t && st.tabTxtActive]}>
-                  {tabNames[t as keyof typeof tabNames]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {/* Body */}
-        {tab === "overview" && (
-          <FlatList
-            data={[
-              { key: "qa" },
-              { key: "prog" },
-              { key: "assign" },
-              { key: "notes" },
-            ]}
-            renderItem={({ item }) => {
-              switch (item.key) {
-                case "qa":
-                  return (
-                    <Section title="Thao Tác Nhanh">
-                      <View style={st.qaRow}>
-                        <QA
-                          icon="videocam-outline"
-                          label="Bắt Đầu Buổi Học"
-                          onPress={() =>
-                            router.push({
-                              pathname: "/(coach)/call/[sessionId]" as any,
-                              params: { sessionId: s.id },
-                            })
-                          }
-                        />
-                        <QA
-                          icon="barbell-outline"
-                          label="Giao Bài tập"
-                          onPress={() =>
-                            setAssigns((prev) => [
-                              {
-                                id: `a${Date.now()}`,
-                                title: "Shadow swing 10'",
-                                status: "open",
-                              },
-                              ...prev,
-                            ])
-                          }
-                        />
-                        <QA
-                          icon="clipboard-outline"
-                          label="Thêm Ghi Chú"
-                          onPress={() => setShowNote(true)}
-                        />
-                      </View>
-                    </Section>
-                  );
-                case "prog":
-                  return (
-                    <Section
-                      title="Tiến Độ Kỹ Năng"
-                      caption="Xu hướng DUPR (5 điểm gần nhất)"
-                    >
-                      <Card>
-                        <Sparkline values={chartData} />
-                      </Card>
-                    </Section>
-                  );
-                case "assign":
-                  return (
-                    <Section title="Bài Tập">
-                      <View style={{ gap: 8 }}>
-                        {assigns.map((item) => (
-                          <Card key={item.id}>
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                              }}
-                            >
-                              <View
-                                style={[
-                                  st.dot,
-                                  {
-                                    backgroundColor:
-                                      item.status === "done"
-                                        ? "#22c55e"
-                                        : "#f59e0b",
-                                  },
-                                ]}
-                              />
-                              <Text
-                                style={{
-                                  fontWeight: "900",
-                                  color: "#111827",
-                                  flex: 1,
-                                  marginLeft: 8,
-                                }}
-                              >
-                                {item.title}
-                              </Text>
-                              {item.status === "open" ? (
-                                <RoundBtn
-                                  label="Hoàn thành"
-                                  solid
-                                  onPress={() =>
-                                    setAssigns((prev) =>
-                                      prev.map((a) =>
-                                        a.id === item.id
-                                          ? { ...a, status: "done" }
-                                          : a,
-                                      ),
-                                    )
-                                  }
-                                />
-                              ) : (
-                                <RoundBtn
-                                  label="Mở lại"
-                                  onPress={() =>
-                                    setAssigns((prev) =>
-                                      prev.map((a) =>
-                                        a.id === item.id
-                                          ? { ...a, status: "open" }
-                                          : a,
-                                      ),
-                                    )
-                                  }
-                                />
-                              )}
-                            </View>
-                          </Card>
-                        ))}
-                      </View>
-                    </Section>
-                  );
-                case "notes":
-                  return (
-                    <Section title="Ghi Chú">
-                      <View style={{ gap: 8 }}>
-                        {notes.map((item) => (
-                          <Card key={item.id}>
-                            <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                              {new Date(item.createdISO).toLocaleString()}
-                            </Text>
-                            <Text
-                              style={{
-                                marginTop: 6,
-                                color: "#111827",
-                                fontWeight: "700",
-                              }}
-                            >
-                              {item.content}
-                            </Text>
-                          </Card>
-                        ))}
-                      </View>
-                    </Section>
-                  );
-                default:
-                  return null;
-              }
-            }}
-            keyExtractor={(i) => i.key}
-            contentContainerStyle={{ paddingBottom: 24 }}
-            ListHeaderComponent={<View style={{ height: 10 }} />}
-          />
-        )}
-
-        {tab === "progress" && (
-          <FlatList
-            data={[{ key: "weekly" }, { key: "breakdown" }]}
-            renderItem={({ item }) => {
-              switch (item.key) {
-                case "weekly":
-                  return (
-                    <Section
-                      title="Phút Luyện Tập Hàng Tuần"
-                      caption="7 ngày qua"
-                    >
-                      <Card>
-                        <Bars values={[20, 45, 10, 60, 35, 0, 25]} />
-                      </Card>
-                    </Section>
-                  );
-                case "breakdown":
-                  return (
-                    <Section
-                      title="Phân Tích Kỹ Năng"
-                      caption="Giao bóng · Trả bóng · Dink · Cú thứ 3 · Vị trí"
-                    >
-                      <Card>
-                        <RadarStub />
-                      </Card>
-                    </Section>
-                  );
-                default:
-                  return null;
-              }
-            }}
-            keyExtractor={(i) => i.key}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-            ListHeaderComponent={<View style={{ height: 16 }} />}
-          />
-        )}
-
-        {tab === "notes" && (
-          <FlatList
-            data={notes}
-            keyExtractor={(x) => x.id}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              paddingVertical: 16,
-              paddingBottom: 24,
-            }}
-            ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-            ListHeaderComponent={
-              <Pressable
-                onPress={() => setShowNote(true)}
+          <View style={styles.sessionInfo}>
+            <Text style={styles.sessionDate}>
+              {student.nextSession.date} at {student.nextSession.time}
+            </Text>
+            <View style={styles.sessionMeta}>
+              <View
                 style={[
-                  st.primary,
-                  { alignSelf: "flex-start", marginBottom: 12 },
+                  styles.sessionTypeBadge,
+                  student.nextSession.type === "Online"
+                    ? styles.onlineBadge
+                    : styles.offlineBadge,
                 ]}
               >
-                <Ionicons name="add" size={16} color="#111827" />
-                <Text style={st.primaryTxt}>Ghi Chú Mới</Text>
-              </Pressable>
-            }
-            renderItem={({ item }) => (
-              <Card>
-                <Text style={{ color: "#6b7280", fontSize: 12 }}>
-                  {new Date(item.createdISO).toLocaleString()}
+                <Text style={styles.sessionTypeText}>
+                  {student.nextSession.type}
                 </Text>
-                <Text
-                  style={{
-                    marginTop: 6,
-                    color: "#111827",
-                    fontWeight: "700",
-                  }}
-                >
-                  {item.content}
-                </Text>
-              </Card>
-            )}
-          />
-        )}
-
-        {tab === "sessions" && (
-          <FlatList
-            data={MOCK_SESSIONS}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              paddingVertical: 16,
-              paddingBottom: 24,
-            }}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-            renderItem={({ item }) => (
-              <View style={st.sessionCard}>
-                {/* Session Header */}
-                <View style={st.sessionHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={st.sessionTitle}>{item.type}</Text>
-                    <View style={st.sessionMeta}>
-                      <Ionicons
-                        name="calendar-outline"
-                        size={14}
-                        color="#6b7280"
-                      />
-                      <Text style={st.sessionMetaText}>
-                        {item.date} • {item.time}
-                      </Text>
-                      <Text style={st.sessionDot}>•</Text>
-                      <Ionicons name="time-outline" size={14} color="#6b7280" />
-                      <Text style={st.sessionMetaText}>{item.duration}</Text>
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      st.statusBadge,
-                      {
-                        backgroundColor:
-                          item.status === "completed" ? "#10b981" : "#f59e0b",
-                      },
-                    ]}
-                  >
-                    <Text style={st.statusText}>
-                      {item.status === "completed" ? "Hoàn thành" : "Sắp tới"}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Session Notes */}
-                {item.status === "completed" && (
-                  <View style={st.sessionNotesContainer}>
-                    <SessionNotes
-                      sessionId={item.id}
-                      title={`Notes for ${item.type}`}
-                    />
-                  </View>
-                )}
-
-                {item.status === "upcoming" && (
-                  <View style={st.upcomingNote}>
-                    <Ionicons
-                      name="information-circle-outline"
-                      size={16}
-                      color="#6b7280"
-                    />
-                    <Text style={st.upcomingNoteText}>
-                      Ghi chú sẽ có sau khi buổi học hoàn thành
-                    </Text>
-                  </View>
-                )}
               </View>
-            )}
-          />
-        )}
-
-        {/* Add Note Modal */}
-        <Modal visible={showNote} animationType="slide" transparent>
-          <Pressable style={st.backdrop} onPress={() => setShowNote(false)} />
-          <View style={st.sheet}>
-            <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }}>
-              Ghi Chú Mới
-            </Text>
-            <TextInput
-              placeholder="Nhập phản hồi/ghi chú..."
-              placeholderTextColor="#9ca3af"
-              value={noteText}
-              onChangeText={setNoteText}
-              multiline
-              style={st.input}
-            />
-            <View style={{ flexDirection: "row", marginTop: 12 }}>
-              <Pressable
-                style={[st.primary, { flex: 1, justifyContent: "center" }]}
-                onPress={() => {
-                  if (!noteText.trim()) return;
-                  setNotes((prev) => [
-                    {
-                      id: `n${Date.now()}`,
-                      content: noteText.trim(),
-                      createdISO: new Date().toISOString(),
-                    },
-                    ...prev,
-                  ]);
-                  setNoteText("");
-                  setShowNote(false);
-                }}
-              >
-                <Text style={st.primaryTxt}>Lưu</Text>
-              </Pressable>
-              <Pressable
-                style={[st.secondary, { flex: 1 }]}
-                onPress={() => setShowNote(false)}
-              >
-                <Text style={st.secondaryTxt}>Hủy</Text>
-              </Pressable>
+              {student.nextSession.location && (
+                <Text style={styles.sessionLocation}>
+                  {student.nextSession.location}
+                </Text>
+              )}
             </View>
           </View>
-        </Modal>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-/* ---------- mini components ---------- */
-function Section({
-  title,
-  caption,
-  children,
-}: React.PropsWithChildren<{ title: string; caption?: string }>) {
-  return (
-    <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-      <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }}>
-        {title}
-      </Text>
-      {!!caption && (
-        <Text style={{ color: "#6b7280", marginTop: 2 }}>{caption}</Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() =>
+              router.push(`/(coach)/calendar/session/${student.id}`)
+            }
+          >
+            <Feather name="video" size={16} color="#ffffff" />
+            <Text style={styles.primaryButtonText}>Join Session</Text>
+          </TouchableOpacity>
+        </View>
       )}
-      <View style={{ marginTop: 10 }}>{children}</View>
-    </View>
-  );
-}
-function Card({ children }: React.PropsWithChildren) {
-  return <View style={st.card}>{children}</View>;
-}
-function QA({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: any;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={st.qaItem}>
-      <View style={st.qaIcon}>
-        <Ionicons name={icon} size={18} color="#fff" />
+
+      {/* Progress Card */}
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Feather name="trending-up" size={20} color="#10b981" />
+          <Text style={styles.cardTitle}>Progress Overview</Text>
+        </View>
+        <View style={styles.progressInfo}>
+          <Text style={styles.progressText}>Overall Progress</Text>
+          <Text style={styles.progressValue}>{student.progress}%</Text>
+        </View>
+        <View style={styles.progressBar}>
+          <View
+            style={[styles.progressFill, { width: `${student.progress}%` }]}
+          />
+        </View>
+        <Text style={styles.progressSummary}>
+          {student.sessions} sessions completed •{" "}
+          {student.progress >= 70
+            ? "Excellent"
+            : student.progress >= 50
+              ? "Good"
+              : "Needs improvement"}{" "}
+          progress
+        </Text>
       </View>
-      <Text style={st.qaTxt}>{label}</Text>
-    </Pressable>
-  );
-}
-function RoundBtn({
-  label,
-  onPress,
-  solid,
-}: {
-  label: string;
-  onPress: () => void;
-  solid?: boolean;
-}) {
-  return (
-    <Pressable onPress={onPress} style={[st.round, solid && st.roundSolid]}>
-      <Text style={[st.roundTxt, solid && st.roundTxtSolid]}>{label}</Text>
-    </Pressable>
-  );
-}
 
-/* ---------- charts ---------- */
-function Sparkline({ values }: { values: number[] }) {
-  // simple bezier path
-  const W = 300,
-    H = 80,
-    pad = 8;
-  const step = (W - pad * 2) / (values.length - 1);
-  const min = Math.min(...values),
-    max = Math.max(...values);
-  const norm = (v: number) =>
-    H - pad - ((v - min) / Math.max(0.0001, max - min)) * (H - pad * 2);
-
-  let d = `M ${pad} ${norm(values[0])}`;
-  for (let i = 1; i < values.length; i++) {
-    const x = pad + i * step;
-    const xc = pad + (i - 0.5) * step;
-    const y1 = norm(values[i - 1]);
-    const y2 = norm(values[i]);
-    d += ` C ${xc} ${y1}, ${xc} ${y2}, ${x} ${y2}`;
-  }
-  return (
-    <Svg width="100%" height={H}>
-      <Path d={d} stroke="#111827" strokeWidth={2} fill="none" />
-    </Svg>
+      {/* Quick Actions */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Quick Actions</Text>
+        <View style={styles.quickActions}>
+          <TouchableOpacity
+            style={styles.quickActionButton}
+            onPress={() =>
+              router.push(
+                `/(coach)/calendar/session/new?studentId=${student.id}`,
+              )
+            }
+          >
+            <Feather name="calendar" size={20} color="#4f46e5" />
+            <Text style={styles.quickActionText}>Schedule Session</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickActionButton}
+            onPress={() => setShowAssignmentModal(true)}
+          >
+            <Feather name="plus-circle" size={20} color="#10b981" />
+            <Text style={styles.quickActionText}>Add Assignment</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickActionButton}
+            onPress={() => setActiveTab("notes")}
+          >
+            <Feather name="message-square" size={20} color="#f59e0b" />
+            <Text style={styles.quickActionText}>View Notes</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
-}
-function Bars({ values }: { values: number[] }) {
-  const H = 90,
-    pad = 12,
-    gap = 10,
-    barW = 18;
-  const max = Math.max(...values, 1);
-  return (
-    <View>
-      <Svg height={H} width={pad * 2 + values.length * (barW + gap)}>
-        {values.map((v, i) => {
-          const h = (v / max) * (H - 24);
-          const x = pad + i * (barW + gap);
-          const y = H - h - 12;
-          return (
-            <Rect
-              key={i}
-              x={x}
-              y={y}
-              width={barW}
-              height={h}
-              rx={6}
-              ry={6}
-              fill="#111827"
-              opacity={0.9}
-            />
-          );
-        })}
-      </Svg>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginTop: 6,
-          paddingHorizontal: 4,
-        }}
-      >
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-          <Text key={`${d}-${i}`} style={{ color: "#6b7280", fontSize: 12 }}>
-            {d}
-          </Text>
+
+  const renderSessions = () => (
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>
+          Session History ({sessions.length})
+        </Text>
+        {sessions.map((session) => (
+          <View key={session.id} style={styles.sessionCard}>
+            <View style={styles.sessionHeader}>
+              <Text style={styles.sessionTitle}>{session.type}</Text>
+              <View style={[styles.statusBadge, styles.completedBadge]}>
+                <Text style={styles.statusText}>Completed</Text>
+              </View>
+            </View>
+            <Text style={styles.sessionDetails}>
+              {session.date} • {session.time} • {session.duration}
+            </Text>
+            {session.notes && (
+              <Text style={styles.sessionNotes}>{session.notes}</Text>
+            )}
+          </View>
         ))}
       </View>
+    </ScrollView>
+  );
+
+  const renderAssignments = () => (
+    <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>Assignments</Text>
+          <TouchableOpacity
+            onPress={() => setShowAssignmentModal(true)}
+            style={styles.addButton}
+          >
+            <Feather name="plus" size={20} color="#4f46e5" />
+          </TouchableOpacity>
+        </View>
+
+        {assignments.map((assignment) => (
+          <View key={assignment.id} style={styles.assignmentCard}>
+            <TouchableOpacity
+              onPress={() => toggleAssignmentStatus(assignment.id)}
+              style={styles.assignmentHeader}
+            >
+              <View style={styles.assignmentLeft}>
+                <View
+                  style={[
+                    styles.checkbox,
+                    assignment.status === "completed" &&
+                      styles.checkboxCompleted,
+                  ]}
+                >
+                  {assignment.status === "completed" && (
+                    <Feather name="check" size={14} color="#ffffff" />
+                  )}
+                </View>
+                <View>
+                  <Text
+                    style={[
+                      styles.assignmentTitle,
+                      assignment.status === "completed" &&
+                        styles.assignmentTitleCompleted,
+                    ]}
+                  >
+                    {assignment.title}
+                  </Text>
+                  <Text style={styles.assignmentDescription}>
+                    {assignment.description}
+                  </Text>
+                  {assignment.dueDate && (
+                    <Text style={styles.assignmentDue}>
+                      Due: {assignment.dueDate}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => deleteAssignment(assignment.id)}
+                style={styles.deleteButton}
+              >
+                <Feather name="trash-2" size={16} color="#ef4444" />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+
+  const renderNotes = () => (
+    <View style={{ flex: 1 }}>
+      <SessionNotes
+        sessionId={`student_${student.id}`}
+        title="Student Notes"
+        studentName={student.name}
+        readonly={false}
+        embedded={true}
+      />
     </View>
   );
-}
-function RadarStub() {
-  // placeholder radar (UI only)
+
   return (
-    <View
-      style={{ height: 140, alignItems: "center", justifyContent: "center" }}
-    >
-      <Text style={{ color: "#6b7280" }}>
-        Radar chart (Serve · Return · Dink · 3rd Shot · Position)
-      </Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <LinearGradient
+        colors={["#4f46e5", "#7c3aed"]}
+        style={[styles.header, { paddingTop: insets.top }]}
+      >
+        <View style={styles.headerContent}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Feather name="arrow-left" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Student Profile</Text>
+          <TouchableOpacity style={styles.menuButton}>
+            <Feather name="more-horizontal" size={24} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Student Info */}
+        <View style={styles.studentHeader}>
+          <Image source={{ uri: student.avatar }} style={styles.avatar} />
+          <View style={styles.studentInfo}>
+            <Text style={styles.studentName}>{student.name}</Text>
+            <Text style={styles.studentLevel}>{student.level}</Text>
+            <View style={styles.ratingContainer}>
+              <Feather name="star" size={16} color="#fbbf24" />
+              <Text style={styles.ratingText}>{student.rating} rating</Text>
+            </View>
+          </View>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{student.sessions}</Text>
+              <Text style={styles.statLabel}>Sessions</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{student.progress}%</Text>
+              <Text style={styles.statLabel}>Progress</Text>
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
+
+      {/* Tab Navigation */}
+      <View style={styles.tabBar}>
+        {[
+          { key: "overview", label: "Overview", icon: "home" },
+          { key: "sessions", label: "Sessions", icon: "calendar" },
+          { key: "assignments", label: "Tasks", icon: "check-circle" },
+          { key: "notes", label: "Notes", icon: "file-text" },
+        ].map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            onPress={() => setActiveTab(tab.key as any)}
+            style={[styles.tab, activeTab === tab.key && styles.activeTab]}
+          >
+            <Feather
+              name={tab.icon as any}
+              size={20}
+              color={activeTab === tab.key ? "#4f46e5" : "#6b7280"}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab.key && styles.activeTabText,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Tab Content */}
+      <View style={[styles.content, { paddingBottom: insets.bottom + 80 }]}>
+        {activeTab === "overview" && renderOverview()}
+        {activeTab === "sessions" && renderSessions()}
+        {activeTab === "assignments" && renderAssignments()}
+        {activeTab === "notes" && renderNotes()}
+      </View>
+
+      {/* Assignment Modal */}
+      <Modal visible={showAssignmentModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Add Assignment</Text>
+              <TouchableOpacity
+                onPress={() => setShowAssignmentModal(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              value={newAssignment.title}
+              onChangeText={(text) =>
+                setNewAssignment({ ...newAssignment, title: text })
+              }
+              placeholder="Assignment title"
+              style={styles.modalInput}
+            />
+
+            <TextInput
+              value={newAssignment.description}
+              onChangeText={(text) =>
+                setNewAssignment({ ...newAssignment, description: text })
+              }
+              placeholder="Description"
+              multiline
+              style={[styles.modalInput, styles.textArea]}
+            />
+
+            <View style={styles.categorySelector}>
+              {(["technique", "strategy", "fitness", "homework"] as const).map(
+                (category) => (
+                  <TouchableOpacity
+                    key={category}
+                    onPress={() =>
+                      setNewAssignment({ ...newAssignment, category })
+                    }
+                    style={[
+                      styles.categoryButton,
+                      newAssignment.category === category &&
+                        styles.activeCategoryButton,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryButtonText,
+                        newAssignment.category === category &&
+                          styles.activeCategoryButtonText,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ),
+              )}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setShowAssignmentModal(false)}
+                style={styles.cancelButton}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={addAssignment}
+                style={styles.confirmButton}
+              >
+                <Text style={styles.confirmButtonText}>Add Assignment</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
-/* ---------- styles ---------- */
-const st = StyleSheet.create({
-  hero: {
-    marginTop: 12,
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 12,
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  studentHeader: {
     flexDirection: "row",
     alignItems: "center",
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#e5e7eb",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 16,
   },
-  name: { color: "#fff", fontSize: 18, fontWeight: "900" },
-  meta: { color: "#cbd5e1", marginTop: 2 },
-  duprPill: {
-    backgroundColor: "#fff",
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 6,
+  studentInfo: {
+    flex: 1,
   },
-  duprTxt: { fontWeight: "900", color: "#111827", fontSize: 12 },
-  tag: {
-    backgroundColor: "rgba(255,255,255,0.14)",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    marginRight: 6,
+  studentName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#ffffff",
   },
-  tagTxt: { color: "#fff", fontWeight: "800", fontSize: 12 },
-  primary: {
-    backgroundColor: "#fff",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+  studentLevel: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginVertical: 4,
+  },
+  ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
-  primaryTxt: { color: "#111827", fontWeight: "900", marginLeft: 6 },
-  secondary: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    height: 44,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
+  ratingText: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginLeft: 4,
   },
-  secondaryTxt: { fontWeight: "900", color: "#111827" },
-
-  tabs: {
+  statsContainer: {
+    alignItems: "center",
+  },
+  statItem: {
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  tabBar: {
     flexDirection: "row",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#ffffff",
+    marginHorizontal: 20,
+    marginVertical: 16,
     borderRadius: 12,
     padding: 4,
-    marginTop: 10,
-    marginHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   tab: {
     flex: 1,
-    height: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  tabActive: { backgroundColor: "#111827" },
-  tabTxt: { color: "#111827", fontWeight: "800" },
-  tabTxtActive: { color: "#fff" },
-
-  qaRow: { flexDirection: "row", justifyContent: "space-between" },
-  qaItem: { alignItems: "center", width: "32%" },
-  qaIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "#111827",
-    alignItems: "center",
-    justifyContent: "center",
+  activeTab: {
+    backgroundColor: "#f0f9ff",
   },
-  qaTxt: {
-    marginTop: 6,
-    fontWeight: "800",
-    color: "#111827",
+  tabText: {
     fontSize: 12,
-    textAlign: "center",
+    fontWeight: "600",
+    color: "#6b7280",
+    marginTop: 4,
   },
-
-  dot: { width: 10, height: 10, borderRadius: 5 },
-
+  activeTabText: {
+    color: "#4f46e5",
+  },
+  content: {
+    flex: 1,
+  },
+  tabContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
   card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.25)" },
-  sheet: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 10,
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-  round: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    marginLeft: 8,
-  },
-  roundSolid: { backgroundColor: "#111827", borderColor: "#111827" },
-  roundTxt: { fontWeight: "800", color: "#111827" },
-  roundTxtSolid: { color: "#fff" },
-
-  // Session styles
-  sessionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 16,
-    marginBottom: 8,
-  },
-  sessionHeader: {
+  cardHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
+    alignItems: "center",
+    marginBottom: 16,
   },
-  sessionTitle: {
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginLeft: 8,
+    flex: 1,
+  },
+  sessionInfo: {
+    marginBottom: 16,
+  },
+  sessionDate: {
     fontSize: 16,
-    fontWeight: "800",
-    color: "#111827",
-    marginBottom: 4,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 8,
   },
   sessionMeta: {
     flexDirection: "row",
     alignItems: "center",
   },
-  sessionMetaText: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginLeft: 4,
-  },
-  sessionDot: {
-    color: "#9ca3af",
-    marginHorizontal: 6,
-  },
-  statusBadge: {
-    paddingVertical: 4,
+  sessionTypeBadge: {
     paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 8,
-    marginLeft: 12,
+    marginRight: 12,
   },
-  statusText: {
+  onlineBadge: {
+    backgroundColor: "#dcfce7",
+  },
+  offlineBadge: {
+    backgroundColor: "#dbeafe",
+  },
+  sessionTypeText: {
     fontSize: 12,
-    fontWeight: "700",
-    color: "#fff",
+    fontWeight: "600",
+    color: "#1f2937",
   },
-  sessionNotesContainer: {
-    borderTopWidth: 1,
-    borderTopColor: "#f3f4f6",
-    paddingTop: 12,
+  sessionLocation: {
+    fontSize: 14,
+    color: "#6b7280",
   },
-  upcomingNote: {
+  primaryButton: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
+    justifyContent: "center",
+    backgroundColor: "#4f46e5",
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  progressInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  progressText: {
+    fontSize: 16,
+    color: "#6b7280",
+  },
+  progressValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#10b981",
+    borderRadius: 4,
+  },
+  progressSummary: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  quickActionButton: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 12,
+    marginHorizontal: 4,
+    borderRadius: 12,
+    backgroundColor: "#f8fafc",
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
-  upcomingNoteText: {
+  quickActionText: {
     fontSize: 12,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginTop: 4,
+  },
+  sessionCard: {
+    backgroundColor: "#f9fafb",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  sessionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  completedBadge: {
+    backgroundColor: "#10b981",
+  },
+  upcomingBadge: {
+    backgroundColor: "#f59e0b",
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
+  sessionDetails: {
+    fontSize: 14,
     color: "#6b7280",
-    marginLeft: 6,
+    marginBottom: 8,
+  },
+  sessionNotes: {
+    fontSize: 14,
+    color: "#1f2937",
     fontStyle: "italic",
+  },
+  addButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#f0f9ff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  assignmentCard: {
+    backgroundColor: "#f9fafb",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  assignmentHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  assignmentLeft: {
+    flexDirection: "row",
+    flex: 1,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#d1d5db",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    marginTop: 2,
+  },
+  checkboxCompleted: {
+    backgroundColor: "#10b981",
+    borderColor: "#10b981",
+  },
+  assignmentTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  assignmentTitleCompleted: {
+    textDecorationLine: "line-through",
+    color: "#6b7280",
+  },
+  assignmentDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 4,
+  },
+  assignmentDue: {
+    fontSize: 12,
+    color: "#ef4444",
+    marginTop: 4,
+  },
+  deleteButton: {
+    padding: 4,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorText: {
+    fontSize: 18,
+    color: "#6b7280",
+    marginTop: 16,
+  },
+  backToListButton: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: "#4f46e5",
+    borderRadius: 8,
+  },
+  backToListText: {
+    color: "#ffffff",
+    fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: "top",
+  },
+  categorySelector: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 20,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  activeCategoryButton: {
+    backgroundColor: "#4f46e5",
+    borderColor: "#4f46e5",
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6b7280",
+    textTransform: "capitalize",
+  },
+  activeCategoryButtonText: {
+    color: "#ffffff",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 12,
+    backgroundColor: "#f3f4f6",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderRadius: 12,
+    backgroundColor: "#4f46e5",
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ffffff",
   },
 });

@@ -45,12 +45,12 @@ export default function CoachTabs() {
         }}
       />
       <Tabs.Screen
-        name="calendar/index"
+        name="students"
         options={{
-          title: "Lịch học",
+          title: "Học viên",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "calendar" : "calendar-outline"}
+              name={focused ? "people" : "people-outline"}
               size={20}
               color={color}
             />
@@ -58,12 +58,12 @@ export default function CoachTabs() {
         }}
       />
       <Tabs.Screen
-        name="students"
+        name="calendar/index"
         options={{
-          title: "Học viên",
+          title: "Lịch học",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
-              name={focused ? "people" : "people-outline"}
+              name={focused ? "calendar" : "calendar-outline"}
               size={20}
               color={color}
             />

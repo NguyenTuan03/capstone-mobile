@@ -1,308 +1,457 @@
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
-  FlatList,
-  Image,
-  Platform,
-  Pressable,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/** -------- Mock data (đổi sang API/Context sau) -------- */
-export type Student = {
+// TypeScript interfaces
+interface Student {
   id: string;
   name: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  progress: number;
+  sessions: number;
+  rating: number;
   avatar: string;
-  dupr: number; // 2.0 - 8.0
-  tags: string[]; // ["2.5-3.0","Doubles"]
-  nextSession?: { dateISO: string; mode: "online" | "offline"; place?: string };
-  progress: number; // 0..1 completion of current plan
-};
+  lastSession: string;
+  nextGoal: string;
+  strengths: string[];
+  improvements: string[];
+}
 
-const STUDENTS: Student[] = [
+interface StudentCardProps {
+  student: Student;
+}
+
+const students: Student[] = [
   {
-    id: "u1",
-    name: "Tuấn",
-    avatar: "https://i.pravatar.cc/150?img=15",
-    dupr: 3.1,
-    tags: ["2.5-3.0", "Doubles"],
-    nextSession: {
-      dateISO: new Date(Date.now() + 36e5).toISOString(),
-      mode: "online",
-    },
-    progress: 0.35,
+    id: "1",
+    name: "John Smith",
+    level: "Beginner",
+    progress: 75,
+    sessions: 8,
+    rating: 4.8,
+    avatar: "🏓",
+    lastSession: "2 days ago",
+    nextGoal: "Master Forehand",
+    strengths: ["Consistency", "Footwork"],
+    improvements: ["Backhand", "Serve"],
   },
   {
-    id: "u2",
-    name: "Lan",
-    avatar: "https://i.pravatar.cc/150?img=5",
-    dupr: 3.9,
-    tags: ["3.5-4.0", "Singles"],
-    nextSession: {
-      dateISO: new Date(Date.now() + 2 * 86400e3).toISOString(),
-      mode: "offline",
-      place: "Crescent Court",
-    },
-    progress: 0.6,
+    id: "2",
+    name: "Sarah Johnson",
+    level: "Intermediate",
+    progress: 60,
+    sessions: 12,
+    rating: 4.9,
+    avatar: "🎾",
+    lastSession: "1 day ago",
+    nextGoal: "Tournament Ready",
+    strengths: ["Power", "Strategy"],
+    improvements: ["Net Play", "Consistency"],
   },
   {
-    id: "u3",
-    name: "Huy",
-    avatar: "https://i.pravatar.cc/150?img=12",
-    dupr: 4.3,
-    tags: ["4.5+", "Doubles"],
-    progress: 0.12,
+    id: "3",
+    name: "Mike Wilson",
+    level: "Advanced",
+    progress: 90,
+    sessions: 20,
+    rating: 5.0,
+    avatar: "🏆",
+    lastSession: "Today",
+    nextGoal: "Competition Level",
+    strengths: ["All-around", "Mental Game"],
+    improvements: ["Fine-tuning"],
   },
 ];
 
-const DUPR_LEVELS = ["1.0-2.0", "2.5-3.0", "3.5-4.0", "4.5+"] as const;
-type DuprLevel = (typeof DUPR_LEVELS)[number];
+// Styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  header: {
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  headerContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1f2937",
+  },
+  filterButton: {
+    color: "#4f46e5",
+  },
+  searchContainer: {
+    position: "relative",
+  },
+  searchIcon: {
+    position: "absolute",
+    left: 12,
+    top: "50%",
+    zIndex: 1,
+    marginTop: -10,
+  },
+  searchInput: {
+    paddingLeft: 40,
+    paddingRight: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    fontSize: 16,
+    color: "#1f2937",
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  studentsCount: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 16,
+  },
+  // Student card styles
+  studentCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 24,
+  },
+  studentInfo: {
+    flex: 1,
+  },
+  studentName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  studentLevel: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+  lastSession: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginTop: 2,
+  },
+  ratingContainer: {
+    alignItems: "flex-end",
+  },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  sessionCount: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginTop: 2,
+  },
+  progressContainer: {
+    marginBottom: 16,
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  progressValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  progressBarBackground: {
+    width: "100%",
+    height: 8,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 4,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#4f46e5",
+    borderRadius: 4,
+  },
+  goalContainer: {
+    marginBottom: 16,
+  },
+  goalLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 4,
+  },
+  goalText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  tagsContainer: {
+    marginBottom: 16,
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 8,
+  },
+  tagLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "600",
+    marginBottom: 4,
+    minWidth: 80,
+  },
+  tag: {
+    backgroundColor: "#e5e7eb",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+    marginBottom: 4,
+  },
+  strengthTag: {
+    backgroundColor: "#dcfce7",
+  },
+  improvementTag: {
+    backgroundColor: "#fed7d7",
+  },
+  tagText: {
+    fontSize: 12,
+    color: "#374151",
+  },
+  strengthTagText: {
+    color: "#166534",
+  },
+  improvementTagText: {
+    color: "#991b1b",
+  },
+  cardActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: "#4f46e5",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  secondaryButton: {
+    flex: 1,
+    backgroundColor: "#f3f4f6",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondaryButtonText: {
+    color: "#374151",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+});
 
-export default function StudentsList() {
-  const [q, setQ] = useState("");
-  const [level, setLevel] = useState<DuprLevel | null>(null);
-
-  const data = useMemo(() => {
-    return STUDENTS.filter((s) => {
-      const hitQ = !q || s.name.toLowerCase().includes(q.toLowerCase());
-      let hitLevel = !level;
-      if (level) {
-        if (level === "1.0-2.0") hitLevel = s.dupr >= 1.0 && s.dupr <= 2.0;
-        else if (level === "2.5-3.0") hitLevel = s.dupr >= 2.5 && s.dupr <= 3.0;
-        else if (level === "3.5-4.0") hitLevel = s.dupr >= 3.5 && s.dupr <= 4.0;
-        else if (level === "4.5+") hitLevel = s.dupr >= 4.5;
-      }
-      return hitQ && hitLevel;
-    });
-  }, [q, level]);
-
-  const insets = useSafeAreaInsets();
-
+// StudentCard Component
+const StudentCard: React.FC<StudentCardProps> = ({ student }) => {
   return (
-    <SafeAreaView
+    <View
       style={{
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: "#f8fafc",
+      }}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{student.avatar}</Text>
+        </View>
+        <View style={styles.studentInfo}>
+          <Text style={styles.studentName}>{student.name}</Text>
+          <Text style={styles.studentLevel}>{student.level}</Text>
+          <Text style={styles.lastSession}>
+            Last session: {student.lastSession}
+          </Text>
+        </View>
+        <View style={styles.ratingContainer}>
+          <View style={styles.ratingRow}>
+            <Feather name="star" size={14} color="#facc15" />
+            <Text style={styles.ratingText}>{student.rating}</Text>
+          </View>
+          <Text style={styles.sessionCount}>{student.sessions} sessions</Text>
+        </View>
+      </View>
+
+      {/* Progress */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressHeader}>
+          <Text style={styles.progressLabel}>Progress</Text>
+          <Text style={styles.progressValue}>{student.progress}%</Text>
+        </View>
+        <View style={styles.progressBarBackground}>
+          <View
+            style={[styles.progressBar, { width: `${student.progress}%` }]}
+          />
+        </View>
+      </View>
+
+      {/* Next Goal */}
+      <View style={styles.goalContainer}>
+        <Text style={styles.goalLabel}>Next Goal:</Text>
+        <Text style={styles.goalText}>{student.nextGoal}</Text>
+      </View>
+
+      {/* Strengths and Improvements */}
+      <View style={styles.tagsContainer}>
+        <View style={styles.tagRow}>
+          <Text style={styles.tagLabel}>Strengths:</Text>
+          {student.strengths.map((strength, index) => (
+            <View key={index} style={[styles.tag, styles.strengthTag]}>
+              <Text style={[styles.tagText, styles.strengthTagText]}>
+                {strength}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.tagRow}>
+          <Text style={styles.tagLabel}>Focus Areas:</Text>
+          {student.improvements.map((improvement, index) => (
+            <View key={index} style={[styles.tag, styles.improvementTag]}>
+              <Text style={[styles.tagText, styles.improvementTagText]}>
+                {improvement}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Action buttons */}
+      <View style={styles.cardActions}>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => router.push(`/(coach)/students/${student.id}`)}
+        >
+          <Feather name="eye" size={16} color="#374151" />
+          <Text style={styles.secondaryButtonText}>View Details</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.primaryButton}>
+          <Feather name="calendar" size={16} color="#ffffff" />
+          <Text style={styles.primaryButtonText}>Schedule</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+// Main Component
+export default function StudentsScreen() {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const insets = useSafeAreaInsets();
+  return (
+    <ScrollView
+      style={{
+        flex: 1,
+        backgroundColor: "#f8fafc",
         paddingTop: insets.top,
         paddingBottom: insets.bottom + 50,
       }}
     >
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-        <Text style={st.h1}>Students</Text>
-
-        {/* Search */}
-        <View style={st.search}>
-          <Ionicons name="search" size={18} color="#6b7280" />
-          <TextInput
-            placeholder="Search by name"
-            placeholderTextColor="#9ca3af"
-            value={q}
-            onChangeText={setQ}
-            style={{ flex: 1, marginLeft: 8 }}
-          />
-          {!!q && (
-            <Pressable onPress={() => setQ("")}>
-              <Ionicons name="close-circle" size={18} color="#9ca3af" />
-            </Pressable>
-          )}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerRow}>
+            <Text style={styles.headerTitle}>My Students</Text>
+            <TouchableOpacity>
+              <Feather name="filter" size={24} color="#4f46e5" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.searchContainer}>
+            <View style={styles.searchIcon}>
+              <Feather name="search" size={20} color="#9ca3af" />
+            </View>
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search students..."
+              placeholderTextColor="#9ca3af"
+              style={styles.searchInput}
+            />
+          </View>
         </View>
-
-        {/* DUPR Level filter */}
-        <FlatList
-          data={DUPR_LEVELS as readonly string[]}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(x) => x}
-          contentContainerStyle={{ paddingVertical: 10 }}
-          ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={() =>
-                setLevel(level === item ? null : (item as DuprLevel))
-              }
-            >
-              <View style={[st.chip, level === item && st.chipActive]}>
-                <Text
-                  style={[st.chipText, level === item && st.chipTextActive]}
-                >
-                  {item}
-                </Text>
-              </View>
-            </Pressable>
-          )}
-        />
       </View>
 
-      {/* List */}
-      <FlatList
-        data={data}
-        keyExtractor={(s) => s.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }) => <StudentCard s={item} />}
-        ListEmptyComponent={
-          <View style={st.empty}>
-            <Ionicons name="person-outline" size={22} color="#9ca3af" />
-            <Text style={st.emptyTitle}>No students found</Text>
-            <Text style={st.emptySub}>
-              Try a different search or clear filters.
-            </Text>
-          </View>
-        }
-      />
-    </SafeAreaView>
+      <View style={styles.content}>
+        <Text style={styles.studentsCount}>
+          {students.length} active students
+        </Text>
+        {students
+          .filter(
+            (student) =>
+              student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              student.level.toLowerCase().includes(searchQuery.toLowerCase()),
+          )
+          .map((student) => (
+            <StudentCard key={student.id} student={student} />
+          ))}
+      </View>
+    </ScrollView>
   );
 }
-
-function StudentCard({ s }: { s: Student }) {
-  const nextTxt = s.nextSession
-    ? `${new Date(s.nextSession.dateISO).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })} · ${
-        s.nextSession.mode === "online" ? "Online" : s.nextSession.place
-      }`
-    : "No upcoming session";
-  const progressPct = Math.round(s.progress * 100);
-
-  return (
-    <Pressable
-      onPress={() =>
-        router.push({
-          pathname: "/(coach)/students/[id]" as any,
-          params: { id: s.id },
-        })
-      }
-    >
-      <LinearGradient
-        colors={["#f9fafb", "#eef2ff"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={st.card}
-      >
-        <Image source={{ uri: s.avatar }} style={st.avatar} />
-        <View style={{ flex: 1, marginLeft: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={st.name}>{s.name}</Text>
-            <View style={st.duprPill}>
-              <Ionicons name="podium-outline" size={12} color="#111827" />
-              <Text style={st.duprTxt}> {s.dupr.toFixed(1)}</Text>
-            </View>
-          </View>
-          <Text style={st.sub}>{nextTxt}</Text>
-          {/* tags */}
-          <View style={{ flexDirection: "row", marginTop: 6 }}>
-            {s.tags.slice(0, 2).map((t) => (
-              <View key={t} style={st.tag}>
-                <Text style={st.tagTxt}>{t}</Text>
-              </View>
-            ))}
-          </View>
-          {/* progress */}
-          <View style={st.progressWrap}>
-            <View style={[st.progressBar, { width: `${progressPct}%` }]} />
-          </View>
-          <Text style={st.progressTxt}>{progressPct}% plan completed</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-      </LinearGradient>
-    </Pressable>
-  );
-}
-
-/* -------- styles -------- */
-const st = StyleSheet.create({
-  h1: { fontSize: 22, fontWeight: "900", color: "#111827" },
-  search: {
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    height: 44,
-    alignItems: "center",
-    flexDirection: "row",
-    backgroundColor: "#fff",
-  },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#fff",
-  },
-  chipActive: { backgroundColor: "#111827", borderColor: "#111827" },
-  chipText: { color: "#111827", fontWeight: "700" },
-  chipTextActive: { color: "#fff" },
-
-  card: {
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    flexDirection: "row",
-    alignItems: "center",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 6 },
-      },
-      android: { elevation: 2 },
-    }),
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#e5e7eb",
-  },
-  name: { fontSize: 16, fontWeight: "900", color: "#111827" },
-  sub: { color: "#6b7280", marginTop: 2 },
-  duprPill: {
-    marginLeft: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 999,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  duprTxt: { fontWeight: "800", color: "#111827", fontSize: 12 },
-  tag: {
-    backgroundColor: "#111827",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    marginRight: 6,
-  },
-  tagTxt: { color: "#fff", fontWeight: "800", fontSize: 12 },
-  progressWrap: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: "#e5e7eb",
-    overflow: "hidden",
-    marginTop: 8,
-  },
-  progressBar: { height: 8, backgroundColor: "#111827" },
-  progressTxt: { color: "#6b7280", fontSize: 12, marginTop: 4 },
-
-  empty: {
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 14,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 20,
-    marginHorizontal: 16,
-  },
-  emptyTitle: { fontWeight: "900", color: "#111827", marginTop: 6 },
-  emptySub: { color: "#6b7280", marginTop: 2, textAlign: "center" },
-});

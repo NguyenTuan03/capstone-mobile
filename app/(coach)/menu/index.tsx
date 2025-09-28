@@ -1,397 +1,400 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { Href, router } from "expo-router";
-import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import {
+  Alert,
   Image,
-  Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export default function CoachMenu() {
-  const [pushOn, setPushOn] = useState(true);
-  const [emailOn, setEmailOn] = useState(true);
-  const verified = false;
+// TypeScript interfaces
+interface CoachProfile {
+  id: string;
+  name: string;
+  avatar: string;
+  title: string;
+  rating: number;
+  reviewCount: number;
+  specialties: string[];
+}
+
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: string;
+  description?: string;
+  action?: () => void;
+}
+
+export default function MenuScreen() {
   const insets = useSafeAreaInsets();
 
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#fff",
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom + 50,
-      }}
-    >
-      <ScrollView>
-        {/* Header */}
-        <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
-          <Text style={st.h1}>Menu</Text>
-        </View>
+  const coachProfile: CoachProfile = {
+    id: "1",
+    name: "Coach Anderson",
+    avatar: "https://i.pravatar.cc/150?img=8",
+    title: "Certified Pickleball Instructor",
+    rating: 4.9,
+    reviewCount: 127,
+    specialties: [
+      "Beginner Training",
+      "Advanced Techniques",
+      "Competition Prep",
+    ],
+  };
 
-        {/* Profile card */}
-        <View style={st.cardHero}>
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?img=23" }}
-            style={st.avatar}
-          />
-          <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={st.name}>David Nguyen</Text>
-            <Text style={st.meta}>Huấn luyện viên Pickleball · TP.HCM</Text>
-            <View style={{ flexDirection: "row", marginTop: 6 }}>
-              <Badge
-                color={verified ? "#16a34a" : "#f59e0b"}
-                icon={verified ? "shield-checkmark" : "shield-outline"}
-                text={verified ? "Đã xác minh" : "Chờ xác minh"}
-              />
-              <Badge
-                color="#111827"
-                icon="star-outline"
-                text="Được đánh giá cao"
-              />
+  const profileItems: MenuItem[] = [
+    {
+      id: "edit-profile",
+      title: "Edit Profile",
+      icon: "user",
+      description: "Update your personal information",
+      action: () =>
+        Alert.alert("Edit Profile", "Profile editing feature coming soon!"),
+    },
+    {
+      id: "availability",
+      title: "Availability & Pricing",
+      icon: "calendar",
+      description: "Manage your schedule and rates",
+      action: () =>
+        Alert.alert("Availability", "Availability settings coming soon!"),
+    },
+    {
+      id: "specialties",
+      title: "Teaching Specialties",
+      icon: "target",
+      description: "Update your areas of expertise",
+      action: () =>
+        Alert.alert("Specialties", "Specialties management coming soon!"),
+    },
+    {
+      id: "credentials",
+      title: "Credentials",
+      icon: "award",
+      description: "Manage your certifications",
+      action: () =>
+        Alert.alert("Credentials", "Credentials management coming soon!"),
+    },
+  ];
+
+  const appItems: MenuItem[] = [
+    {
+      id: "notifications",
+      title: "Notifications",
+      icon: "bell",
+      description: "Manage notification preferences",
+      action: () =>
+        Alert.alert("Notifications", "Notification settings coming soon!"),
+    },
+    {
+      id: "privacy",
+      title: "Privacy Settings",
+      icon: "shield",
+      description: "Control your privacy preferences",
+      action: () => Alert.alert("Privacy", "Privacy settings coming soon!"),
+    },
+    {
+      id: "payment",
+      title: "Payment Methods",
+      icon: "credit-card",
+      description: "Manage payment and banking info",
+      action: () => Alert.alert("Payment", "Payment methods coming soon!"),
+    },
+    {
+      id: "help",
+      title: "Help & Support",
+      icon: "help-circle",
+      description: "Get help and contact support",
+      action: () => Alert.alert("Help", "Help & Support coming soon!"),
+    },
+  ];
+
+  const accountItems: MenuItem[] = [
+    {
+      id: "logout",
+      title: "Sign Out",
+      icon: "log-out",
+      description: "Sign out of your account",
+      action: () => {
+        Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Sign Out",
+            style: "destructive",
+            onPress: () => console.log("Signing out..."),
+          },
+        ]);
+      },
+    },
+  ];
+
+  const renderMenuItem = (item: MenuItem, isLast: boolean = false) => (
+    <TouchableOpacity
+      key={item.id}
+      style={[styles.menuItem, isLast && styles.lastMenuItem]}
+      onPress={item.action}
+    >
+      <View style={styles.menuItemLeft}>
+        <View style={styles.menuItemIcon}>
+          <Feather name={item.icon as any} size={20} color="#6b7280" />
+        </View>
+        <View style={styles.menuItemContent}>
+          <Text style={styles.menuItemTitle}>{item.title}</Text>
+          {item.description && (
+            <Text style={styles.menuItemDescription}>{item.description}</Text>
+          )}
+        </View>
+      </View>
+      <Feather name="chevron-right" size={20} color="#d1d5db" />
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header Profile Section */}
+      <LinearGradient
+        colors={["#4f46e5", "#7c3aed"]}
+        style={[styles.header, { paddingTop: insets.top }]}
+      >
+        <View style={styles.profileSection}>
+          <Image source={{ uri: coachProfile.avatar }} style={styles.avatar} />
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{coachProfile.name}</Text>
+            <Text style={styles.profileTitle}>{coachProfile.title}</Text>
+            <View style={styles.ratingContainer}>
+              <Feather name="star" size={16} color="#fbbf24" />
+              <Text style={styles.ratingText}>
+                {coachProfile.rating} ({coachProfile.reviewCount} reviews)
+              </Text>
             </View>
           </View>
-          <Pressable
-            onPress={() => router.push("/(coach)/menu/profile" as any)}
-            style={st.primary}
-          >
-            <Ionicons name="create-outline" size={16} color="#fff" />
-            <Text style={st.primaryTxt}>Chỉnh sửa</Text>
-          </Pressable>
+          <TouchableOpacity style={styles.editButton}>
+            <Feather name="edit-2" size={20} color="#ffffff" />
+          </TouchableOpacity>
         </View>
 
-        {/* ===== Coaching Tools (NEW) ===== */}
-        <Section title="Công cụ huấn luyện">
-          <Row
-            icon={
-              <Ionicons name="calendar-outline" size={18} color="#111827" />
-            }
-            title="Lịch & Buổi học"
-            subtitle="Xem lịch trình, chi tiết buổi học và ghi chú"
-            onPress={() => router.push("/(coach)/calendar/index" as any)}
-          />
-          <Row
-            icon={<Ionicons name="barbell-outline" size={18} color="#111827" />}
-            title="Bài tập & Phân công"
-            subtitle="Thư viện bài tập, giao bài"
-            onPress={() => router.push("/(coach)/menu/drills" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons
-                name="document-text-outline"
-                size={18}
-                color="#111827"
-              />
-            }
-            title="Ghi chú buổi học"
-            subtitle="Xem và quản lý ghi chú buổi học"
-            onPress={() => router.push("/(coach)/calendar/index" as any)}
-          />
-          <Row
-            icon={<Ionicons name="library-outline" size={18} color="#111827" />}
-            title="Khóa học"
-            subtitle="Tạo chương trình đào tạo & giáo trình"
-            onPress={() => router.push("/(coach)/menu/session-blocks" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons name="add-circle-outline" size={18} color="#111827" />
-            }
-            title="Tạo Bài tập mới"
-            subtitle="Tạo mẫu mới"
-            onPress={() => router.push("/(coach)/menu/drills/new" as any)}
-          />
-        </Section>
+        <View style={styles.specialtiesContainer}>
+          <Text style={styles.specialtiesTitle}>Specialties</Text>
+          <View style={styles.specialtiesTags}>
+            {coachProfile.specialties.map((specialty, index) => (
+              <View key={index} style={styles.specialtyTag}>
+                <Text style={styles.specialtyText}>{specialty}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </LinearGradient>
 
-        {/* Profile & Setup */}
-        <Section title="Hồ sơ & Cài đặt">
-          <Row
-            icon={
-              <Ionicons
-                name="person-circle-outline"
-                size={18}
-                color="#111827"
-              />
-            }
-            title="Hồ sơ chuyên nghiệp"
-            subtitle="Tiêu đề, tiểu sử, kinh nghiệm, phương tiện"
-            onPress={() => router.push("/(coach)/menu/profile" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={18}
-                color="#111827"
-              />
-            }
-            title="Xác minh thông tin"
-            subtitle="CMND/CCCD & Chứng chỉ"
-            onPress={() => router.push("/(coach)/menu/verify" as any)}
-            right={
-              <Pill
-                text={verified ? "Đã xác minh" : "Bắt đầu"}
-                tone={verified ? "ok" : "warn"}
-              />
-            }
-          />
-          <Row
-            icon={
-              <MaterialIcons name="sports-tennis" size={18} color="#111827" />
-            }
-            title="Chuyên môn giảng dạy & Phương pháp luận"
-            subtitle="Lĩnh vực tập trung, phong cách huấn luyện"
-            onPress={() => router.push("/(coach)/menu/teaching" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons name="pricetag-outline" size={18} color="#111827" />
-            }
-            title="Giá & Gói"
-            subtitle="Theo giờ, phòng khám, nhóm"
-            onPress={() => router.push("/(coach)/menu/rates" as any)}
-          />
-        </Section>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Profile Settings */}
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Profile Settings</Text>
+          <View style={styles.sectionCard}>
+            {profileItems.map((item, index) =>
+              renderMenuItem(item, index === profileItems.length - 1),
+            )}
+          </View>
+        </View>
 
-        {/* Operations */}
-        <Section title="Vận hành">
-          <Row
-            icon={<Ionicons name="cash-outline" size={18} color="#111827" />}
-            title="Thanh toán & Ngân hàng"
-            subtitle="Kết nối Stripe / Tài khoản ngân hàng"
-            onPress={() => router.push("/(coach)/menu/payouts" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons name="videocam-outline" size={18} color="#111827" />
-            }
-            title="Tích hợp"
-            subtitle="Nhà cung cấp dịch vụ hội nghị video"
-            onPress={() => router.push("/(coach)/menu/integrations" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons
-                name="notifications-outline"
-                size={18}
-                color="#111827"
-              />
-            }
-            title="Thông báo"
-            subtitle="Đặt lịch, nhắc nhở, thanh toán"
-            onPress={() => router.push("/(coach)/menu/notifications" as any)}
-          />
-        </Section>
+        {/* App Settings */}
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>App Settings</Text>
+          <View style={styles.sectionCard}>
+            {appItems.map((item, index) =>
+              renderMenuItem(item, index === appItems.length - 1),
+            )}
+          </View>
+        </View>
 
         {/* Account */}
-        <Section title="Tài khoản">
-          <Row
-            icon={
-              <Ionicons name="lock-closed-outline" size={18} color="#111827" />
-            }
-            title="Bảo mật"
-            subtitle="Mật khẩu, Xác thực 2 lớp"
-            onPress={() => router.push("/(coach)/menu/security" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons name="help-circle-outline" size={18} color="#111827" />
-            }
-            title="Hỗ trợ"
-            subtitle="Phản hồi / Liên hệ chúng tôi"
-            onPress={() => router.push("/(coach)/menu/support" as any)}
-          />
-          <Row
-            icon={
-              <Ionicons
-                name="information-circle-outline"
-                size={18}
-                color="#111827"
-              />
-            }
-            title="Về chúng tôi"
-            subtitle="Điều khoản · Chính sách bảo mật · Phiên bản ứng dụng"
-            onPress={() => router.push("/(coach)/menu/about" as any)}
-          />
-        </Section>
-
-        {/* Toggles */}
-        <View style={st.toggleWrap}>
-          <ToggleRow
-            label="Thông báo đẩy"
-            value={pushOn}
-            onChange={setPushOn}
-          />
-          <ToggleRow
-            label="Thông báo email"
-            value={emailOn}
-            onChange={setEmailOn}
-          />
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.sectionCard}>
+            {accountItems.map((item, index) =>
+              renderMenuItem(item, index === accountItems.length - 1),
+            )}
+          </View>
         </View>
-        <Row
-          icon={<Ionicons name="log-out-outline" size={18} color="#111827" />}
-          title="Đăng xuất"
-          onPress={() => router.push("/(auth)" as Href)}
-        />
+
+        {/* App Info */}
+        <View style={styles.appInfo}>
+          <Text style={styles.appInfoTitle}>Pickleball Coach</Text>
+          <Text style={styles.appInfoVersion}>Version 1.0.0</Text>
+          <Text style={styles.appInfoCopyright}>
+            © 2024 Pickleball Coach App
+          </Text>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-/* ===== Reusable components & styles (giữ nguyên như bạn có) ===== */
-function Section({
-  title,
-  children,
-}: React.PropsWithChildren<{ title: string }>) {
-  return (
-    <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-      <Text style={st.secTitle}>{title}</Text>
-      <View style={st.card}>{children}</View>
-    </View>
-  );
-}
-function Row({
-  icon,
-  title,
-  subtitle,
-  right,
-  onPress,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={st.row}>
-      <View style={st.rowIcon}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <Text style={st.rowTitle}>{title}</Text>
-        {!!subtitle && <Text style={st.rowSub}>{subtitle}</Text>}
-      </View>
-      {right ?? <Ionicons name="chevron-forward" size={18} color="#9ca3af" />}
-    </Pressable>
-  );
-}
-function ToggleRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <View style={[st.row, { paddingHorizontal: 0 }]}>
-      <View style={st.rowIcon}>
-        <Ionicons name="notifications-outline" size={18} color="#111827" />
-      </View>
-      <Text style={st.rowTitle}>{label}</Text>
-      <View style={{ flex: 1 }} />
-      <Switch value={value} onValueChange={onChange} />
-    </View>
-  );
-}
-function Badge({
-  color,
-  icon,
-  text,
-}: {
-  color: string;
-  icon: any;
-  text: string;
-}) {
-  return (
-    <View style={[st.badge, { backgroundColor: color + "20" }]}>
-      <Ionicons name={icon} size={12} color={color} />
-      <Text style={[st.badgeTxt, { color }]}>{text}</Text>
-    </View>
-  );
-}
-function Pill({ text, tone }: { text: string; tone?: "ok" | "warn" }) {
-  const map = { ok: "#16a34a", warn: "#f59e0b" } as const;
-  const c = map[tone ?? "ok"];
-  return <Text style={{ color: c, fontWeight: "900" }}>{text}</Text>;
-}
-
-const st: any = StyleSheet.create({
-  h1: { fontSize: 22, fontWeight: "900", color: "#111827" },
-  cardHero: {
-    marginTop: 10,
-    marginHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 12,
-    backgroundColor: "#fff",
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  profileSection: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 20,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#e5e7eb",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 16,
   },
-  name: { fontSize: 16, fontWeight: "900", color: "#111827" },
-  meta: { color: "#6b7280", marginTop: 2 },
-  badge: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    marginRight: 6,
+  profileInfo: {
+    flex: 1,
   },
-  badgeTxt: { fontSize: 12, fontWeight: "800", marginLeft: 6 },
-  primary: {
-    backgroundColor: "#111827",
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
+  profileName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+    marginBottom: 4,
   },
-  primaryTxt: { color: "#fff", fontWeight: "900", marginLeft: 6 },
-  secTitle: {
+  profileTitle: {
     fontSize: 14,
-    fontWeight: "900",
-    color: "#6b7280",
+    color: "rgba(255, 255, 255, 0.8)",
     marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  ratingText: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
     marginLeft: 4,
   },
-  card: {
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#fff",
+  editButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  row: {
+  specialtiesContainer: {
+    marginTop: 8,
+  },
+  specialtiesTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ffffff",
+    marginBottom: 8,
+  },
+  specialtiesTags: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  specialtyTag: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  specialtyText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#ffffff",
+  },
+  content: {
+    flex: 1,
+  },
+  menuSection: {
+    paddingHorizontal: 16,
+    paddingTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 12,
+  },
+  sectionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
   },
-  rowIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: "#f3f4f6",
+  lastMenuItem: {
+    borderBottomWidth: 0,
+  },
+  menuItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  menuItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f9fafb",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: 12,
   },
-  rowTitle: { fontWeight: "900", color: "#111827" },
-  rowSub: { color: "#6b7280", marginTop: 2 },
-  toggleWrap: { paddingHorizontal: 16, marginTop: 12, marginBottom: 24 },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  menuItemDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginTop: 2,
+  },
+  appInfo: {
+    alignItems: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+  },
+  appInfoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 4,
+  },
+  appInfoVersion: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginBottom: 8,
+  },
+  appInfoCopyright: {
+    fontSize: 12,
+    color: "#9ca3af",
+    textAlign: "center",
+  },
 });
