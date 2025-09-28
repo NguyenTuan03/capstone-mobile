@@ -391,6 +391,13 @@ export default function CalendarScreen() {
           <Text style={styles.headerTitle}>Schedule</Text>
           <View style={styles.headerButtons}>
             <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => router.push("/(coach)/calendar/create-session")}
+            >
+              <Feather name="plus" size={18} color="#ffffff" />
+              <Text style={styles.createButtonText}>Tạo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
                 styles.viewModeButton,
                 viewMode === "calendar" && styles.activeViewMode,
@@ -521,6 +528,19 @@ export default function CalendarScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push("/(coach)/calendar/create-session")}
+      >
+        <LinearGradient
+          colors={["#3b82f6", "#1d4ed8"]}
+          style={styles.fabGradient}
+        >
+          <Feather name="plus" size={24} color="#ffffff" />
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -550,6 +570,21 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: "row",
     gap: 8,
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    marginRight: 8,
+  },
+  createButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
   },
   viewModeButton: {
     width: 36,
@@ -809,5 +844,25 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
     textAlign: "center",
     marginTop: 8,
+  },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  fabGradient: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
