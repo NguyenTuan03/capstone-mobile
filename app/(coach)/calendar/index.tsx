@@ -1,741 +1,813 @@
-import { MOCK_ENROLLMENTS, MOCK_SESSION_BLOCKS } from "@/mocks/sessionBlocks";
-import { Ionicons } from "@expo/vector-icons";
-
+import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  FlatList,
-  Pressable,
-  SafeAreaView,
+  Alert,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Calendar } from "react-native-calendars";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/** ================== TYPES ================== */
-type Mode = "online" | "offline";
-type Status = "upcoming" | "completed" | "in-progress";
-
-type ScheduledSession = {
-  sessionNumber: number;
+// TypeScript interfaces
+interface Session {
   id: string;
-  sessionId: string;
-  date: string; // YYYY-MM-DD
-  start: string; // HH:mm
-  end: string; // HH:mm
-  student: string;
+  studentName: string;
   studentId: string;
-  sessionBlockTitle: string;
-  sessionTitle: string;
-  mode: Mode;
-  location: string;
-  status: Status;
-  enrollmentId: string;
-  sessionBlockId: string;
-  meetingUrl?: string;
-};
-
-/** ================== MOCK DATA FROM SESSION BLOCKS ================== */
-// Generate scheduled sessions from session blocks and enrollments
-const generateScheduledSessions = (): ScheduledSession[] => {
-  const sessions: ScheduledSession[] = [];
-
-  MOCK_ENROLLMENTS.forEach((enrollment) => {
-    const sessionBlock = MOCK_SESSION_BLOCKS.find(
-      (block) => block.id === enrollment.sessionBlockId,
-    );
-    if (!sessionBlock) return;
-
-    // Generate sessions based on enrollment progress
-    const sessionsToGenerate = Math.min(
-      enrollment.currentSession,
-      sessionBlock.totalSessions,
-    );
-
-    for (let sessionNum = 1; sessionNum <= sessionsToGenerate; sessionNum++) {
-      const sessionTemplate = sessionBlock.sessions.find(
-        (s) => s.sessionNumber === sessionNum,
-      );
-      if (!sessionTemplate) continue;
-
-      // Calculate session date (start from enrollment date + weeks)
-      const sessionDate = new Date(enrollment.startDate);
-      sessionDate.setDate(sessionDate.getDate() + (sessionNum - 1) * 7); // Weekly sessions
-
-      const sessionId = `${enrollment.id}-session${sessionNum}`;
-      const dateStr = sessionDate.toISOString().split("T")[0];
-
-      // Mock times for demo
-      const startTime = sessionNum % 2 === 0 ? "14:00" : "09:00";
-      const endTime = sessionNum % 2 === 0 ? "15:30" : "10:30";
-
-      const status = enrollment.completedSessions.includes(sessionNum)
-        ? "completed"
-        : "upcoming";
-
-      sessions.push({
-        id: sessionId,
-        sessionId: sessionTemplate.id,
-        date: dateStr,
-        start: startTime,
-        end: endTime,
-        student: `Student ${enrollment.studentId}`,
-        sessionBlockTitle: sessionBlock.title,
-        sessionTitle: sessionTemplate.title,
-        mode: sessionBlock.deliveryMode,
-        location:
-          sessionBlock.deliveryMode === "online"
-            ? sessionBlock.meetingLink || "Online"
-            : sessionBlock.courtAddress || "Court",
-        status,
-        enrollmentId: enrollment.id,
-        sessionBlockId: sessionBlock.id,
-        meetingUrl: sessionBlock.meetingLink,
-        sessionNumber: sessionNum,
-        studentId: "",
-      });
-    }
-  });
-
-  return sessions;
-};
-
-const SCHEDULED_SESSIONS = generateScheduledSessions();
-
-/** ================== SCREEN ================== */
-export default function CoachCalendar() {
-  const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<string>(getTodayDate());
-  const [sessions] = useState<ScheduledSession[]>(SCHEDULED_SESSIONS);
-  const [filter, setFilter] = useState<Status | "all">("all");
-  const [activeTab, setActiveTab] = useState<"calendar" | "list">("calendar");
-
-  // Session statistics
-  const sessionStats = useMemo(() => {
-    const stats = {
-      total: sessions.length,
-      upcoming: sessions.filter((s) => s.status === "upcoming").length,
-      inProgress: sessions.filter((s) => s.status === "in-progress").length,
-      completed: sessions.filter((s) => s.status === "completed").length,
-    };
-    return stats;
-  }, [sessions]);
-
-  const marked = useMemo(
-    () => buildMarkedDates(sessions, selected),
-    [sessions, selected],
-  );
-
-  const daySessions = useMemo(
-    () =>
-      sessions
-        .filter((s) => s.date === selected)
-        .filter((s) => filter === "all" || s.status === filter)
-        .sort((a, b) => a.start.localeCompare(b.start)),
-    [sessions, selected, filter],
-  );
-
-  const handleSessionPress = (session: ScheduledSession) => {
-    // Navigate to session detail page for automatically booked session
-    router.push({
-      pathname: "/(coach)/calendar/session/[id]",
-      params: {
-        id: session.id,
-        enrollmentId: session.enrollmentId,
-        fromCalendar: "true",
-      },
-    });
-  };
-
-  return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#fff",
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-      }}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Lịch trình</Text>
-        <Text style={styles.headerSubtitle}>
-          Các buổi huấn luyện đã lên lịch
-        </Text>
-
-        {/* Session Stats */}
-        <View style={styles.statsContainer}>
-          <StatCard
-            title="Tổng cộng"
-            value={sessionStats.total}
-            color="#3b82f6"
-          />
-          <StatCard
-            title="Sắp tới"
-            value={sessionStats.upcoming}
-            color="#f59e0b"
-          />
-          <StatCard
-            title="Đang diễn ra"
-            value={sessionStats.inProgress}
-            color="#8b5cf6"
-          />
-          <StatCard
-            title="Hoàn thành"
-            value={sessionStats.completed}
-            color="#10b981"
-          />
-        </View>
-      </View>
-
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "calendar" && styles.tabActive]}
-          onPress={() => setActiveTab("calendar")}
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={16}
-            color={activeTab === "calendar" ? "#fff" : "#64748b"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "calendar" && styles.tabTextActive,
-            ]}
-          >
-            Lịch
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "list" && styles.tabActive]}
-          onPress={() => setActiveTab("list")}
-        >
-          <Ionicons
-            name="list-outline"
-            size={16}
-            color={activeTab === "list" ? "#fff" : "#64748b"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "list" && styles.tabTextActive,
-            ]}
-          >
-            Tất cả buổi học
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Calendar View */}
-      {activeTab === "calendar" && (
-        <>
-          <Calendar
-            current={selected}
-            onDayPress={(d: any) => setSelected(d.dateString)}
-            markedDates={marked}
-            theme={{
-              todayTextColor: "#3b82f6",
-              arrowColor: "#3b82f6",
-              monthTextColor: "#1e293b",
-              textMonthFontWeight: "800",
-              textDayFontWeight: "700",
-              textSectionTitleColor: "#64748b",
-              selectedDayBackgroundColor: "#3b82f6",
-              selectedDayTextColor: "#fff",
-            }}
-            style={styles.calendar}
-          />
-
-          {/* Filter Pills - only for calendar view */}
-          <View style={styles.filterContainer}>
-            <FilterPill
-              label="Tất cả"
-              count={sessionStats.total}
-              active={filter === "all"}
-              onPress={() => setFilter("all")}
-            />
-            <FilterPill
-              label="Sắp tới"
-              count={sessionStats.upcoming}
-              active={filter === "upcoming"}
-              onPress={() => setFilter("upcoming")}
-            />
-            <FilterPill
-              label="Đang diễn ra"
-              count={sessionStats.inProgress}
-              active={filter === "in-progress"}
-              onPress={() => setFilter("in-progress")}
-            />
-            <FilterPill
-              label="Hoàn thành"
-              count={sessionStats.completed}
-              active={filter === "completed"}
-              onPress={() => setFilter("completed")}
-            />
-          </View>
-
-          {/* Sessions List */}
-          <View style={{ flex: 1, paddingHorizontal: 16, marginTop: 10 }}>
-            <View style={styles.legend}>
-              <LegendDot color="#f59e0b" label="Sắp tới" />
-              <LegendDot color="#8b5cf6" label="Đang diễn ra" />
-              <LegendDot color="#10b981" label="Hoàn thành" />
-            </View>
-
-            {daySessions.length === 0 ? (
-              <EmptyState
-                title="Không có buổi học vào ngày này"
-                subtitle="Các buổi học từ Khóa học của bạn sẽ hiển thị ở đây"
-              />
-            ) : (
-              <FlatList
-                data={daySessions}
-                keyExtractor={(x) => x.id}
-                ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-                contentContainerStyle={{ paddingBottom: 16 }}
-                renderItem={({ item }) => (
-                  <SessionCard
-                    session={item}
-                    onPress={() => handleSessionPress(item)}
-                  />
-                )}
-              />
-            )}
-          </View>
-        </>
-      )}
-
-      {/* Session List View */}
-      {activeTab === "list" && (
-        <View style={{ flex: 1, paddingHorizontal: 16, marginTop: 10 }}>
-          {/* Filter Pills for list view */}
-          <View style={styles.filterContainer}>
-            <FilterPill
-              label="Tất cả"
-              count={sessionStats.total}
-              active={filter === "all"}
-              onPress={() => setFilter("all")}
-            />
-            <FilterPill
-              label="Sắp tới"
-              count={sessionStats.upcoming}
-              active={filter === "upcoming"}
-              onPress={() => setFilter("upcoming")}
-            />
-            <FilterPill
-              label="Đang diễn ra"
-              count={sessionStats.inProgress}
-              active={filter === "in-progress"}
-              onPress={() => setFilter("in-progress")}
-            />
-            <FilterPill
-              label="Hoàn thành"
-              count={sessionStats.completed}
-              active={filter === "completed"}
-              onPress={() => setFilter("completed")}
-            />
-          </View>
-
-          <View style={styles.legend}>
-            <LegendDot color="#f59e0b" label="Sắp tới" />
-            <LegendDot color="#8b5cf6" label="Đang diễn ra" />
-            <LegendDot color="#10b981" label="Hoàn thành" />
-          </View>
-
-          <FlatList
-            data={sessions.filter(
-              (s) => filter === "all" || s.status === filter,
-            )}
-            keyExtractor={(x) => x.id}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            contentContainerStyle={{ paddingBottom: 16 }}
-            renderItem={({ item }) => (
-              <SessionCard
-                session={item}
-                onPress={() => handleSessionPress(item)}
-              />
-            )}
-          />
-        </View>
-      )}
-    </SafeAreaView>
-  );
-}
-
-/** ================== Subcomponents ================== */
-
-function SessionCard({
-  session,
-  onPress,
-}: {
-  session: ScheduledSession;
-  onPress: () => void;
-}) {
-  const getStatusColor = (status: Status) => {
-    switch (status) {
-      case "upcoming":
-        return "#f59e0b";
-      case "in-progress":
-        return "#8b5cf6";
-      case "completed":
-        return "#10b981";
-      default:
-        return "#3b82f6";
-    }
-  };
-
-  const color = getStatusColor(session.status);
-  const actionText =
-    session.status === "upcoming"
-      ? "Bắt đầu"
-      : session.status === "in-progress"
-        ? "Tiếp tục"
-        : "Xem";
-
-  return (
-    <Pressable style={styles.sessionCard} onPress={onPress}>
-      <View style={[styles.statusDot, { backgroundColor: color }]} />
-      <View style={{ marginLeft: 8, flex: 1 }}>
-        <Text style={styles.sessionTitle}>{session.sessionTitle}</Text>
-        <Text style={styles.sessionBlock}>{session.sessionBlockTitle}</Text>
-        <Text style={styles.sessionSub}>
-          {session.start}-{session.end} · {session.location}
-        </Text>
-        <Text style={styles.studentName}>{session.student}</Text>
-        <View style={styles.actionContainer}>
-          <Text style={[styles.actionText, { color }]}>{actionText}</Text>
-          <Text style={styles.statusText}>
-            {session.status === "upcoming"
-              ? "Sắp tới"
-              : session.status === "in-progress"
-                ? "Đang diễn ra"
-                : "Hoàn thành"}
-          </Text>
-        </View>
-      </View>
-      <Ionicons name="chevron-forward" size={16} color="#94a3b8" />
-    </Pressable>
-  );
-}
-
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <View
-      style={{ flexDirection: "row", alignItems: "center", marginRight: 16 }}
-    >
-      <View
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 4,
-          backgroundColor: color,
-          marginRight: 6,
-        }}
-      />
-      <Text style={{ color: "#64748b", fontWeight: "600", fontSize: 12 }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function EmptyState({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <View style={styles.emptyState}>
-      <Ionicons name="calendar-outline" size={48} color="#cbd5e1" />
-      <Text style={styles.emptyTitle}>{title}</Text>
-      {!!subtitle && <Text style={styles.emptySubtitle}>{subtitle}</Text>}
-    </View>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  color,
-}: {
+  date: string;
+  time: string;
+  duration: number;
   title: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={[styles.statValue, { color }]}>{value}</Text>
-      <Text style={styles.statTitle}>{title}</Text>
-    </View>
-  );
+  status: "upcoming" | "completed" | "cancelled";
+  deliveryMode: "online" | "offline";
+  meetingLink?: string;
+  courtAddress?: string;
+  sessionNumber: number;
+  totalSessions: number;
 }
 
-function FilterPill({
-  label,
-  count,
-  active,
-  onPress,
-}: {
+interface StatCardProps {
+  title: string;
+  value: string;
+  color: string;
+  icon: string;
+}
+
+interface FilterButtonProps {
   label: string;
   count: number;
   active: boolean;
   onPress: () => void;
-}) {
-  return (
+}
+
+export default function CalendarScreen() {
+  const insets = useSafeAreaInsets();
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split("T")[0],
+  );
+  const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+  const [filterStatus, setFilterStatus] = useState<
+    "all" | "upcoming" | "completed" | "cancelled"
+  >("all");
+
+  const getSessionTitle = (sessionNum: number): string => {
+    const titles = [
+      "Basic Grip & Stance",
+      "Forehand Fundamentals",
+      "Backhand Technique",
+      "Serving Skills",
+      "Net Play Basics",
+      "Court Positioning",
+      "Advanced Strategies",
+      "Tournament Preparation",
+    ];
+    return titles[sessionNum - 1] || `Session ${sessionNum}`;
+  };
+
+  // Mock scheduled sessions data
+  const scheduledSessions = useMemo<Session[]>(() => {
+    const sessions: Session[] = [];
+
+    // Mock enrollments data
+    const enrollments = [
+      {
+        id: "enroll1",
+        studentId: "student1",
+        studentName: "John Smith",
+        sessionBlockTitle: "Beginner Fundamentals",
+        currentSession: 3,
+        completedSessions: [1, 2],
+        startDate: "2024-09-20",
+        deliveryMode: "online" as const,
+        meetingLink: "https://zoom.us/j/123456789",
+      },
+      {
+        id: "enroll2",
+        studentId: "student2",
+        studentName: "Sarah Johnson",
+        sessionBlockTitle: "Intermediate Techniques",
+        currentSession: 5,
+        completedSessions: [1, 2, 3, 4],
+        startDate: "2024-09-15",
+        deliveryMode: "offline" as const,
+        courtAddress: "Downtown Pickleball Court",
+      },
+      {
+        id: "enroll3",
+        studentId: "student3",
+        studentName: "Mike Wilson",
+        sessionBlockTitle: "Advanced Training",
+        currentSession: 2,
+        completedSessions: [1],
+        startDate: "2024-09-25",
+        deliveryMode: "online" as const,
+        meetingLink: "https://meet.google.com/abc-defg-hij",
+      },
+    ];
+
+    // Generate sessions for the next 30 days
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateStr = date.toISOString().split("T")[0];
+
+      // Add 1-3 random sessions per day
+      const sessionsPerDay = Math.floor(Math.random() * 3) + 1;
+
+      for (let j = 0; j < sessionsPerDay; j++) {
+        const enrollment =
+          enrollments[Math.floor(Math.random() * enrollments.length)];
+        const sessionNumber = Math.floor(Math.random() * 8) + 1;
+        const hour = 9 + Math.floor(Math.random() * 8); // 9 AM to 5 PM
+        const minute = Math.random() < 0.5 ? "00" : "30";
+
+        let status: Session["status"] = "upcoming";
+        if (date < today) {
+          status = Math.random() < 0.1 ? "cancelled" : "completed";
+        }
+
+        sessions.push({
+          id: `session_${i}_${j}`,
+          studentName: enrollment.studentName,
+          studentId: enrollment.studentId,
+          date: dateStr,
+          time: `${hour}:${minute}`,
+          duration: 60,
+          title: getSessionTitle(sessionNumber),
+          status,
+          deliveryMode: enrollment.deliveryMode,
+          meetingLink: enrollment.meetingLink,
+          courtAddress: enrollment.courtAddress,
+          sessionNumber,
+          totalSessions: 8,
+        });
+      }
+    }
+
+    return sessions.sort((a, b) => {
+      const dateComparison = a.date.localeCompare(b.date);
+      if (dateComparison !== 0) return dateComparison;
+      return a.time.localeCompare(b.time);
+    });
+  }, []);
+
+  const filteredSessions = useMemo(() => {
+    let filtered = scheduledSessions;
+
+    if (viewMode === "calendar") {
+      filtered = filtered.filter((s) => s.date === selectedDate);
+    }
+
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((s) => s.status === filterStatus);
+    }
+
+    return filtered;
+  }, [scheduledSessions, selectedDate, viewMode, filterStatus]);
+
+  const sessionStats = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const upcoming = scheduledSessions.filter(
+      (s) => s.status === "upcoming",
+    ).length;
+    const todaySessions = scheduledSessions.filter(
+      (s) => s.date === today,
+    ).length;
+    const completed = scheduledSessions.filter(
+      (s) => s.status === "completed",
+    ).length;
+
+    return { upcoming, todaySessions, completed };
+  }, [scheduledSessions]);
+
+  const getStatusColor = (status: Session["status"]): string => {
+    switch (status) {
+      case "upcoming":
+        return "#3b82f6";
+      case "completed":
+        return "#10b981";
+      case "cancelled":
+        return "#ef4444";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  const getStatusBgColor = (status: Session["status"]): string => {
+    switch (status) {
+      case "upcoming":
+        return "#dbeafe";
+      case "completed":
+        return "#d1fae5";
+      case "cancelled":
+        return "#fee2e2";
+      default:
+        return "#f3f4f6";
+    }
+  };
+
+  const handleJoinSession = (session: Session) => {
+    if (session.deliveryMode === "online" && session.meetingLink) {
+      Alert.alert(
+        "Join Session",
+        `Opening meeting link for ${session.studentName}`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Join",
+            onPress: () => console.log("Opening:", session.meetingLink),
+          },
+        ],
+      );
+    } else {
+      Alert.alert(
+        "Session Info",
+        `Offline session with ${session.studentName}\nLocation: ${session.courtAddress || "TBD"}`,
+      );
+    }
+  };
+
+  const StatCard: React.FC<StatCardProps> = ({ title, value, color, icon }) => (
+    <View style={styles.statCard}>
+      <View style={[styles.statIcon, { backgroundColor: color }]}>
+        <Feather name={icon as any} size={20} color="#ffffff" />
+      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statTitle}>{title}</Text>
+    </View>
+  );
+
+  const FilterButton: React.FC<FilterButtonProps> = ({
+    label,
+    count,
+    active,
+    onPress,
+  }) => (
     <TouchableOpacity
-      style={[styles.filterPill, active && styles.filterPillActive]}
+      style={[styles.filterButton, active && styles.activeFilterButton]}
       onPress={onPress}
     >
-      <Text style={[styles.filterLabel, active && styles.filterLabelActive]}>
+      <Text
+        style={[
+          styles.filterButtonText,
+          active && styles.activeFilterButtonText,
+        ]}
+      >
         {label} ({count})
       </Text>
     </TouchableOpacity>
   );
-}
 
-/** ================== Utils ================== */
+  const SessionCard: React.FC<{ session: Session }> = ({ session }) => (
+    <View style={styles.sessionCard}>
+      <View style={styles.sessionHeader}>
+        <View style={styles.sessionInfo}>
+          <Text style={styles.sessionTitle}>{session.title}</Text>
+          <Text style={styles.sessionStudent}>{session.studentName}</Text>
+          <View style={styles.sessionMeta}>
+            <Feather name="clock" size={14} color="#6b7280" />
+            <Text style={styles.sessionTime}>{session.time}</Text>
+            <Text style={styles.sessionDuration}>• {session.duration} min</Text>
+          </View>
+        </View>
 
-function getTodayDate(): string {
-  const dt = new Date();
-  return dt.toISOString().slice(0, 10);
-}
+        <View style={styles.sessionActions}>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusBgColor(session.status) },
+            ]}
+          >
+            <Text
+              style={[
+                styles.statusText,
+                { color: getStatusColor(session.status) },
+              ]}
+            >
+              {session.status}
+            </Text>
+          </View>
+        </View>
+      </View>
 
-function buildMarkedDates(sessions: ScheduledSession[], selected: string) {
-  const marked: any = {};
+      <View style={styles.sessionFooter}>
+        <View style={styles.sessionDetails}>
+          {session.deliveryMode === "online" ? (
+            <View style={styles.sessionMode}>
+              <Feather name="video" size={16} color="#3b82f6" />
+              <Text style={styles.sessionModeText}>Online</Text>
+            </View>
+          ) : (
+            <View style={styles.sessionMode}>
+              <Feather name="map-pin" size={16} color="#10b981" />
+              <Text style={styles.sessionModeText}>In-person</Text>
+            </View>
+          )}
+        </View>
 
-  for (const s of sessions) {
-    const color =
-      s.status === "upcoming"
-        ? "#f59e0b"
-        : s.status === "in-progress"
-          ? "#8b5cf6"
-          : "#10b981";
-    marked[s.date] ??= { dots: [] };
-    if (!marked[s.date].dots.some((d: any) => d.color === color)) {
-      marked[s.date].dots.push({ color });
+        {session.status === "upcoming" && (
+          <View style={styles.sessionButtons}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() =>
+                router.push(`/(coach)/students/${session.studentId}`)
+              }
+            >
+              <Feather name="user" size={16} color="#6b7280" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => handleJoinSession(session)}
+            >
+              <Feather
+                name={session.deliveryMode === "online" ? "video" : "map-pin"}
+                size={16}
+                color="#ffffff"
+              />
+              <Text style={styles.primaryButtonText}>
+                {session.deliveryMode === "online" ? "Join" : "View"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const generateCalendarDays = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    const days = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(currentYear, currentMonth, i);
+      const dateStr = date.toISOString().split("T")[0];
+      const hasSession = scheduledSessions.some((s) => s.date === dateStr);
+      const isSelected = dateStr === selectedDate;
+      const isToday = dateStr === today.toISOString().split("T")[0];
+
+      days.push(
+        <TouchableOpacity
+          key={i}
+          style={[
+            styles.calendarDay,
+            isSelected && styles.selectedDay,
+            isToday && styles.todayDay,
+            hasSession && styles.hasSessionDay,
+          ]}
+          onPress={() => setSelectedDate(dateStr)}
+        >
+          <Text
+            style={[
+              styles.calendarDayText,
+              isSelected && styles.selectedDayText,
+              isToday && styles.todayDayText,
+            ]}
+          >
+            {i}
+          </Text>
+          {hasSession && <View style={styles.sessionDot} />}
+        </TouchableOpacity>,
+      );
     }
-  }
-
-  marked[selected] = {
-    ...(marked[selected] ?? {}),
-    selected: true,
-    selectedColor: "#3b82f6",
+    return days;
   };
 
-  return marked;
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <LinearGradient
+        colors={["#4f46e5", "#7c3aed"]}
+        style={[styles.header, { paddingTop: insets.top }]}
+      >
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Schedule</Text>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={[
+                styles.viewModeButton,
+                viewMode === "calendar" && styles.activeViewMode,
+              ]}
+              onPress={() => setViewMode("calendar")}
+            >
+              <Feather
+                name="calendar"
+                size={18}
+                color={viewMode === "calendar" ? "#4f46e5" : "#ffffff"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.viewModeButton,
+                viewMode === "list" && styles.activeViewMode,
+              ]}
+              onPress={() => setViewMode("list")}
+            >
+              <Feather
+                name="list"
+                size={18}
+                color={viewMode === "list" ? "#4f46e5" : "#ffffff"}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <StatCard
+            title="Today"
+            value={sessionStats.todaySessions.toString()}
+            color="#3b82f6"
+            icon="calendar"
+          />
+          <StatCard
+            title="Upcoming"
+            value={sessionStats.upcoming.toString()}
+            color="#f59e0b"
+            icon="clock"
+          />
+          <StatCard
+            title="Completed"
+            value={sessionStats.completed.toString()}
+            color="#10b981"
+            icon="check-circle"
+          />
+        </View>
+      </LinearGradient>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Calendar View */}
+        {viewMode === "calendar" && (
+          <View style={styles.calendarContainer}>
+            <View style={styles.calendarHeader}>
+              <Text style={styles.calendarTitle}>
+                {new Date().toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </Text>
+            </View>
+            <View style={styles.calendar}>{generateCalendarDays()}</View>
+          </View>
+        )}
+
+        {/* Filters */}
+        <View style={styles.filtersContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <FilterButton
+              label="All"
+              count={filteredSessions.length}
+              active={filterStatus === "all"}
+              onPress={() => setFilterStatus("all")}
+            />
+            <FilterButton
+              label="Upcoming"
+              count={
+                filteredSessions.filter((s) => s.status === "upcoming").length
+              }
+              active={filterStatus === "upcoming"}
+              onPress={() => setFilterStatus("upcoming")}
+            />
+            <FilterButton
+              label="Completed"
+              count={
+                filteredSessions.filter((s) => s.status === "completed").length
+              }
+              active={filterStatus === "completed"}
+              onPress={() => setFilterStatus("completed")}
+            />
+            <FilterButton
+              label="Cancelled"
+              count={
+                filteredSessions.filter((s) => s.status === "cancelled").length
+              }
+              active={filterStatus === "cancelled"}
+              onPress={() => setFilterStatus("cancelled")}
+            />
+          </ScrollView>
+        </View>
+
+        {/* Sessions List */}
+        <View style={styles.sessionsContainer}>
+          <Text style={styles.sectionTitle}>
+            {viewMode === "calendar"
+              ? `Sessions on ${new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}`
+              : "All Sessions"}
+          </Text>
+
+          {filteredSessions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Feather name="calendar" size={48} color="#d1d5db" />
+              <Text style={styles.emptyTitle}>No sessions found</Text>
+              <Text style={styles.emptySubtitle}>
+                {viewMode === "calendar"
+                  ? "No sessions scheduled for this date"
+                  : "No sessions match your current filters"}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.sessionsList}>
+              {filteredSessions.map((session) => (
+                <SessionCard key={session.id} session={session} />
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
-/** ================== Styles ================== */
 const styles = StyleSheet.create({
-  // Tab Navigation
-  tabContainer: {
-    flexDirection: "row",
-    backgroundColor: "#f8fafc",
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 12,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  tab: {
+  container: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 6,
+    backgroundColor: "#f8fafc",
   },
-  tabActive: {
-    backgroundColor: "#3b82f6",
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#64748b",
-  },
-  tabTextActive: {
-    color: "#fff",
-  },
-
-  // Header
   header: {
-    backgroundColor: "#fff",
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+    paddingBottom: 20,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
-
-  // Stats
-  statsContainer: {
+  headerContent: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
-    gap: 8,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    padding: 12,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  statTitle: {
-    fontSize: 11,
-    color: "#64748b",
-    fontWeight: "600",
-    textAlign: "center",
-  },
-
-  // Filter
-  filterContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginTop: 12,
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  filterPill: {
-    backgroundColor: "#f1f5f9",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  filterPillActive: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#3b82f6",
-  },
-  filterLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#64748b",
-  },
-  filterLabelActive: {
-    color: "#fff",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: "800",
-    color: "#1e293b",
+    fontWeight: "bold",
+    color: "#ffffff",
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#64748b",
-    marginTop: 4,
-  },
-
-  // Calendar
-  calendar: {
-    marginHorizontal: 20,
-    marginTop: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    overflow: "hidden",
-  },
-
-  // Legend
-  legend: {
+  headerButtons: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+    gap: 8,
   },
-
-  // Session Card
-  sessionCard: {
-    backgroundColor: "#fff",
+  viewModeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activeViewMode: {
+    backgroundColor: "#ffffff",
+  },
+  statsContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+  },
+  statIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  statTitle: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  content: {
+    flex: 1,
+  },
+  calendarContainer: {
+    backgroundColor: "#ffffff",
+    margin: 20,
     borderRadius: 16,
     padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 3,
-    flexDirection: "row",
-    alignItems: "center",
   },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  calendarHeader: {
+    marginBottom: 16,
+  },
+  calendarTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    textAlign: "center",
+  },
+  calendar: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  calendarDay: {
+    width: "14.28%",
+    aspectRatio: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    marginBottom: 8,
+    position: "relative",
+  },
+  selectedDay: {
+    backgroundColor: "#4f46e5",
+  },
+  todayDay: {
+    borderWidth: 2,
+    borderColor: "#10b981",
+  },
+  hasSessionDay: {
+    backgroundColor: "#f3f4f6",
+  },
+  calendarDayText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1f2937",
+  },
+  selectedDayText: {
+    color: "#ffffff",
+  },
+  todayDayText: {
+    color: "#10b981",
+    fontWeight: "bold",
+  },
+  sessionDot: {
+    position: "absolute",
+    bottom: 2,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#4f46e5",
+  },
+  filtersContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#ffffff",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  activeFilterButton: {
+    backgroundColor: "#4f46e5",
+    borderColor: "#4f46e5",
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  activeFilterButtonText: {
+    color: "#ffffff",
+  },
+  sessionsContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  sessionsList: {
+    gap: 12,
+  },
+  sessionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  sessionInfo: {
+    flex: 1,
   },
   sessionTitle: {
     fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 2,
-  },
-  sessionBlock: {
-    fontSize: 12,
-    color: "#64748b",
-    fontWeight: "500",
+    fontWeight: "bold",
+    color: "#1f2937",
     marginBottom: 4,
   },
-  sessionSub: {
+  sessionStudent: {
     fontSize: 14,
-    color: "#64748b",
-    marginBottom: 2,
+    color: "#6b7280",
+    marginBottom: 4,
   },
-  studentName: {
-    fontSize: 12,
-    color: "#3b82f6",
-    fontWeight: "600",
-  },
-
-  // Action Container
-  actionContainer: {
+  sessionMeta: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
+    gap: 4,
   },
-  actionText: {
-    fontSize: 12,
-    fontWeight: "700",
+  sessionTime: {
+    fontSize: 14,
+    color: "#6b7280",
+    marginLeft: 4,
+  },
+  sessionDuration: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  sessionActions: {
+    alignItems: "flex-end",
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   statusText: {
-    fontSize: 11,
-    color: "#64748b",
+    fontSize: 12,
     fontWeight: "600",
-    textTransform: "uppercase",
+    textTransform: "capitalize",
   },
-
-  // Empty State
+  sessionFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sessionDetails: {
+    flex: 1,
+  },
+  sessionMode: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  sessionModeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
+  sessionButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  primaryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4f46e5",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  primaryButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  secondaryButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 80,
+    paddingVertical: 40,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#1e293b",
+    fontWeight: "600",
+    color: "#6b7280",
     marginTop: 16,
-    marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: "#64748b",
+    color: "#9ca3af",
     textAlign: "center",
-    lineHeight: 20,
+    marginTop: 8,
   },
 });

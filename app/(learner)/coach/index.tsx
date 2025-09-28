@@ -1,416 +1,1457 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { useBookings } from "@/modules/learner/context/bookingContext";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
   FlatList,
   Image,
-  Pressable,
-  SafeAreaView,
+  Modal,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+const { width } = Dimensions.get("window"); // Used for responsive layout calculations
+
+// Synchronized Coach type with detail.tsx
 type Coach = {
   id: string;
   name: string;
   avatar: string;
   rating: number;
+  price: number;
   location: string;
   specialties: string[];
+  experience: string;
+  availability: string;
+  sessionTypes: string[];
+  languages: string[];
+  certifications: string[];
+  isOnline?: boolean;
+  methodology:
+    | {
+        sessionStructure: {
+          warmup: string[];
+          coreDrills: { name: string; goal: string; metric?: string }[];
+          situationalPlay?: string[];
+          cooldown?: string[];
+        };
+        teachingPrinciples: string[];
+        levelGuidelines: {
+          level: "Beginner" | "Intermediate" | "Advanced";
+          focus: string[];
+          successCriteria: string[];
+        }[];
+        equipment?: string[];
+        safetyNotes?: string[];
+        videoFeedback?: { used: boolean; notes?: string };
+      }
+    | string;
+  reviews: {
+    id: string;
+    learner: string;
+    date: string;
+    rating: number;
+    comment: string;
+  }[];
 };
 
-const COACHES: Coach[] = [
-  {
-    id: "c1",
-    name: "David Miller",
-    avatar: "https://i.pravatar.cc/200?img=12",
-    rating: 4.9,
-    location: "Quận 1, TP.HCM",
-    specialties: ["Bóng dink", "Cú thứ ba", "Chiến thuật"],
-  },
-  {
-    id: "c2",
-    name: "Sophia Nguyen",
-    avatar: "https://i.pravatar.cc/200?img=32",
-    rating: 4.8,
-    location: "Thủ Đức",
-    specialties: ["Phát bóng", "Đón bóng", "Chuyển động chân"],
-  },
-  {
-    id: "c3",
-    name: "Liam Tran",
-    avatar: "https://i.pravatar.cc/200?img=68",
-    rating: 5,
-    location: "Quận 7, TP.HCM",
-    specialties: ["Sẵn sàng khu vực bếp", "Chiến thuật đôi"],
-  },
-];
+type FilterType = "All" | string;
 
-const SPECIALTIES = [
-  "Bóng dink",
-  "Phát bóng",
-  "Cú thứ ba",
-  "Đón bóng",
-  "Chuyển động chân",
-  "Chiến thuật",
-] as const;
-
-export default function Coaches() {
-  const [q, setQ] = useState("");
-  const [spec, setSpec] = useState<string | null>(null);
-  const insets = useSafeAreaInsets();
-
-  const data = useMemo(() => {
-    return COACHES.filter(
-      (c) =>
-        (!q ||
-          c.name.toLowerCase().includes(q.toLowerCase()) ||
-          c.location.toLowerCase().includes(q.toLowerCase())) &&
-        (!spec || c.specialties.includes(spec)),
-    );
-  }, [q, spec]);
-
-  return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
-    >
-      <FlatList
-        data={data}
-        keyExtractor={(i) => i.id}
-        renderItem={({ item }) => <CoachCard coach={item} />}
-        ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-        ListHeaderComponent={
-          <View style={s.headerContainer}>
-            <LinearGradient
-              colors={["#18181b", "#111827"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={s.hero}
-            >
-              <View style={s.heroHeader}>
-                <Text style={s.heroTitle}>Tìm Huấn Luyện Viên</Text>
-              </View>
-
-              <Pressable
-                onPress={() =>
-                  router.push("/(learner)/coach/my-sessions" as any)
-                }
-                style={s.mySessionsBtn}
-              >
-                <Ionicons name="calendar-outline" size={18} color="#111827" />
-                <Text style={s.mySessionsText}>Buổi Học Của Tôi</Text>
-                <Ionicons name="chevron-forward" size={14} color="#111827" />
-              </Pressable>
-
-              <Text style={s.heroSub}>
-                Lọc theo địa điểm và chuyên môn — đăng ký khóa học đào tạo trong
-                30 giây.
-              </Text>
-
-              {/* Search */}
-              <View style={s.searchWrap}>
-                <Ionicons name="search" size={18} color="#6b7280" />
-                <TextInput
-                  placeholder="Tìm kiếm huấn luyện viên hoặc địa điểm..."
-                  placeholderTextColor="#9ca3af"
-                  value={q}
-                  onChangeText={setQ}
-                  style={s.searchInput}
-                />
-              </View>
-
-              {/* Filters */}
-              <View style={s.filters}>
-                <ScrollChips
-                  items={SPECIALTIES as unknown as string[]}
-                  value={spec}
-                  onChange={setSpec}
-                  icon={(active: boolean) => (
-                    <MaterialIcons
-                      name="sports-tennis"
-                      size={14}
-                      color={active ? "#111" : "#6b7280"}
-                    />
-                  )}
-                />
-              </View>
-            </LinearGradient>
-          </View>
-        }
-      />
-    </SafeAreaView>
+const CoachScreen = () => {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"coaches" | "community">(
+    "coaches",
   );
-}
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLocation, setSelectedLocation] = useState<FilterType>("All");
+  const [selectedSpecialty, setSelectedSpecialty] = useState<FilterType>("All");
+  const [priceRange, setPriceRange] = useState<FilterType>("All");
+  const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [filteredCoaches, setFilteredCoaches] = useState<Coach[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-function CoachCard({ coach }: { coach: Coach }) {
-  const handleDetailPress = (e: any) => {
-    e.stopPropagation();
-    router.push(`/(learner)/coach/${coach.id}/detail` as any);
+  // Synchronized mock data with detail.tsx
+  useEffect(() => {
+    loadCoaches();
+  }, []);
+
+  const loadCoaches = async () => {
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      const mockCoaches: Coach[] = [
+        {
+          id: "c1",
+          name: "David Miller",
+          avatar: "https://i.pravatar.cc/200?img=12",
+          rating: 4.9,
+          price: 35,
+          location: "District 1, HCMC",
+          specialties: ["Dinking", "3rd Shot", "Strategy"],
+          experience: "5+ years professional coaching",
+          availability: "Mon-Fri: 6AM-8PM, Weekends: 7AM-6PM",
+          sessionTypes: ["Individual", "Group"],
+          languages: ["English", "Vietnamese"],
+          certifications: ["USAPA Certified", "IFP Level 2"],
+          isOnline: true,
+          methodology: {
+            sessionStructure: {
+              warmup: ["Footwork ladder 5'", "Soft dinks cross-court 5'"],
+              coreDrills: [
+                {
+                  name: "3rd Shot Drop Reps",
+                  goal: "Arc control to kitchen",
+                  metric: "8/10 in-bounds",
+                },
+                {
+                  name: "Dink Consistency",
+                  goal: "Low net clearance",
+                  metric: "50 continuous dinks",
+                },
+              ],
+              situationalPlay: [
+                "2v2 kitchen control",
+                "Transition zone defense",
+              ],
+              cooldown: ["Stretch calves/forearm 3'"],
+            },
+            teachingPrinciples: [
+              "Game-based learning: drill → mini-game → game",
+              "Quantified reps với KPI rõ ràng",
+              "Video feedback cuối buổi để sửa form",
+            ],
+            levelGuidelines: [
+              {
+                level: "Beginner",
+                focus: ["Serve/Return ổn định", "Basic dinks"],
+                successCriteria: ["8/10 serve in", "20 dinks liên tục"],
+              },
+              {
+                level: "Intermediate",
+                focus: ["3rd shot drop", "Transition footwork"],
+                successCriteria: [
+                  "60% drop thành công",
+                  "Ra/vào kitchen đúng nhịp",
+                ],
+              },
+              {
+                level: "Advanced",
+                focus: ["Shot selection & patterns", "Doubles tactics"],
+                successCriteria: [
+                  "Ra quyết định đúng ≥70%",
+                  "Kiểm soát kitchen >60% rally",
+                ],
+              },
+            ],
+            equipment: ["2–3 bóng game-ready", "Ladder", "Cones"],
+            safetyNotes: ["Khởi động cổ tay/gối đủ", "Uống nước mỗi 15'"],
+            videoFeedback: {
+              used: true,
+              notes: "Quay slow-mo dinking & 3rd shot",
+            },
+          },
+          reviews: [
+            {
+              id: "r1a",
+              learner: "Alex Chen",
+              date: "2024-01-15",
+              rating: 5,
+              comment:
+                "David's methodology is incredible! My 3rd shot drop improved dramatically in just 3 sessions. The video feedback really helped me see what I was doing wrong.",
+            },
+            {
+              id: "r1b",
+              learner: "Maria Rodriguez",
+              date: "2024-02-08",
+              rating: 5,
+              comment:
+                "Best pickleball coach I've worked with. Very structured approach and clear progression. My dinking consistency went from 20 to 50+ rallies!",
+            },
+            {
+              id: "r1c",
+              learner: "John Park",
+              date: "2024-02-22",
+              rating: 4,
+              comment:
+                "Excellent technical knowledge and patient teaching style. Really helped me understand court positioning and shot selection.",
+            },
+          ],
+        },
+        {
+          id: "c2",
+          name: "Sophia Nguyen",
+          avatar: "https://i.pravatar.cc/200?img=32",
+          rating: 4.8,
+          price: 25,
+          location: "Thu Duc City",
+          specialties: ["Serve", "Return", "Footwork"],
+          experience: "4+ years coaching experience",
+          availability: "Tue-Thu: 5PM-9PM, Weekends: 8AM-5PM",
+          sessionTypes: ["Individual", "Online"],
+          languages: ["Vietnamese", "English"],
+          certifications: ["USAPA Certified", "Youth Coach"],
+          isOnline: false,
+          methodology:
+            "I use a combination of video analysis, drills, and live feedback to help learners improve their skills.",
+          reviews: [
+            {
+              id: "r2a",
+              learner: "Jane Smith",
+              date: "2024-02-01",
+              rating: 5,
+              comment:
+                "Sophia is a great coach! She helped me improve my serve consistency from 60% to 85% in just 4 sessions. Her attention to detail is amazing.",
+            },
+            {
+              id: "r2b",
+              learner: "David Wilson",
+              date: "2024-02-14",
+              rating: 4,
+              comment:
+                "Really focused on fundamentals which was exactly what I needed. My footwork has improved significantly and I feel more confident on the court.",
+            },
+          ],
+        },
+        {
+          id: "c3",
+          name: "Liam Tran",
+          avatar: "https://i.pravatar.cc/200?img=68",
+          rating: 5.0,
+          price: 40,
+          location: "District 7, HCMC",
+          specialties: ["Kitchen Readiness", "Doubles Tactics"],
+          experience: "7+ years competitive coaching",
+          availability: "Mon-Wed-Fri: 6AM-12PM",
+          sessionTypes: ["Individual", "Group"],
+          languages: ["English", "Vietnamese"],
+          certifications: ["Professional Player", "Advanced Coach"],
+          isOnline: true,
+          methodology:
+            "I use a combination of video analysis, drills, and live feedback to help learners improve their skills.",
+          reviews: [
+            {
+              id: "r3a",
+              learner: "Mike Johnson",
+              date: "2024-01-20",
+              rating: 5,
+              comment:
+                "Liam is an absolute master of doubles strategy! My partner and I went from losing most games to winning our local tournament. His kitchen tactics are game-changing.",
+            },
+            {
+              id: "r3b",
+              learner: "Emma Davis",
+              date: "2024-02-05",
+              rating: 5,
+              comment:
+                "Best investment I've made in my pickleball journey. Liam's doubles positioning lessons completely transformed my game. Now I feel confident at the net!",
+            },
+          ],
+        },
+        {
+          id: "c4",
+          name: "Michelle Park",
+          avatar: "https://i.pravatar.cc/200?img=45",
+          rating: 4.6,
+          price: 30,
+          location: "Da Nang",
+          specialties: ["Youth Training", "Beginner Fundamentals"],
+          experience: "3+ years youth coaching",
+          availability: "Available weekends",
+          sessionTypes: ["Group", "Offline"],
+          languages: ["Vietnamese", "English", "Korean"],
+          certifications: ["Youth Coach Certified", "Safety Training"],
+          isOnline: false,
+          methodology:
+            "Passionate about teaching young players with fun and engaging methods that build confidence and skills.",
+          reviews: [
+            {
+              id: "r4a",
+              learner: "Parent - Kim Lee",
+              date: "2024-02-20",
+              rating: 5,
+              comment:
+                "Michelle is amazing with kids! My 10-year-old daughter went from never holding a paddle to playing mini-tournaments. Very patient and encouraging.",
+            },
+            {
+              id: "r4b",
+              learner: "Parent - Tran Duc",
+              date: "2024-03-01",
+              rating: 4,
+              comment:
+                "Great coach for beginners. My son really enjoys the sessions and his fundamentals have improved dramatically.",
+            },
+          ],
+        },
+      ];
+      setCoaches(mockCoaches);
+      setFilteredCoaches(mockCoaches);
+      setLoading(false);
+    }, 1000);
   };
 
-  const handleBookPress = (e: any) => {
-    e.stopPropagation();
-    router.push(`/(learner)/coach/${coach.id}` as any);
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadCoaches().then(() => setRefreshing(false));
+  }, []);
+
+  const locations = ["All", "Ho Chi Minh City", "Hanoi", "Da Nang"];
+  const specialties = [
+    "All",
+    "Beginner Training",
+    "Advanced Techniques",
+    "Strategy & Tactics",
+    "Youth Training",
+  ];
+  const priceRanges = ["All", "Under 300k", "300k-500k", "Above 500k"];
+
+  // Filter coaches based on search and filters
+  useEffect(() => {
+    let filtered = coaches.filter((coach) => {
+      const matchesSearch =
+        coach.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        coach.specialties.some((s) =>
+          s.toLowerCase().includes(searchQuery.toLowerCase()),
+        ) ||
+        coach.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesLocation =
+        selectedLocation === "All" || coach.location === selectedLocation;
+
+      const matchesSpecialty =
+        selectedSpecialty === "All" ||
+        coach.specialties.includes(selectedSpecialty);
+
+      let matchesPrice = true;
+      if (priceRange === "Under 300k") matchesPrice = coach.price < 300000;
+      else if (priceRange === "300k-500k")
+        matchesPrice = coach.price >= 300000 && coach.price <= 500000;
+      else if (priceRange === "Above 500k") matchesPrice = coach.price > 500000;
+
+      return (
+        matchesSearch && matchesLocation && matchesSpecialty && matchesPrice
+      );
+    });
+
+    setFilteredCoaches(filtered);
+  }, [searchQuery, selectedLocation, selectedSpecialty, priceRange, coaches]);
+
+  const formatPrice = (price: number) => {
+    return `$${price}/hour`;
   };
 
-  return (
-    <Pressable
-      onPress={() => router.push(`/(learner)/coach/${coach.id}/detail` as any)}
-      style={s.card}
+  const handleBookSession = (coach: Coach) => {
+    Alert.alert(
+      "Book Session",
+      `Would you like to book a session with ${coach.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Book Online Session",
+          onPress: () =>
+            router.push(
+              `/(learner)/payment?coachId=${coach.id}&type=online&coachName=${encodeURIComponent(coach.name)}&price=${coach.price}`,
+            ),
+        },
+        {
+          text: "Book Offline Session",
+          onPress: () =>
+            router.push(
+              `/(learner)/payment?coachId=${coach.id}&type=offline&coachName=${encodeURIComponent(coach.name)}&price=${coach.price}`,
+            ),
+        },
+      ],
+    );
+  };
+
+  const handleViewDetail = (coach: Coach) => {
+    router.push(`/(learner)/coach/${coach.id}/detail`);
+  };
+
+  const handleProfilePress = () => {
+    router.push("/(learner)/menu");
+  };
+
+  const renderStars = (rating: number) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+
+    for (let i = 0; i < fullStars; i++) {
+      stars.push(<Ionicons key={i} name="star" size={14} color="#FFD700" />);
+    }
+    if (hasHalfStar) {
+      stars.push(
+        <Ionicons key="half" name="star-half" size={14} color="#FFD700" />,
+      );
+    }
+    return stars;
+  };
+
+  // Update renderCoachCard to use new data structure
+  const renderCoachCard = ({ item }: { item: Coach }) => (
+    <TouchableOpacity
+      style={styles.coachCard}
+      onPress={() => setSelectedCoach(item)}
+      activeOpacity={0.7}
     >
-      {/* Avatar */}
-      <Image source={{ uri: coach.avatar }} style={s.avatar} />
-
-      {/* Info */}
-      <View style={s.cardContent}>
-        <Text style={s.name}>{coach.name}</Text>
-
-        <View style={s.ratingRow}>
-          <Ionicons name="star" size={14} color="#f59e0b" />
-          <Text style={s.ratingText}>{coach.rating.toFixed(1)}</Text>
-          <Text style={s.dot}>•</Text>
-          <Ionicons name="location-outline" size={14} color="#6b7280" />
-          <Text style={s.locText}>{coach.location}</Text>
+      <View style={styles.coachCardContent}>
+        <View style={styles.avatarContainer}>
+          <Image source={{ uri: item.avatar }} style={styles.coachAvatar} />
+          {item.isOnline && <View style={styles.onlineIndicator} />}
         </View>
 
-        <View style={s.specialtiesRow}>
-          {coach.specialties.slice(0, 3).map((specialty, index) => (
-            <View key={specialty} style={s.tag}>
-              <Text style={s.tagText}>{specialty}</Text>
-            </View>
-          ))}
+        <View style={styles.coachInfo}>
+          <Text style={styles.coachName}>{item.name}</Text>
+          <Text style={styles.coachSpecialty}>{item.specialties[0]}</Text>
+
+          <View style={styles.ratingContainer}>
+            {renderStars(item.rating)}
+            <Text style={styles.rating}>{item.rating}</Text>
+            <Text style={styles.reviewCount}>
+              ({item.reviews.length} reviews)
+            </Text>
+          </View>
+
+          <View style={styles.locationContainer}>
+            <Ionicons name="location-outline" size={14} color="#666" />
+            <Text style={styles.location}>{item.location}</Text>
+          </View>
+
+          <View style={styles.sessionTypes}>
+            {item.sessionTypes.map((type, index) => (
+              <View key={index} style={styles.sessionTypeChip}>
+                <Text style={styles.sessionTypeText}>{type}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
-        {/* Actions */}
-        <View style={s.cardFooter}>
-          <View style={s.actionButtons}>
-            <Pressable
-              onPress={handleDetailPress}
-              style={[s.actionBtn, s.detailBtn]}
+        <View style={styles.coachActions}>
+          <Text style={styles.price}>{formatPrice(item.price)}</Text>
+          <Text style={styles.availability}>{item.availability}</Text>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() => handleViewDetail(item)}
             >
-              <Text style={s.detailBtnText}>Xem Chi Tiết</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleBookPress}
-              style={[s.actionBtn, s.bookBtn]}
+              <Ionicons
+                name="information-circle-outline"
+                size={16}
+                color="#2E7D32"
+              />
+              <Text style={styles.detailButtonText}>Detail</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.bookButton}
+              onPress={() => handleBookSession(item)}
             >
-              <Text style={s.bookBtnText}>Xem khóa học</Text>
-            </Pressable>
+              <LinearGradient
+                colors={["#2E7D32", "#388E3C"]}
+                style={styles.bookButtonGradient}
+              >
+                <Text style={styles.bookButtonText}>Book</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
-}
 
-function ScrollChips({
-  items,
-  value,
-  onChange,
-  icon,
-}: {
-  items: string[];
-  value: string | null;
-  onChange: (v: any) => void;
-  icon?: (active: boolean) => React.ReactNode;
-}) {
-  return (
-    <View style={{ flexDirection: "row", marginTop: 12 }}>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={items}
-        keyExtractor={(i) => i}
-        renderItem={({ item }) => {
-          const active = value === item;
-          return (
-            <Pressable
-              onPress={() => onChange(active ? null : item)}
-              style={[s.chip, active && s.chipActive]}
-            >
-              <View style={{ marginRight: 6 }}>{icon?.(active)}</View>
-              <Text style={[s.chipText, active && s.chipTextActive]}>
-                {item}
-              </Text>
-            </Pressable>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
-        contentContainerStyle={{ paddingRight: 16 }}
+  const renderHeader = () => (
+    <LinearGradient colors={["#2E7D32", "#388E3C"]} style={styles.header}>
+      <View style={styles.headerContent}>
+        <View>
+          <Text style={styles.headerTitle}>Find Your Coach</Text>
+          <Text style={styles.headerSubtitle}>
+            {filteredCoaches.length} coaches available
+          </Text>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={handleProfilePress}
+          >
+            <Ionicons name="person-circle-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setShowFilters(true)}
+          >
+            <Ionicons name="options-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+
+  const renderSearchBar = () => (
+    <View style={styles.searchContainer}>
+      <Ionicons name="search-outline" size={20} color="#666" />
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search coaches, specialties, or locations..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholderTextColor="#999"
       />
+      {searchQuery.length > 0 && (
+        <TouchableOpacity onPress={() => setSearchQuery("")}>
+          <Ionicons name="close-circle" size={20} color="#666" />
+        </TouchableOpacity>
+      )}
     </View>
   );
-}
 
-const s = StyleSheet.create({
-  headerContainer: {
-    marginBottom: 16,
-    marginHorizontal: -16, // Offset parent padding
-  },
-  hero: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  heroHeader: {
-    marginBottom: 12,
-  },
-  heroTitle: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  mySessionsBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  mySessionsText: {
-    color: "#111827",
-    fontSize: 15,
-    fontWeight: "700",
-    marginLeft: 8,
+  const renderActiveFilters = () => {
+    const hasActiveFilters =
+      selectedLocation !== "All" ||
+      selectedSpecialty !== "All" ||
+      priceRange !== "All";
+
+    if (!hasActiveFilters) return null;
+
+    return (
+      <ScrollView
+        horizontal
+        style={styles.activeFilters}
+        showsHorizontalScrollIndicator={false}
+      >
+        {selectedLocation !== "All" && (
+          <View style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{selectedLocation}</Text>
+            <TouchableOpacity onPress={() => setSelectedLocation("All")}>
+              <Ionicons name="close-circle" size={16} color="#2E7D32" />
+            </TouchableOpacity>
+          </View>
+        )}
+        {selectedSpecialty !== "All" && (
+          <View style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{selectedSpecialty}</Text>
+            <TouchableOpacity onPress={() => setSelectedSpecialty("All")}>
+              <Ionicons name="close-circle" size={16} color="#2E7D32" />
+            </TouchableOpacity>
+          </View>
+        )}
+        {priceRange !== "All" && (
+          <View style={styles.filterChip}>
+            <Text style={styles.filterChipText}>{priceRange}</Text>
+            <TouchableOpacity onPress={() => setPriceRange("All")}>
+              <Ionicons name="close-circle" size={16} color="#2E7D32" />
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    );
+  };
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Ionicons name="person-outline" size={64} color="#ccc" />
+      <Text style={styles.emptyTitle}>No coaches found</Text>
+      <Text style={styles.emptySubtitle}>
+        Try adjusting your search or filters
+      </Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        {renderHeader()}
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2E7D32" />
+          <Text style={styles.loadingText}>Finding coaches...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {renderHeader()}
+
+      <>
+        {renderSearchBar()}
+        {renderActiveFilters()}
+
+        <FlatList
+          data={filteredCoaches}
+          renderItem={renderCoachCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[
+            styles.coachList,
+            filteredCoaches.length === 0 && styles.emptyList,
+          ]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#2E7D32"]}
+              tintColor="#2E7D32"
+            />
+          }
+          ListEmptyComponent={renderEmptyState}
+        />
+      </>
+
+      {/* Filter Modal */}
+      <Modal visible={showFilters} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filters</Text>
+              <TouchableOpacity onPress={() => setShowFilters(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              {/* Location Filter */}
+              <Text style={styles.filterLabel}>Location</Text>
+              <View style={styles.filterOptions}>
+                {locations.map((location) => (
+                  <TouchableOpacity
+                    key={location}
+                    style={[
+                      styles.filterOption,
+                      selectedLocation === location &&
+                        styles.selectedFilterOption,
+                    ]}
+                    onPress={() => setSelectedLocation(location)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterOptionText,
+                        selectedLocation === location &&
+                          styles.selectedFilterOptionText,
+                      ]}
+                    >
+                      {location}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Specialty Filter */}
+              <Text style={styles.filterLabel}>Specialty</Text>
+              <View style={styles.filterOptions}>
+                {specialties.map((specialty) => (
+                  <TouchableOpacity
+                    key={specialty}
+                    style={[
+                      styles.filterOption,
+                      selectedSpecialty === specialty &&
+                        styles.selectedFilterOption,
+                    ]}
+                    onPress={() => setSelectedSpecialty(specialty)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterOptionText,
+                        selectedSpecialty === specialty &&
+                          styles.selectedFilterOptionText,
+                      ]}
+                    >
+                      {specialty}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Price Filter */}
+              <Text style={styles.filterLabel}>Price Range</Text>
+              <View style={styles.filterOptions}>
+                {priceRanges.map((range) => (
+                  <TouchableOpacity
+                    key={range}
+                    style={[
+                      styles.filterOption,
+                      priceRange === range && styles.selectedFilterOption,
+                    ]}
+                    onPress={() => setPriceRange(range)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterOptionText,
+                        priceRange === range && styles.selectedFilterOptionText,
+                      ]}
+                    >
+                      {range}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => {
+                  setSelectedLocation("All");
+                  setSelectedSpecialty("All");
+                  setPriceRange("All");
+                }}
+              >
+                <Text style={styles.clearButtonText}>Clear All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={() => setShowFilters(false)}
+              >
+                <LinearGradient
+                  colors={["#2E7D32", "#388E3C"]}
+                  style={styles.applyButtonGradient}
+                >
+                  <Text style={styles.applyButtonText}>Apply Filters</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Coach Detail Modal */}
+      <Modal visible={!!selectedCoach} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedCoach && (
+              <>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Coach Details</Text>
+                  <TouchableOpacity onPress={() => setSelectedCoach(null)}>
+                    <Ionicons name="close" size={24} color="#333" />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView>
+                  <View style={styles.coachDetailHeader}>
+                    <View style={styles.avatarContainer}>
+                      <Image
+                        source={{ uri: selectedCoach.avatar }}
+                        style={styles.coachDetailAvatar}
+                      />
+                      {selectedCoach.isOnline && (
+                        <View style={styles.onlineIndicatorLarge} />
+                      )}
+                    </View>
+                    <Text style={styles.coachDetailName}>
+                      {selectedCoach.name}
+                    </Text>
+                    <Text style={styles.coachDetailSpecialty}>
+                      {selectedCoach.specialties.join(", ")}
+                    </Text>
+                    <View style={styles.coachDetailRating}>
+                      {renderStars(selectedCoach.rating)}
+                      <Text style={styles.rating}>{selectedCoach.rating}</Text>
+                      <Text style={styles.reviewCount}>
+                        ({selectedCoach.reviews.length} reviews)
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.coachDetailSection}>
+                    <Text style={styles.sectionTitle}>About</Text>
+                    <Text style={styles.sectionContent}>
+                      {typeof selectedCoach.methodology === "string"
+                        ? selectedCoach.methodology
+                        : JSON.stringify(selectedCoach.methodology)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.coachDetailSection}>
+                    <Text style={styles.sectionTitle}>
+                      Experience & Languages
+                    </Text>
+                    <Text style={styles.sectionContent}>
+                      Experience: {selectedCoach.experience}
+                    </Text>
+                    {selectedCoach.languages && (
+                      <Text style={styles.sectionContent}>
+                        Languages: {selectedCoach.languages.join(", ")}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={styles.coachDetailSection}>
+                    <Text style={styles.sectionTitle}>Certifications</Text>
+                    {selectedCoach.certifications.map((cert, index) => (
+                      <View key={index} style={styles.certificationItem}>
+                        <Ionicons
+                          name="medal-outline"
+                          size={16}
+                          color="#2E7D32"
+                        />
+                        <Text style={styles.certificationText}>{cert}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={styles.coachDetailSection}>
+                    <Text style={styles.sectionTitle}>Session Types</Text>
+                    <View style={styles.sessionTypesDetail}>
+                      {selectedCoach.sessionTypes.map((type, index) => (
+                        <View key={index} style={styles.sessionTypeDetailChip}>
+                          <Text style={styles.sessionTypeDetailText}>
+                            {type}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+
+                  <View style={styles.coachDetailSection}>
+                    <Text style={styles.sectionTitle}>
+                      Pricing & Availability
+                    </Text>
+                    <Text style={styles.priceDetail}>
+                      {formatPrice(selectedCoach.price)}
+                    </Text>
+                    <Text style={styles.availabilityDetail}>
+                      {selectedCoach.availability}
+                    </Text>
+                  </View>
+                </ScrollView>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    style={styles.bookDetailButton}
+                    onPress={() => {
+                      setSelectedCoach(null);
+                      handleBookSession(selectedCoach);
+                    }}
+                  >
+                    <LinearGradient
+                      colors={["#2E7D32", "#388E3C"]}
+                      style={styles.bookDetailButtonGradient}
+                    >
+                      <Text style={styles.bookDetailButtonText}>
+                        Book Session
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
+    backgroundColor: "#f8fafc",
   },
-  heroSub: {
-    color: "#d1d5db",
-    marginTop: 4,
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  headerSubtitle: {
     fontSize: 14,
-    lineHeight: 20,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 4,
   },
-  searchWrap: {
-    marginTop: 16,
-    backgroundColor: "#1f2937",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 48,
+  filterButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    padding: 8,
+    borderRadius: 8,
+  },
+  searchContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#374151",
+    margin: 20,
+    marginBottom: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
-    color: "#fff",
-    marginLeft: 8,
     flex: 1,
+    marginLeft: 10,
     fontSize: 16,
+    color: "#333",
   },
-  filters: { marginTop: 8 },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#374151",
-    borderRadius: 999,
+  activeFilters: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+  },
+  filterChip: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#4b5563",
-  },
-  chipActive: { backgroundColor: "#fff", borderColor: "#111827" },
-  chipText: { color: "#f3f4f6", fontWeight: "600", fontSize: 13 },
-  chipTextActive: { color: "#111827", fontWeight: "700" },
-
-  name: { fontSize: 18, fontWeight: "700", color: "#111827" },
-  ratingText: { color: "#6b7280", marginLeft: 4, fontWeight: "600" },
-  dot: { color: "#d1d5db", marginHorizontal: 8 },
-  locText: { color: "#6b7280", marginLeft: 4, fontSize: 14 },
-  tag: {
-    backgroundColor: "#f0f9ff",
-    borderColor: "#0ea5e9",
-    borderWidth: 1,
-    borderRadius: 999,
+    backgroundColor: "#E8F5E8",
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderRadius: 15,
+    marginRight: 8,
   },
-  tagText: { color: "#0369a1", fontWeight: "600", fontSize: 12 },
-
-  price: { fontWeight: "800", color: "#111827", fontSize: 16 },
-  card: {
+  filterChipText: {
+    color: "#2E7D32",
+    fontSize: 12,
+    marginRight: 4,
+  },
+  coachList: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  emptyList: {
+    flexGrow: 1,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#666",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#666",
+  },
+  coachCard: {
     backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#f3f4f6",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 16,
+    borderRadius: 16,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  avatar: {
+  coachCardContent: {
+    padding: 16,
+    flexDirection: "row",
+  },
+  avatarContainer: {
+    position: "relative",
+  },
+  coachAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  onlineIndicator: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  onlineIndicatorLarge: {
+    position: "absolute",
+    bottom: 4,
+    right: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#4CAF50",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  coachInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  coachName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  coachSpecialty: {
+    fontSize: 14,
+    color: "#2E7D32",
+    marginBottom: 6,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  rating: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
+    marginRight: 4,
+  },
+  reviewCount: {
+    fontSize: 12,
+    color: "#666",
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  location: {
+    fontSize: 12,
+    color: "#666",
+    marginLeft: 4,
+  },
+  sessionTypes: {
+    flexDirection: "row",
+  },
+  sessionTypeChip: {
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginRight: 4,
+  },
+  sessionTypeText: {
+    fontSize: 10,
+    color: "#666",
+  },
+  coachActions: {
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    minWidth: 100,
+  },
+  price: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#2E7D32",
+    marginBottom: 4,
+  },
+  availability: {
+    fontSize: 10,
+    color: "#666",
+    marginBottom: 8,
+    textAlign: "right",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  detailButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#2E7D32",
+    borderRadius: 15,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 4,
+  },
+  detailButtonText: {
+    color: "#2E7D32",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  bookButton: {
+    borderRadius: 15,
+    overflow: "hidden",
+  },
+  bookButtonGradient: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  bookButtonText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "80%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  filterLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginTop: 20,
+    marginBottom: 10,
+    paddingHorizontal: 20,
+  },
+  filterOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 20,
+  },
+  filterOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 15,
+    backgroundColor: "#f0f0f0",
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedFilterOption: {
+    backgroundColor: "#2E7D32",
+  },
+  filterOptionText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  selectedFilterOptionText: {
+    color: "#fff",
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  clearButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#2E7D32",
+    marginRight: 10,
+    alignItems: "center",
+  },
+  clearButtonText: {
+    color: "#2E7D32",
+    fontWeight: "600",
+  },
+  applyButton: {
+    flex: 1,
+    borderRadius: 8,
+    marginLeft: 10,
+    overflow: "hidden",
+  },
+  applyButtonGradient: {
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  applyButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  coachDetailHeader: {
+    alignItems: "center",
+    padding: 20,
+  },
+  coachDetailAvatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 3,
-    borderColor: "#f0f9ff",
+    marginBottom: 12,
   },
-  cardContent: {
-    flex: 1,
-    gap: 12,
+  coachDetailName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 4,
   },
-  ratingRow: {
+  coachDetailSpecialty: {
+    fontSize: 16,
+    color: "#2E7D32",
+    marginBottom: 8,
+  },
+  coachDetailRating: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  coachDetailSection: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  sectionContent: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  certificationItem: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 4,
   },
-  specialtiesRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  certificationText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 8,
   },
-  cardFooter: {
+  sessionTypesDetail: {
+    flexDirection: "row",
+  },
+  sessionTypeDetailChip: {
+    backgroundColor: "#2E7D32",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    marginRight: 8,
+  },
+  sessionTypeDetailText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  priceDetail: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2E7D32",
+    marginBottom: 4,
+  },
+  availabilityDetail: {
+    fontSize: 14,
+    color: "#666",
+  },
+  bookDetailButton: {
+    borderRadius: 8,
+    overflow: "hidden",
+    flex: 1,
+  },
+  bookDetailButtonGradient: {
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  bookDetailButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  // Header Actions
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  profileButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+  },
+  // Tab Navigation
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    marginHorizontal: width * 0.05,
+    marginVertical: 10,
+    borderRadius: 25,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: "center",
+  },
+  activeTabButton: {
+    backgroundColor: "#2E7D32",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+  },
+  activeTabText: {
+    color: "#fff",
+  },
+  // Community Styles
+  content: {
+    flex: 1,
+  },
+  communityContainer: {
+    padding: 20,
+  },
+  communitySection: {
+    marginBottom: 24,
+  },
+  eventCard: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginTop: 8,
+  },
+  eventGradient: {
+    padding: 20,
+    alignItems: "center",
+  },
+  eventTitle: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+  eventDate: {
+    color: "#fff",
+    fontSize: 14,
+    marginTop: 4,
+    opacity: 0.9,
+  },
+  groupCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 16,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  actionButtons: {
+  groupInfo: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "center",
+    flex: 1,
   },
-  actionBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
+  groupDetails: {
+    marginLeft: 12,
   },
-  detailBtn: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
-  },
-  detailBtnText: {
-    color: "#475569",
+  groupName: {
+    fontSize: 16,
     fontWeight: "600",
-    fontSize: 13,
+    color: "#333",
   },
-  bookBtn: {
-    backgroundColor: "#0ea5e9",
-    borderColor: "#0ea5e9",
+  groupMembers: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 2,
   },
-  bookBtnText: {
+  partnerCard: {
+    backgroundColor: "#FFF3E0",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 8,
+  },
+  partnerInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  partnerDetails: {
+    marginLeft: 12,
+  },
+  partnerTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  partnerSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 2,
+  },
+  inviteCard: {
+    backgroundColor: "#F3E5F5",
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  inviteInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  inviteDetails: {
+    marginLeft: 12,
+  },
+  inviteTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+  },
+  inviteSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 2,
+  },
+  inviteBadge: {
+    backgroundColor: "#9C27B0",
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  inviteBadgeText: {
     color: "#fff",
-    fontWeight: "600",
-    fontSize: 13,
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
+
+export default CoachScreen;

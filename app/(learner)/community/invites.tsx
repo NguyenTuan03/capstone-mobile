@@ -171,7 +171,7 @@ export default function InvitesScreen() {
         ListEmptyComponent={
           <EmptyState
             tab={tab}
-            onBrowse={() => router.replace("/menu/community/partner")}
+            onBrowse={() => router.replace("/community/partner")}
           />
         }
         renderItem={({ item }) => (
