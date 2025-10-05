@@ -1,5 +1,5 @@
 import { SkillTrackingProvider } from "@/modules/learner/context/skillTrackingContext";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 export default function LearnerTabs() {
@@ -53,10 +53,10 @@ export default function LearnerTabs() {
         <Tabs.Screen
           name="roadmap"
           options={{
-            title: "Lộ trình",
+            title: "Khoá học",
             tabBarIcon: ({ color, size, focused }) => (
-              <MaterialIcons
-                name={focused ? "map" : "map"}
+              <Ionicons
+                name={focused ? "book" : "book-outline"}
                 size={20}
                 color={color}
               />
@@ -64,12 +64,12 @@ export default function LearnerTabs() {
           }}
         />
         <Tabs.Screen
-          name="upload/index"
+          name="drill"
           options={{
-            title: "AI",
+            title: "Drill ",
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
-                name={focused ? "cloud-upload" : "cloud-upload-outline"}
+                name={focused ? "barbell" : "barbell-outline"}
                 size={22}
                 color={color}
               />
@@ -90,12 +90,12 @@ export default function LearnerTabs() {
           }}
         />
         <Tabs.Screen
-          name="community"
+          name="profile"
           options={{
-            title: "Cộng đồng",
+            title: "Cá nhân",
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
-                name={focused ? "people" : "people-outline"}
+                name={focused ? "person" : "person-outline"}
                 size={22}
                 color={color}
               />
@@ -104,6 +104,12 @@ export default function LearnerTabs() {
         />
 
         {/* Hidden screens - không hiển thị trên tab bar */}
+        <Tabs.Screen
+          name="upload/index"
+          options={{
+            href: null, // Ẩn khỏi tab bar
+          }}
+        />
         <Tabs.Screen
           name="payment"
           options={{

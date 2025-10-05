@@ -1,312 +1,322 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React from "react";
-import {
-  Dimensions,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const { width } = Dimensions.get("window");
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function Home() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = React.useState(false);
-
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    // Simulate refreshing data
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
-  const renderHeader = (title: string) => (
-    <ThemedView style={styles.header}>
-      <ThemedText type="title" style={styles.headerTitle}>
-        {title}
-      </ThemedText>
-      <Pressable
-        style={styles.headerButton}
-        onPress={() => router.push("/(learner)/menu")}
-      >
-        <Ionicons name="person-circle-outline" size={28} color="#059669" />
-      </Pressable>
-    </ThemedView>
-  );
-
-  const renderDashboard = () => (
-    <ScrollView
-      style={[styles.container, { paddingTop: insets.top }]}
-      contentContainerStyle={[
-        styles.scrollContent,
-        { paddingBottom: insets.bottom + 100 },
-      ]}
-      showsVerticalScrollIndicator={false}
-      bounces={true}
-      scrollEventThrottle={16}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={["#059669"]}
-          tintColor="#059669"
-          progressBackgroundColor="#ffffff"
-        />
-      }
-    >
-      {renderHeader("Dashboard")}
-
-      {/* Welcome Section */}
-      <ThemedView style={styles.welcomeSection}>
-        <ThemedText type="title" style={styles.welcomeTitle}>
-          Welcome back, Player!
-        </ThemedText>
-        <ThemedText style={styles.welcomeSubtitle}>
-          Ready to improve your pickleball skills?
-        </ThemedText>
-        <View style={styles.progressContainer}>
-          <ThemedText type="defaultSemiBold" style={styles.progressLabel}>
-            Learning Progress
-          </ThemedText>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: "65%" }]} />
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Welcome card */}
+      <View style={styles.welcomeCard}>
+        <Text style={styles.welcomeTitle}>Welcome back, Hung!</Text>
+        <Text style={styles.welcomeSubtitle}>
+          Ready to improve your game today?
+        </Text>
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>12</Text>
+            <Text style={styles.statLabel}>Lessons Done</Text>
           </View>
-          <ThemedText style={styles.progressText}>65% Complete</ThemedText>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>8</Text>
+            <Text style={styles.statLabel}>Drills Completed</Text>
+          </View>
         </View>
-      </ThemedView>
-
-      {/* Quick Actions */}
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        Quick Actions
-      </ThemedText>
-      <View style={styles.quickActionsGrid}>
-        <Pressable
-          onPress={() => router.push("/(learner)/roadmap/")}
-          style={styles.actionButton}
-        >
-          <View style={styles.actionIcon}>
-            <Ionicons name="play-circle-outline" size={32} color="#059669" />
-          </View>
-          <ThemedText type="defaultSemiBold" style={styles.actionText}>
-            Watch Tutorials
-          </ThemedText>
-        </Pressable>
-
-        <Pressable
-          onPress={() => {
-            /* TODO: Implement video upload functionality */
-          }}
-          style={styles.actionButton}
-        >
-          <View style={styles.actionIcon}>
-            <Ionicons name="camera-outline" size={32} color="#ea580c" />
-          </View>
-          <ThemedText type="defaultSemiBold" style={styles.actionText}>
-            AI Analysis
-          </ThemedText>
-        </Pressable>
-
-        <Pressable
-          onPress={() => router.push("/(learner)/coach/")}
-          style={styles.actionButton}
-        >
-          <View style={styles.actionIcon}>
-            <Ionicons name="people-outline" size={32} color="#2563eb" />
-          </View>
-          <ThemedText type="defaultSemiBold" style={styles.actionText}>
-            Find Coach
-          </ThemedText>
-        </Pressable>
-
-        <Pressable style={styles.actionButton}>
-          <View style={styles.actionIcon}>
-            <Ionicons name="location-outline" size={32} color="#7c3aed" />
-          </View>
-          <ThemedText type="defaultSemiBold" style={styles.actionText}>
-            Find Courts
-          </ThemedText>
-        </Pressable>
       </View>
 
-      {/* Recent Activity */}
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        Recent Activity
-      </ThemedText>
-      <ThemedView style={styles.activityContainer}>
-        <View style={styles.activityItem}>
-          <View style={styles.activityIcon}>
-            <Ionicons name="checkmark-circle" size={24} color="#059669" />
-          </View>
-          <View style={styles.activityContent}>
-            <ThemedText type="defaultSemiBold" style={styles.activityTitle}>
-              Completed: Basic Forehand
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-          </View>
-        </View>
-        <View style={styles.activityItem}>
-          <View style={styles.activityIcon}>
-            <Ionicons name="star" size={24} color="#eab308" />
-          </View>
-          <View style={styles.activityContent}>
-            <ThemedText type="defaultSemiBold" style={styles.activityTitle}>
-              Achievement: First Lesson!
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>1 day ago</ThemedText>
+      {/* Continue Learning */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Continue Learning</Text>
+        <View style={styles.card}>
+          <View style={styles.lessonRow}>
+            <View style={styles.lessonThumb}>
+              <Ionicons name="play" size={32} color="#fff" />
+            </View>
+            <View style={styles.lessonContent}>
+              <Text style={styles.lessonMeta}>Lesson 5</Text>
+              <Text style={styles.lessonTitle}>Backhand Technique</Text>
+              <View style={styles.progressRow}>
+                <View style={styles.progressTrack}>
+                  <View style={styles.progressFill} />
+                </View>
+                <Text style={styles.progressText}>45%</Text>
+              </View>
+              <Pressable>
+                <Text style={styles.linkButton}>Continue</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
-      </ThemedView>
+      </View>
+
+      {/* Practice Drills */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Practice Drills</Text>
+          <Pressable>
+            <Text style={styles.linkButton}>View All</Text>
+          </Pressable>
+        </View>
+        <View style={styles.grid}>
+          {[1, 2].map((idx) => (
+            <View key={idx} style={styles.drillCard}>
+              <View style={styles.drillThumb}>
+                <Ionicons name="golf" size={32} color="#fff" />
+              </View>
+              <Text style={styles.drillTitle}>Sample Drill {idx}</Text>
+              <View style={styles.drillMetaRow}>
+                <Text style={styles.drillMeta}>10 min</Text>
+                <Text style={styles.drillScore}>80/100</Text>
+              </View>
+              <Pressable style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Start Drill</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Upcoming Sessions */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
+        {[1, 2].map((idx) => (
+          <View key={idx} style={styles.sessionCard}>
+            <View style={styles.sessionHeader}>
+              <View>
+                <Text style={styles.sessionTitle}>Backhand Coaching</Text>
+                <Text style={styles.sessionCoach}>Coach Taylor</Text>
+              </View>
+              <View style={[styles.sessionBadge, styles.sessionBadgeOnline]}>
+                <Text style={styles.sessionBadgeText}>Online</Text>
+              </View>
+            </View>
+            <View style={styles.sessionMetaRow}>
+              <View style={styles.sessionMetaItem}>
+                <Ionicons name="calendar" size={16} color="#4B5563" />
+                <Text style={styles.sessionMetaText}>Oct 5</Text>
+              </View>
+              <View style={styles.sessionMetaItem}>
+                <Ionicons name="time" size={16} color="#4B5563" />
+                <Text style={styles.sessionMetaText}>10:00</Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
     </ScrollView>
   );
-
-  return renderDashboard();
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    paddingTop: 16,
+    paddingBottom: 96,
+    gap: 24,
   },
-  headerButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    color: "#059669",
-    fontSize: 20,
-  },
-  welcomeSection: {
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+  welcomeCard: {
+    backgroundColor: "#10B981", // emerald-500
+    borderRadius: 16,
+    padding: 16,
   },
   welcomeTitle: {
-    color: "#059669",
-    fontSize: 24,
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#fff",
     marginBottom: 8,
   },
   welcomeSubtitle: {
-    color: "#6b7280",
-    marginBottom: 20,
-  },
-  progressContainer: {
-    marginTop: 16,
-  },
-  progressLabel: {
-    color: "#1f2937",
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  progressBar: {
-    width: "100%",
-    height: 8,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: 8,
-    backgroundColor: "#10b981",
-    borderRadius: 4,
-  },
-  progressText: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  sectionTitle: {
-    color: "#1f2937",
-    marginHorizontal: 20,
-    marginTop: 20,
+    color: "#F0FDFA",
     marginBottom: 12,
   },
-  quickActionsGrid: {
+  statsRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 20,
-    gap: 16,
+    gap: 12,
   },
-  actionButton: {
-    backgroundColor: "#ffffff",
-    padding: 20,
+  statBox: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 12,
+    padding: 12,
+  },
+  statNumber: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  statLabel: {
+    color: "#E5E7EB",
+  },
+  section: {
+    gap: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+  },
+  lessonRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  lessonThumb: {
+    width: 96,
+    height: 96,
+    backgroundColor: "#34D399",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    width: (width - 56) / 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
-  actionIcon: {
-    marginBottom: 8,
-  },
-  actionText: {
-    color: "#1f2937",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  activityContainer: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  activityItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  activityIcon: {
-    marginRight: 16,
-  },
-  activityContent: {
+  lessonContent: {
     flex: 1,
   },
-  activityTitle: {
-    color: "#1f2937",
-    fontSize: 16,
+  lessonMeta: {
+    color: "#6B7280",
+    marginBottom: 4,
   },
-  activityTime: {
+  lessonTitle: {
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#111827",
+  },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 8,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 999,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: 8,
+    width: "45%",
+    backgroundColor: "#10B981",
+    borderRadius: 999,
+  },
+  progressText: {
     fontSize: 12,
-    color: "#6b7280",
-    marginTop: 2,
+    color: "#4B5563",
+  },
+  linkButton: {
+    color: "#059669",
+    fontWeight: "600",
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  drillCard: {
+    flexBasis: "48%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 12,
+  },
+  drillThumb: {
+    width: "100%",
+    height: 96,
+    backgroundColor: "#A78BFA",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  drillTitle: {
+    fontWeight: "600",
+    fontSize: 14,
+    marginBottom: 8,
+    color: "#111827",
+  },
+  drillMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  drillMeta: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  drillScore: {
+    fontSize: 12,
+    color: "#059669",
+    fontWeight: "600",
+  },
+  primaryButton: {
+    backgroundColor: "#8B5CF6",
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  primaryButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  sessionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+    marginBottom: 12,
+  },
+  sessionHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  sessionTitle: {
+    fontWeight: "600",
+    color: "#111827",
+  },
+  sessionCoach: {
+    color: "#6B7280",
+    fontSize: 12,
+  },
+  sessionBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  sessionBadgeOnline: {
+    backgroundColor: "#DBEAFE",
+  },
+  sessionBadgeText: {
+    color: "#1D4ED8",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  sessionMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  sessionMetaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  sessionMetaText: {
+    color: "#4B5563",
+    fontSize: 12,
   },
 });

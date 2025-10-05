@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Href, useRouter } from "expo-router";
 
 // TypeScript interfaces
 interface CoachProfile {
@@ -32,7 +33,7 @@ interface MenuItem {
 
 export default function MenuScreen() {
   const insets = useSafeAreaInsets();
-
+  const router = useRouter();
   const coachProfile: CoachProfile = {
     id: "1",
     name: "Coach Anderson",
@@ -126,7 +127,7 @@ export default function MenuScreen() {
           {
             text: "Sign Out",
             style: "destructive",
-            onPress: () => console.log("Signing out..."),
+            onPress: () => router.push("/(auth)" as Href),
           },
         ]);
       },

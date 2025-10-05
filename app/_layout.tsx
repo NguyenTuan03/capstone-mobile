@@ -26,7 +26,6 @@ export default function RootLayout() {
         <AppAuthProvider>
           <Stack>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="(learner)" options={{ headerShown: false }} />
             <Stack.Screen name="(coach)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
