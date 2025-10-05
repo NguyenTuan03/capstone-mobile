@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Pressable,
@@ -50,6 +51,7 @@ const MOCK_COACHES: Coach[] = [
 ];
 
 const CoachScreen: React.FC = () => {
+  const router = useRouter();
   const [query, setQuery] = useState("");
 
   const coaches = useMemo(() => {
@@ -90,7 +92,7 @@ const CoachScreen: React.FC = () => {
                   {coach.name.split(" ")[1]?.[0] || coach.name[0]}
                 </Text>
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={styles.flex1}>
                 <Text style={styles.coachName}>{coach.name}</Text>
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={16} color="#F59E0B" />
@@ -109,14 +111,24 @@ const CoachScreen: React.FC = () => {
               </View>
             </View>
             <Text style={styles.specialty}>
-              <Text style={{ fontWeight: "600" }}>Specialty:</Text>{" "}
+              <Text style={styles.fontSemiBold}>Specialty:</Text>{" "}
               {coach.specialty}
             </Text>
             <View style={styles.actionRow}>
-              <Pressable style={[styles.primaryButton, { flex: 1 }]}>
+              <Pressable
+                onPress={() =>
+                  router.push(`/(learner)/coach/booking?id=${coach.id}` as any)
+                }
+                style={[styles.primaryButton, { flex: 1 }]}
+              >
                 <Text style={styles.primaryButtonText}>Book Session</Text>
               </Pressable>
-              <Pressable style={styles.outlineButton}>
+              <Pressable
+                onPress={() =>
+                  router.push(`/(learner)/coach/profile?id=${coach.id}` as any)
+                }
+                style={styles.outlineButton}
+              >
                 <Text style={styles.outlineButtonText}>Profile</Text>
               </Pressable>
             </View>
@@ -130,6 +142,8 @@ const CoachScreen: React.FC = () => {
 export default CoachScreen;
 
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
+  fontSemiBold: { fontWeight: "600" },
   container: {
     paddingHorizontal: 16,
     paddingTop: 16,

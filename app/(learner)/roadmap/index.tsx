@@ -1,61 +1,91 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+
+type CourseLevel = "Beginner" | "Intermediate" | "Advanced";
 
 type Course = {
   id: string;
   title: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
+  level: CourseLevel;
   lessons: number;
   drills: number;
   duration: string;
   progress: number; // 0-100
 };
 
-const MOCK_COURSES: Course[] = [
+const courses = [
   {
-    id: "c1",
-    title: "Foundations of Tennis",
-    level: "Beginner",
-    lessons: 12,
-    drills: 8,
-    duration: "4h 20m",
+    id: 1,
+    title: "Beginner Basics",
     progress: 45,
+    lessons: 12,
+    duration: "2h 30m",
+    level: "Beginner",
+    drills: 8,
+    description:
+      "Master the fundamental skills of pickleball. Perfect for complete beginners.",
+    instructor: "Coach John Smith",
+    instructorAvatar: "J",
+    enrolled: 1245,
+    rating: 4.8,
+    reviews: 342,
+    price: "Free",
+    thumbnail: "beginner",
   },
   {
-    id: "c2",
-    title: "Intermediate Footwork",
+    id: 2,
+    title: "Forehand Mastery",
+    progress: 20,
+    lessons: 8,
+    duration: "1h 45m",
     level: "Intermediate",
-    lessons: 10,
-    drills: 12,
-    duration: "5h 05m",
-    progress: 0,
+    drills: 6,
+    description: "Develop a powerful and consistent forehand shot.",
+    instructor: "Coach Sarah Lee",
+    instructorAvatar: "S",
+    enrolled: 856,
+    rating: 4.9,
+    reviews: 203,
+    price: "$29.99",
+    thumbnail: "forehand",
   },
   {
-    id: "c3",
-    title: "Advanced Strategy",
-    level: "Advanced",
-    lessons: 14,
+    id: 3,
+    title: "Serving Techniques",
+    progress: 0,
+    lessons: 10,
+    duration: "2h 00m",
+    level: "Beginner",
     drills: 10,
-    duration: "6h 10m",
-    progress: 72,
+    description:
+      "Learn various serving techniques to start every point strong.",
+    instructor: "Coach Mike Chen",
+    instructorAvatar: "M",
+    enrolled: 723,
+    rating: 4.7,
+    reviews: 156,
+    price: "$24.99",
+    thumbnail: "serve",
   },
 ];
 
 const LEVELS = ["All", "Beginner", "Intermediate", "Advanced"] as const;
+
 type LevelFilter = (typeof LEVELS)[number];
 
-export default function RoadmapScreen() {
+export default function Roadmap() {
+  const router = useRouter();
   const [activeLevel, setActiveLevel] = useState<LevelFilter>("All");
 
   const filteredCourses = useMemo(() => {
-    if (activeLevel === "All") return MOCK_COURSES;
-    return MOCK_COURSES.filter((c) => c.level === activeLevel);
+    if (activeLevel === "All") return courses;
+    return courses.filter((c) => c.level === activeLevel);
   }, [activeLevel]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <View>
         <Text style={styles.title}>Learning Curriculum</Text>
         <Text style={styles.subtitle}>
@@ -63,7 +93,6 @@ export default function RoadmapScreen() {
         </Text>
       </View>
 
-      {/* Filters */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -76,13 +105,13 @@ export default function RoadmapScreen() {
               key={level}
               onPress={() => setActiveLevel(level)}
               style={[
-                styles.filterPill,
-                isActive ? styles.filterPillActive : styles.filterPillInactive,
+                styles.pill,
+                isActive ? styles.pillActive : styles.pillInactive,
               ]}
             >
               <Text
                 style={
-                  isActive ? styles.filterTextActive : styles.filterTextInactive
+                  isActive ? styles.pillTextActive : styles.pillTextInactive
                 }
               >
                 {level}
@@ -92,46 +121,63 @@ export default function RoadmapScreen() {
         })}
       </ScrollView>
 
-      {/* Courses */}
       <View style={styles.list}>
         {filteredCourses.map((course) => (
           <View key={course.id} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.iconThumb}>
-                <Ionicons name="book" size={24} color="#fff" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={styles.titleRow}>
-                  <Text style={styles.cardTitle}>{course.title}</Text>
-                  <View style={styles.levelBadge}>
-                    <Text style={styles.levelBadgeText}>{course.level}</Text>
-                  </View>
+            <View style={styles.thumb}>
+              <Ionicons name="book" size={48} color="#fff" />
+            </View>
+            <View style={styles.cardBody}>
+              <View style={styles.titleRow}>
+                <Text style={styles.cardTitle}>{course.title}</Text>
+                <View style={styles.levelBadge}>
+                  <Text style={styles.levelBadgeText}>{course.level}</Text>
                 </View>
-                <View style={styles.metaRow}>
+              </View>
+
+              <View style={styles.metaRow}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="play" size={14} color="#6B7280" />
                   <Text style={styles.metaText}>{course.lessons} lessons</Text>
-                  <Text style={styles.metaDivider}>-</Text>
+                </View>
+                <Text style={styles.metaDivider}>•</Text>
+                <View style={styles.metaItem}>
+                  <Ionicons name="golf" size={14} color="#6B7280" />
                   <Text style={styles.metaText}>{course.drills} drills</Text>
-                  <Text style={styles.metaDivider}>-</Text>
+                </View>
+                <Text style={styles.metaDivider}>•</Text>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time" size={14} color="#6B7280" />
                   <Text style={styles.metaText}>{course.duration}</Text>
                 </View>
-                <View style={styles.progressRow}>
-                  <View style={styles.progressTrack}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        { width: `${course.progress}%` },
-                      ]}
-                    />
-                  </View>
-                  <Text style={styles.progressText}>{course.progress}%</Text>
-                </View>
               </View>
+
+              <View style={styles.progressRow}>
+                <View style={styles.progressTrack}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      { width: `${course.progress}%` },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressText}>{course.progress}%</Text>
+              </View>
+
+              <Pressable
+                style={styles.primaryButton}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(learner)/roadmap/[id]",
+                    params: { id: String(course.id) },
+                  })
+                }
+              >
+                <Text style={styles.primaryButtonText}>
+                  {course.progress === 0 ? "Start Course" : "Continue"}
+                </Text>
+              </Pressable>
             </View>
-            <Pressable style={styles.primaryButton}>
-              <Text style={styles.primaryButtonText}>
-                {course.progress === 0 ? "Start Course" : "Continue"}
-              </Text>
-            </Pressable>
           </View>
         ))}
       </View>
@@ -156,92 +202,55 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginBottom: 8,
   },
-  filters: {
-    gap: 8,
-    paddingBottom: 8,
-  },
-  filterPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 999,
-  },
-  filterPillActive: {
-    backgroundColor: "#10B981",
-  },
-  filterPillInactive: {
-    backgroundColor: "#F3F4F6",
-  },
-  filterTextActive: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  filterTextInactive: {
-    color: "#374151",
-    fontWeight: "500",
-  },
-  list: {
-    gap: 12,
-  },
+  filters: { gap: 8, paddingBottom: 8 },
+  pill: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999 },
+  pillActive: { backgroundColor: "#10B981" },
+  pillInactive: { backgroundColor: "#F3F4F6" },
+  pillTextActive: { color: "#fff", fontWeight: "600" },
+  pillTextInactive: { color: "#374151", fontWeight: "500" },
+  list: { gap: 12 },
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    padding: 16,
+    overflow: "hidden",
   },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-    marginBottom: 12,
-  },
-  iconThumb: {
-    width: 64,
-    height: 64,
-    backgroundColor: "#34D399",
-    borderRadius: 12,
+  thumb: {
+    height: 140,
+    backgroundColor: "#10B981",
     alignItems: "center",
     justifyContent: "center",
   },
+  cardBody: { padding: 16 },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  cardTitle: {
-    fontWeight: "600",
-    color: "#111827",
-    flexShrink: 1,
-  },
+  cardTitle: { fontWeight: "600", color: "#111827", flex: 1 },
   levelBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 999,
     backgroundColor: "#DBEAFE",
   },
-  levelBadgeText: {
-    color: "#1D4ED8",
-    fontSize: 12,
-    fontWeight: "600",
-  },
+  levelBadgeText: { color: "#1D4ED8", fontSize: 12, fontWeight: "600" },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     marginBottom: 8,
   },
-  metaText: {
-    color: "#6B7280",
-    fontSize: 12,
-  },
-  metaDivider: {
-    color: "#9CA3AF",
-  },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  metaText: { color: "#6B7280", fontSize: 12 },
+  metaDivider: { color: "#9CA3AF" },
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginBottom: 12,
   },
   progressTrack: {
     flex: 1,
@@ -250,24 +259,13 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: "hidden",
   },
-  progressFill: {
-    height: 8,
-    backgroundColor: "#10B981",
-    borderRadius: 999,
-  },
-  progressText: {
-    fontSize: 12,
-    color: "#4B5563",
-    fontWeight: "600",
-  },
+  progressFill: { height: 8, backgroundColor: "#10B981", borderRadius: 999 },
+  progressText: { fontSize: 12, color: "#4B5563", fontWeight: "600" },
   primaryButton: {
     backgroundColor: "#10B981",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
   },
-  primaryButtonText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
+  primaryButtonText: { color: "#fff", fontWeight: "700" },
 });
