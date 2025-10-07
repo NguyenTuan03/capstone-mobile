@@ -6,33 +6,33 @@ export default function Home() {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Welcome card */}
       <View style={styles.welcomeCard}>
-        <Text style={styles.welcomeTitle}>Welcome back, Hung!</Text>
+        <Text style={styles.welcomeTitle}>Chào mừng trở lại, Hưng!</Text>
         <Text style={styles.welcomeSubtitle}>
-          Ready to improve your game today?
+          Sẵn sàng cải thiện kỹ năng hôm nay?
         </Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Lessons Done</Text>
+            <Text style={styles.statLabel}>Bài học đã hoàn thành</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>Drills Completed</Text>
+            <Text style={styles.statLabel}>Bài tập đã hoàn thành</Text>
           </View>
         </View>
       </View>
 
       {/* Continue Learning */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Continue Learning</Text>
+        <Text style={styles.sectionTitle}>Tiếp tục học</Text>
         <View style={styles.card}>
           <View style={styles.lessonRow}>
             <View style={styles.lessonThumb}>
               <Ionicons name="play" size={32} color="#fff" />
             </View>
             <View style={styles.lessonContent}>
-              <Text style={styles.lessonMeta}>Lesson 5</Text>
-              <Text style={styles.lessonTitle}>Backhand Technique</Text>
+              <Text style={styles.lessonMeta}>Bài 5</Text>
+              <Text style={styles.lessonTitle}>Kỹ thuật đánh trái</Text>
               <View style={styles.progressRow}>
                 <View style={styles.progressTrack}>
                   <View style={styles.progressFill} />
@@ -40,7 +40,7 @@ export default function Home() {
                 <Text style={styles.progressText}>45%</Text>
               </View>
               <Pressable>
-                <Text style={styles.linkButton}>Continue</Text>
+                <Text style={styles.linkButton}>Tiếp tục</Text>
               </Pressable>
             </View>
           </View>
@@ -50,9 +50,9 @@ export default function Home() {
       {/* Practice Drills */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Practice Drills</Text>
+          <Text style={styles.sectionTitle}>Luyện tập</Text>
           <Pressable>
-            <Text style={styles.linkButton}>View All</Text>
+            <Text style={styles.linkButton}>Xem tất cả</Text>
           </Pressable>
         </View>
         <View style={styles.grid}>
@@ -61,13 +61,13 @@ export default function Home() {
               <View style={styles.drillThumb}>
                 <Ionicons name="golf" size={32} color="#fff" />
               </View>
-              <Text style={styles.drillTitle}>Sample Drill {idx}</Text>
+              <Text style={styles.drillTitle}>Bài tập mẫu {idx}</Text>
               <View style={styles.drillMetaRow}>
                 <Text style={styles.drillMeta}>10 min</Text>
                 <Text style={styles.drillScore}>80/100</Text>
               </View>
               <Pressable style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>Start Drill</Text>
+                <Text style={styles.primaryButtonText}>Bắt đầu</Text>
               </Pressable>
             </View>
           ))}
@@ -76,16 +76,16 @@ export default function Home() {
 
       {/* Upcoming Sessions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
+        <Text style={styles.sectionTitle}>Lịch buổi học sắp tới</Text>
         {[1, 2].map((idx) => (
           <View key={idx} style={styles.sessionCard}>
             <View style={styles.sessionHeader}>
               <View>
-                <Text style={styles.sessionTitle}>Backhand Coaching</Text>
-                <Text style={styles.sessionCoach}>Coach Taylor</Text>
+                <Text style={styles.sessionTitle}>Huấn luyện đánh trái</Text>
+                <Text style={styles.sessionCoach}>HLV Taylor</Text>
               </View>
               <View style={[styles.sessionBadge, styles.sessionBadgeOnline]}>
-                <Text style={styles.sessionBadgeText}>Online</Text>
+                <Text style={styles.sessionBadgeText}>Trực tuyến</Text>
               </View>
             </View>
             <View style={styles.sessionMetaRow}>

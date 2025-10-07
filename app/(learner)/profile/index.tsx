@@ -24,32 +24,32 @@ const Profile: React.FC<Props> = () => {
         <View style={styles.avatarLarge}>
           <Text style={styles.avatarLargeText}>LH</Text>
         </View>
-        <Text style={styles.name}>Lam Tien Hung</Text>
-        <Text style={styles.role}>Intermediate Player</Text>
+        <Text style={styles.name}>Lâm Tiến Hưng</Text>
+        <Text style={styles.role}>Người chơi trung cấp</Text>
       </View>
 
       {/* Progress stats */}
       <View style={styles.card}>
         <View style={styles.cardTitleRow}>
           <Ionicons name="stats-chart" size={20} color="#059669" />
-          <Text style={styles.cardTitle}>Progress Stats</Text>
+          <Text style={styles.cardTitle}>Thống kê tiến độ</Text>
         </View>
         <View style={styles.gridTwo}>
           <View style={[styles.statCell, { backgroundColor: "#EFF6FF" }]}>
             <Text style={[styles.statNumber, { color: "#2563EB" }]}>24</Text>
-            <Text style={styles.statLabel}>Lessons Done</Text>
+            <Text style={styles.statLabel}>Bài học đã hoàn thành</Text>
           </View>
           <View style={[styles.statCell, { backgroundColor: "#F5F3FF" }]}>
             <Text style={[styles.statNumber, { color: "#7C3AED" }]}>15</Text>
-            <Text style={styles.statLabel}>Drills Completed</Text>
+            <Text style={styles.statLabel}>Bài tập đã hoàn thành</Text>
           </View>
           <View style={[styles.statCell, { backgroundColor: "#FFF7ED" }]}>
             <Text style={[styles.statNumber, { color: "#EA580C" }]}>6</Text>
-            <Text style={styles.statLabel}>Coaching Sessions</Text>
+            <Text style={styles.statLabel}>Buổi huấn luyện</Text>
           </View>
           <View style={[styles.statCell, { backgroundColor: "#ECFDF5" }]}>
             <Text style={[styles.statNumber, { color: "#059669" }]}>7</Text>
-            <Text style={styles.statLabel}>Day Streak</Text>
+            <Text style={styles.statLabel}>Chuỗi ngày học</Text>
           </View>
         </View>
       </View>
@@ -58,7 +58,7 @@ const Profile: React.FC<Props> = () => {
       <View style={styles.card}>
         <View style={styles.cardTitleRow}>
           <Ionicons name="trophy" size={20} color="#F59E0B" />
-          <Text style={styles.cardTitle}>Achievements</Text>
+          <Text style={styles.cardTitle}>Thành tựu</Text>
         </View>
         <View style={styles.gridFour}>
           {achievements.map((a) => (
@@ -80,22 +80,22 @@ const Profile: React.FC<Props> = () => {
       <View style={styles.actionList}>
         <View style={styles.actionItem}>
           <Ionicons name="person" size={20} color="#374151" />
-          <Text style={styles.actionText}>Edit Profile</Text>
+          <Text style={styles.actionText}>Chỉnh sửa hồ sơ</Text>
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </View>
         <View style={styles.actionItem}>
           <Ionicons name="calendar" size={20} color="#374151" />
-          <Text style={styles.actionText}>My Bookings</Text>
+          <Text style={styles.actionText}>Lịch đã đặt</Text>
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </View>
         <View style={styles.actionItem}>
           <Ionicons name="videocam" size={20} color="#374151" />
-          <Text style={styles.actionText}>Session History</Text>
+          <Text style={styles.actionText}>Lịch sử buổi học</Text>
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </View>
         <View style={styles.actionItem}>
           <Ionicons name="settings" size={20} color="#374151" />
-          <Text style={styles.actionText}>Settings</Text>
+          <Text style={styles.actionText}>Cài đặt</Text>
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </View>
       </View>

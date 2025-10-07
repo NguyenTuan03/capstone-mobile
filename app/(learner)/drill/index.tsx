@@ -5,7 +5,7 @@ import {
 } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
@@ -210,7 +210,7 @@ export default function PickleballLearnerAppNative() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<
     "home" | "courses" | "drills" | "coaches" | "profile"
-  >("coaches");
+  >("drills");
   const [selectedCoach, setSelectedCoach] = useState<
     (typeof coaches)[number] | null
   >(null);
@@ -230,6 +230,169 @@ export default function PickleballLearnerAppNative() {
   // -----------------------------------------------------------------
   // SUBVIEWS
   // -----------------------------------------------------------------
+  // ---- Drills mock & views ----
+  const drills = [
+    { id: 1, title: "Forehand Consistency", due: "2025-10-12", reps: 30 },
+    { id: 2, title: "Backhand Control", due: "2025-10-15", reps: 25 },
+    { id: 3, title: "Serve Accuracy", due: "2025-10-20", reps: 40 },
+  ];
+  const [selectedDrill, setSelectedDrill] = useState<
+    (typeof drills)[number] | null
+  >(null);
+
+  const DrillListView = () => {
+    return (
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+        <View>
+          <Text style={styles.title}>Bài tập được giao</Text>
+          <Text style={styles.muted}>Hoàn thành để cải thiện kỹ năng</Text>
+        </View>
+
+        <View style={{ gap: 12 }}>
+          {drills.map((d) => (
+            <TouchableOpacity
+              key={d.id}
+              onPress={() => setSelectedDrill(d)}
+              activeOpacity={0.9}
+              style={styles.card}
+            >
+              <View style={styles.rowBetween}>
+                <View>
+                  <Text style={styles.textSmBold}>{d.title}</Text>
+                  <Text style={styles.metaSm}>Mục tiêu: {d.reps} lần</Text>
+                </View>
+                <Text style={styles.metaSm}>Hạn {d.due}</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSelectedDrill(d)}
+                style={[styles.primaryBlockBtn, { marginTop: 10 }]}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryBlockText}>Bắt đầu</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+    );
+  };
+
+  const DrillDetailView = ({ drill }: { drill: (typeof drills)[number] }) => {
+    const [uploadedVideo, setUploadedVideo] = useState<null | {
+      name: string;
+      size: string;
+      duration: string;
+    }>(null);
+    const [uploading, setUploading] = useState(false);
+    const [analyzing, setAnalyzing] = useState(false);
+    const [showResults, setShowResults] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const beginUpload = () => {
+      setUploadedVideo({
+        name: `${drill.title}.mp4`,
+        size: "42MB",
+        duration: "00:24",
+      });
+      setUploading(true);
+      setUploadProgress(0);
+      timerRef.current && clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setUploadProgress((p) => {
+          const next = p + 10;
+          if (next >= 100) {
+            timerRef.current && clearInterval(timerRef.current);
+            setUploading(false);
+            // start AI analysis
+            setAnalyzing(true);
+            const t2 = setTimeout(() => {
+              setAnalyzing(false);
+              setShowResults(true);
+            }, 2000);
+            return 100;
+          }
+          return next;
+        });
+      }, 300);
+    };
+
+    return (
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => setSelectedDrill(null)}
+            style={styles.backRow}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={20} color="#4B5563" />
+            <Text style={styles.backText}>Quay lại danh sách bài tập</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{drill.title}</Text>
+          <Text style={styles.metaSm}>
+            Mục tiêu: {drill.reps} lần • Hạn {drill.due}
+          </Text>
+
+          {!uploadedVideo && !uploading && !analyzing && !showResults && (
+            <TouchableOpacity
+              onPress={beginUpload}
+              style={[styles.primaryBlockBtn, { marginTop: 12 }]}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.primaryBlockText}>Tải video luyện tập</Text>
+            </TouchableOpacity>
+          )}
+
+          {uploading && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.metaSm}>Đang tải... {uploadProgress}%</Text>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[styles.progressFill, { width: `${uploadProgress}%` }]}
+                />
+              </View>
+            </View>
+          )}
+
+          {analyzing && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={styles.metaSm}>
+                AI đang phân tích kỹ thuật của bạn...
+              </Text>
+            </View>
+          )}
+
+          {showResults && (
+            <View style={{ marginTop: 12, gap: 8 }}>
+              <Text style={styles.textSmBold}>Phản hồi từ AI</Text>
+              <View style={styles.rowGap6}>
+                <Feather name="check-circle" size={16} color="#059669" />
+                <Text style={styles.textSm}>Xoay vai tốt</Text>
+              </View>
+              <View style={styles.rowGap6}>
+                <Feather name="alert-circle" size={16} color="#EA580C" />
+                <Text style={styles.textSm}>
+                  Điểm chạm hơi muộn; hãy vung vợt sớm hơn
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSelectedDrill(null)}
+                style={[styles.primaryBlockBtn, { marginTop: 8 }]}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.primaryBlockText}>
+                  Quay lại bài tập được giao
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    );
+  };
   const CoachListView = () => {
     return (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
@@ -1096,6 +1259,11 @@ export default function PickleballLearnerAppNative() {
     return <CoachListView />;
   };
 
+  const DrillsTab = () => {
+    if (selectedDrill) return <DrillDetailView drill={selectedDrill} />;
+    return <DrillListView />;
+  };
+
   // -----------------------------------------------------------------
   // RENDER
   // -----------------------------------------------------------------
@@ -1103,8 +1271,8 @@ export default function PickleballLearnerAppNative() {
     <SafeAreaView style={styles.safe}>
       <View style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
         <View style={{ flex: 1, paddingBottom: 72 }}>
+          {activeTab === "drills" && <DrillsTab />}
           {activeTab === "coaches" && <CoachesTab />}
-          {/* Các tab khác có thể render nội dung sau */}
         </View>
 
         {/* Bottom Tab */}
@@ -1540,6 +1708,16 @@ const styles = StyleSheet.create({
   },
   nextTitle: { color: "#1D4ED8", fontWeight: "700", marginBottom: 8 },
   nextItem: { color: "#1D4ED8", fontSize: 13, marginBottom: 2 },
+
+  // Generic progress bar (used in uploads)
+  progressTrack: {
+    height: 8,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 999,
+    overflow: "hidden",
+    marginTop: 6,
+  },
+  progressFill: { height: 8, backgroundColor: "#10B981", borderRadius: 999 },
 
   ghostBlockBtn: {
     borderWidth: 1,

@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Coach = {
   id: number;
@@ -105,6 +106,7 @@ const MOCK_TESTIMONIALS = [
 export default function CoachProfileViewRN() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const insets = useSafeAreaInsets();
   const coach = useMemo(() => {
     const cid = Number(id);
     return MOCK_COACHES.find((c) => c.id === cid) ?? MOCK_COACHES[0];
@@ -116,7 +118,13 @@ export default function CoachProfileViewRN() {
     router.push(`/(learner)/coach/booking?id=${coach.id}` as any);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top + 50,
+        paddingBottom: insets.bottom + 50,
+      }}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity

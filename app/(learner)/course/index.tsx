@@ -87,10 +87,8 @@ export default function Roadmap() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
-        <Text style={styles.title}>Learning Curriculum</Text>
-        <Text style={styles.subtitle}>
-          Structured courses for all skill levels
-        </Text>
+        <Text style={styles.title}>Lộ trình học</Text>
+        <Text style={styles.subtitle}>Khoá học cho mọi trình độ</Text>
       </View>
 
       <ScrollView
@@ -138,12 +136,12 @@ export default function Roadmap() {
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <Ionicons name="play" size={14} color="#6B7280" />
-                  <Text style={styles.metaText}>{course.lessons} lessons</Text>
+                  <Text style={styles.metaText}>{course.lessons} bài học</Text>
                 </View>
                 <Text style={styles.metaDivider}>•</Text>
                 <View style={styles.metaItem}>
                   <Ionicons name="golf" size={14} color="#6B7280" />
-                  <Text style={styles.metaText}>{course.drills} drills</Text>
+                  <Text style={styles.metaText}>{course.drills} bài tập</Text>
                 </View>
                 <Text style={styles.metaDivider}>•</Text>
                 <View style={styles.metaItem}>
@@ -168,13 +166,13 @@ export default function Roadmap() {
                 style={styles.primaryButton}
                 onPress={() =>
                   router.push({
-                    pathname: "/(learner)/roadmap/[id]",
+                    pathname: "/(learner)/course/[id]",
                     params: { id: String(course.id) },
                   })
                 }
               >
                 <Text style={styles.primaryButtonText}>
-                  {course.progress === 0 ? "Start Course" : "Continue"}
+                  {course.progress === 0 ? "Bắt đầu khoá học" : "Tiếp tục"}
                 </Text>
               </Pressable>
             </View>

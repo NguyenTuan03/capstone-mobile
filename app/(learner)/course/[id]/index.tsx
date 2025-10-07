@@ -1,5 +1,4 @@
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -11,6 +10,56 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { LinearGradient } from "expo-linear-gradient";
+
+const MOCK_COURSES = [
+  {
+    id: "1",
+    title: "Beginner Basics",
+    level: "Beginner",
+    lessons: 12,
+    drills: 8,
+    duration: "2h 30m",
+  },
+  {
+    id: "2",
+    title: "Forehand Mastery",
+    level: "Intermediate",
+    lessons: 8,
+    drills: 6,
+    duration: "1h 45m",
+  },
+  {
+    id: "3",
+    title: "Serving Techniques",
+    level: "Beginner",
+    lessons: 10,
+    drills: 10,
+    duration: "2h 00m",
+  },
+];
+
+const COURSE_LESSONS: Record<
+  string,
+  { id: number; title: string; duration: string }[]
+> = {
+  "1": [
+    { id: 1, title: "Welcome to Pickleball", duration: "8:30" },
+    { id: 2, title: "Court Layout and Rules", duration: "12:15" },
+    { id: 3, title: "Grip Fundamentals", duration: "10:45" },
+  ],
+  "2": [
+    { id: 1, title: "Forehand Fundamentals Review", duration: "10:00" },
+    { id: 2, title: "Power Generation", duration: "15:30" },
+  ],
+  "3": [
+    { id: 1, title: "Serve Rules and Basics", duration: "9:00" },
+    { id: 2, title: "Underhand Serve", duration: "12:30" },
+  ],
+};
+
+// removed duplicate simple default export and styles; keeping the full-featured screen below
 
 // ==== SAMPLE DATA (bạn có thể truyền từ props tuỳ ý) ====
 const courseLessons: Record<number, any[]> = {
@@ -316,7 +365,7 @@ export default function CourseDetailsScreen({
     if (lesson.locked) return;
     if (onSelectLesson) return onSelectLesson(lesson);
     router.push({
-      pathname: "/(learner)/roadmap/[id]/lesson",
+      pathname: "/(learner)/course/[id]/lesson",
       params: { id: String(routeCourseId ?? course.id) },
     });
   };
@@ -357,7 +406,7 @@ export default function CourseDetailsScreen({
           activeOpacity={0.7}
         >
           <Ionicons name="arrow-back" size={20} color="#374151" />
-          <Text style={styles.backText}>Back to Courses</Text>
+          <Text style={styles.backText}>Quay lại khoá học</Text>
         </TouchableOpacity>
       </View>
 
@@ -413,7 +462,7 @@ export default function CourseDetailsScreen({
         {course.progress > 0 && (
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressLabel}>Your Progress</Text>
+              <Text style={styles.progressLabel}>Tiến độ của bạn</Text>
               <Text style={styles.progressPercent}>{progressPercent}%</Text>
             </View>
             <View style={styles.progressTrack}>
@@ -422,41 +471,43 @@ export default function CourseDetailsScreen({
               />
             </View>
             <Text style={styles.progressSub}>
-              {completedLessons} of {lessons.length} lessons completed
+              Đã hoàn thành {completedLessons}/{lessons.length} bài học
             </Text>
           </View>
         )}
 
         {/* Course Includes */}
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Course Includes</Text>
+          <Text style={styles.panelTitle}>Bao gồm</Text>
           <View style={styles.includesGrid}>
             <View style={styles.includeItem}>
               <Feather name="video" size={18} color="#059669" />
               <Text style={styles.includeText}>
-                {course.lessons} video lessons
+                {course.lessons} bài giảng video
               </Text>
             </View>
             <View style={styles.includeItem}>
               <Feather name="target" size={18} color="#7c3aed" />
               <Text style={styles.includeText}>
-                {course.drills} practice drills
+                {course.drills} bài tập thực hành
               </Text>
             </View>
             <View style={styles.includeItem}>
               <Feather name="clock" size={18} color="#2563eb" />
-              <Text style={styles.includeText}>{course.duration} content</Text>
+              <Text style={styles.includeText}>{course.duration} nội dung</Text>
             </View>
             <View style={styles.includeItem}>
               <Feather name="file-text" size={18} color="#ea580c" />
-              <Text style={styles.includeText}>Quizzes included</Text>
+              <Text style={styles.includeText}>
+                Bao gồm câu hỏi trắc nghiệm
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Curriculum */}
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Curriculum</Text>
+          <Text style={styles.panelTitle}>Nội dung khoá học</Text>
           <View style={styles.curriculumList}>
             {lessons.map((lesson, idx) => {
               const bg = lesson.locked

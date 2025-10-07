@@ -67,15 +67,15 @@ const CoachScreen: React.FC = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View>
-        <Text style={styles.title}>Find Your Coach</Text>
-        <Text style={styles.subtitle}>Connect with certified instructors</Text>
+        <Text style={styles.title}>Tìm huấn luyện viên</Text>
+        <Text style={styles.subtitle}>Kết nối với HLV được chứng nhận</Text>
       </View>
 
       <View style={styles.searchRow}>
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search coaches..."
+          placeholder="Tìm kiếm HLV..."
           style={styles.input}
         />
         <Pressable style={styles.searchButton}>
@@ -99,7 +99,9 @@ const CoachScreen: React.FC = () => {
                   <Text style={styles.ratingValue}>
                     {coach.rating.toFixed(1)}
                   </Text>
-                  <Text style={styles.ratingCount}>({coach.reviews})</Text>
+                  <Text style={styles.ratingCount}>
+                    ({coach.reviews} đánh giá)
+                  </Text>
                 </View>
                 <View style={styles.locationRow}>
                   <Ionicons name="location" size={14} color="#6B7280" />
@@ -111,7 +113,7 @@ const CoachScreen: React.FC = () => {
               </View>
             </View>
             <Text style={styles.specialty}>
-              <Text style={styles.fontSemiBold}>Specialty:</Text>{" "}
+              <Text style={styles.fontSemiBold}>Chuyên môn:</Text>{" "}
               {coach.specialty}
             </Text>
             <View style={styles.actionRow}>
@@ -121,7 +123,7 @@ const CoachScreen: React.FC = () => {
                 }
                 style={[styles.primaryButton, { flex: 1 }]}
               >
-                <Text style={styles.primaryButtonText}>Book Session</Text>
+                <Text style={styles.primaryButtonText}>Đặt lịch</Text>
               </Pressable>
               <Pressable
                 onPress={() =>
@@ -129,7 +131,7 @@ const CoachScreen: React.FC = () => {
                 }
                 style={styles.outlineButton}
               >
-                <Text style={styles.outlineButtonText}>Profile</Text>
+                <Text style={styles.outlineButtonText}>Hồ sơ</Text>
               </Pressable>
             </View>
           </View>

@@ -51,7 +51,7 @@ export default function LearnerTabs() {
           }}
         />
         <Tabs.Screen
-          name="roadmap"
+          name="course"
           options={{
             title: "Khoá học",
             tabBarIcon: ({ color, size, focused }) => (

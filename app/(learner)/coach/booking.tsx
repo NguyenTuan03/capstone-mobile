@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Coach = {
   name: string;
@@ -530,6 +531,7 @@ const MOCK_COACHES: Coach[] = [
 export default function CoachBookingScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const insets = useSafeAreaInsets();
 
   const coach = useMemo<Coach>(() => {
     // Choose a coach deterministically if id exists, else fallback to first
@@ -567,21 +569,29 @@ export default function CoachBookingScreen() {
   );
 
   return (
-    <BookingFlowRN
-      coach={coach}
-      bookingStep={bookingStep ?? "type"}
-      setBookingStep={setBookingStep}
-      sessionType={sessionType}
-      setSessionType={(v) => setSessionType(v)}
-      selectedDate={selectedDate}
-      setSelectedDate={setSelectedDate}
-      selectedTime={selectedTime}
-      setSelectedTime={setSelectedTime}
-      selectedDuration={selectedDuration}
-      setSelectedDuration={setSelectedDuration}
-      timeSlots={timeSlots}
-      onDone={() => router.back()}
-    />
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top + 50,
+        paddingBottom: insets.bottom + 50,
+      }}
+    >
+      <BookingFlowRN
+        coach={coach}
+        bookingStep={bookingStep ?? "type"}
+        setBookingStep={setBookingStep}
+        sessionType={sessionType}
+        setSessionType={(v) => setSessionType(v)}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        selectedDuration={selectedDuration}
+        setSelectedDuration={setSelectedDuration}
+        timeSlots={timeSlots}
+        onDone={() => router.back()}
+      />
+    </View>
   );
 }
 
