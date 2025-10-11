@@ -1,12 +1,11 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Linking,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -23,11 +22,10 @@ export default function LessonScreen() {
     id: string;
     lessonId: string;
   }>();
-  const [feedback, setFeedback] = useState("");
 
   const meetUrl = useMemo(
     () => MEET_LINKS[String(id)] ?? MEET_LINKS["1"],
-    [id],
+    [id]
   );
 
   const openMeet = async () => {
@@ -69,25 +67,6 @@ export default function LessonScreen() {
         </Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Phản hồi của bạn</Text>
-        <TextInput
-          value={feedback}
-          onChangeText={setFeedback}
-          placeholder="Hãy viết những gì bạn học được, câu hỏi hoặc ghi chú..."
-          multiline
-          style={styles.input}
-        />
-
-        <TouchableOpacity
-          onPress={() => console.log("submit feedback", feedback)}
-          style={styles.primaryBtn}
-          activeOpacity={0.9}
-        >
-          <Text style={styles.primaryBtnText}>Gửi phản hồi</Text>
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity
         onPress={() => router.push("/(learner)/drill" as any)}
         style={styles.ghostBtn}
@@ -126,25 +105,6 @@ const styles = StyleSheet.create({
   },
   meetBtnText: { color: "#fff", fontWeight: "700" },
   linkText: { color: "#065F46", marginTop: 8 },
-
-  sectionTitle: { fontWeight: "700", color: "#111827", marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    padding: 12,
-    minHeight: 100,
-    color: "#111827",
-  },
-
-  primaryBtn: {
-    backgroundColor: "#10B981",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  primaryBtnText: { color: "#fff", fontWeight: "700" },
 
   ghostBtn: {
     borderWidth: 1,
