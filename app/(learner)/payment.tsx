@@ -1,409 +1,379 @@
-import { useBookings } from "@/modules/learner/context/bookingContext";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type PayMethod = "payos" | "card";
+export default function PaymentScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const [paymentStep, setPaymentStep] = useState<1 | 2>(1);
+  const [method, setMethod] = useState<"card" | "momo" | "bank">("card");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [form, setForm] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: "",
+  });
 
-export default function Payment() {
-  const insets = useSafeAreaInsets();
-  // lấy params (nếu có)
-  const { sessionId } = useLocalSearchParams<{ sessionId?: string }>();
-  const { getSessionById, sessions } = useBookings() as any;
-
-  const session = useMemo(() => {
-    if (sessionId && typeof getSessionById === "function")
-      return getSessionById(sessionId);
-    if (sessionId && Array.isArray(sessions))
-      return sessions.find((s: any) => s.id === sessionId);
-
-    // fallback: mock order khi không có sessionId
-    return {
-      id: "mock-1",
-      coachId: "c1",
-      coachName: "Huấn luyện viên đã chọn",
-      price: 25,
-      mode: "online",
-      meetingUrl: "",
-      startAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      endAt: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-    };
-  }, [sessionId, getSessionById, sessions]);
-
-  const [method, setMethod] = useState<PayMethod>("payos");
-  const [coupon, setCoupon] = useState("");
-  const [processing, setProcessing] = useState(false);
-
-  const price = Number(session?.price ?? 0);
-  const fee = 0; // có thể cộng thêm phí cổng nếu muốn
-  const discount =
-    coupon.trim().toUpperCase() === "PICKLE10" ? Math.round(price * 0.1) : 0;
-  const total = Math.max(0, price + fee - discount);
-
-  const formatDateTime = (iso?: string) => {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const course = {
+    id: id ?? "1",
+    title: "Cơ bản Pickleball cho người mới bắt đầu",
+    coach: "Huấn luyện viên Nguyễn Văn A",
+    price: "500.000 VNĐ",
+    startDate: "2025-01-15",
+    location: "Sân Pickleball Quận 3",
+    totalSessions: 8,
   };
 
-  const onPay = async () => {
-    if (!session) {
-      Alert.alert("Không có đơn hàng", "Không tìm thấy buổi học.");
-      return;
-    }
-    setProcessing(true);
-
-    // Giả lập gọi API thanh toán (PayOS / charge card)
-    setTimeout(() => {
-      setProcessing(false);
-      // Chuyển sang màn hình success (fake)
-      router.replace(`/(learner)/payment-success?sessionId=${sessionId}`);
-    }, 1200);
+  const handlePay = async () => {
+    setIsProcessing(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    setIsProcessing(false);
+    setPaymentStep(2);
   };
 
-  if (!session) {
-    return (
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: insets.top, backgroundColor: "#fff" }}
+  const Header = () => (
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={() => (paymentStep === 1 ? router.back() : setPaymentStep(1))}
+        style={styles.backBtn}
+        activeOpacity={0.8}
+        disabled={paymentStep === 2}
       >
-        <View style={{ padding: 16 }}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={20} color="#6b7280" />
-          </Pressable>
-          <Text
-            style={{
-              marginTop: 16,
-              fontWeight: "800",
-              fontSize: 18,
-              color: "#111827",
-            }}
-          >
-            Thanh Toán
+        <Text style={styles.backText}>Quay lại</Text>
+      </TouchableOpacity>
+      <Text style={styles.title}>
+        {paymentStep === 1 ? "Thanh toán" : "Hoàn thành"}
+      </Text>
+      <View style={{ width: 64 }} />
+    </View>
+  );
+
+  const CourseBar = () =>
+    paymentStep === 1 ? (
+      <View style={styles.courseBar}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.courseTitle}>{course.title}</Text>
+          <Text style={styles.meta}>{course.coach}</Text>
+          <View style={styles.rowGap8}>
+            <Text style={styles.meta}>{course.startDate}</Text>
+            <Text style={styles.meta}>• {course.location}</Text>
+            <Text style={styles.meta}>• {course.totalSessions} buổi</Text>
+          </View>
+        </View>
+      </View>
+    ) : null;
+
+  const Step1 = () => (
+    <View style={{ gap: 16 }}>
+      {/* Payment method */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Phương thức thanh toán</Text>
+        <View style={{ gap: 8 }}>
+          {[
+            { id: "card", label: "Thẻ tín dụng/Ghi nợ" },
+            { id: "momo", label: "Ví MoMo" },
+            { id: "bank", label: "Chuyển khoản ngân hàng" },
+          ].map((m) => {
+            const active = method === (m.id as any);
+            return (
+              <TouchableOpacity
+                key={m.id}
+                onPress={() => setMethod(m.id as any)}
+                style={[styles.radioRow, active && styles.radioRowActive]}
+                activeOpacity={0.9}
+              >
+                <View
+                  style={[styles.radioDot, active && styles.radioDotActive]}
+                />
+                <Text style={styles.radioLabel}>{m.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {method === "card" && (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Thông tin thẻ</Text>
+          <View style={{ gap: 10 }}>
+            <View>
+              <Text style={styles.label}>Số thẻ *</Text>
+              <TextInput
+                value={form.cardNumber}
+                onChangeText={(t) => setForm((p) => ({ ...p, cardNumber: t }))}
+                placeholder="1234 5678 9012 3456"
+                style={styles.input}
+              />
+            </View>
+            <View>
+              <Text style={styles.label}>Tên trên thẻ *</Text>
+              <TextInput
+                value={form.cardName}
+                onChangeText={(t) => setForm((p) => ({ ...p, cardName: t }))}
+                placeholder="NGUYEN VAN A"
+                style={styles.input}
+              />
+            </View>
+            <View style={styles.rowGap12}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Hết hạn *</Text>
+                <TextInput
+                  value={form.expiry}
+                  onChangeText={(t) => setForm((p) => ({ ...p, expiry: t }))}
+                  placeholder="MM/YY"
+                  style={styles.input}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>CVV *</Text>
+                <TextInput
+                  value={form.cvv}
+                  onChangeText={(t) => setForm((p) => ({ ...p, cvv: t }))}
+                  placeholder="123"
+                  style={styles.input}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {method === "momo" && (
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: "#FEF2F2", borderColor: "#FECACA" },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: "#991B1B" }]}>
+            Thanh toán qua MoMo
           </Text>
-          <Text style={{ marginTop: 8, color: "#6b7280" }}>
-            Session not found.
+          <Text style={{ color: "#7F1D1D", fontSize: 12 }}>
+            Sau khi nhấn &quot;Thanh toán&quot;, bạn sẽ được chuyển đến ứng dụng
+            MoMo để hoàn tất.
           </Text>
         </View>
-      </SafeAreaView>
-    );
-  }
+      )}
+
+      {method === "bank" && (
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: "#ECFDF5", borderColor: "#A7F3D0" },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: "#065F46" }]}>
+            Chuyển khoản ngân hàng
+          </Text>
+          <Text style={{ color: "#065F46", fontSize: 12 }}>
+            Quét mã QR hiển thị sau khi bấm &quot;Thanh toán&quot; hoặc chuyển
+            khoản theo hướng dẫn.
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const Step2 = () => (
+    <View style={{ gap: 16 }}>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: "#ECFDF5", borderColor: "#A7F3D0" },
+        ]}
+      >
+        <View style={{ alignItems: "center", gap: 6 }}>
+          <View style={styles.successIcon} />
+          <Text style={styles.successTitle}>Đăng ký thành công!</Text>
+          <Text style={styles.meta}>Bạn đã thanh toán {course.price}</Text>
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Thông tin đăng ký</Text>
+        <View style={{ gap: 6 }}>
+          <Row
+            label="Mã đăng ký"
+            value={`PKL-${Date.now().toString().slice(-6)}`}
+          />
+          <Row label="Khóa học" value={course.title} />
+          <Row label="Ngày bắt đầu" value={course.startDate} />
+        </View>
+      </View>
+
+      <View style={styles.rowGap12}>
+        <TouchableOpacity
+          style={[styles.ghostBtn, { flex: 1 }]}
+          activeOpacity={0.9}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.ghostBtnText}>Quay lại trang chính</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.primaryBtn, { flex: 1 }]}
+          activeOpacity={0.9}
+          onPress={() => router.push("/(learner)/my-courses" as any)}
+        >
+          <Text style={styles.primaryBtnText}>Xem khóa học</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  const Row = ({ label, value }: { label: string; value: string }) => (
+    <View style={styles.rowBetween}>
+      <Text style={[styles.meta, { color: "#065F46" }]}>{label}:</Text>
+      <Text style={[styles.meta, { color: "#065F46", fontWeight: "700" }]}>
+        {value}
+      </Text>
+    </View>
+  );
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}
-    >
-      {/* Header */}
-      <View style={{ paddingHorizontal: 16, paddingBottom: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="chevron-back" size={20} color="#6b7280" />
-          </Pressable>
-          <View style={{ flex: 1 }} />
-          <Text style={{ fontWeight: "900", color: "#111827", fontSize: 18 }}>
-            Payment
-          </Text>
-          <View style={{ width: 36 }} />
-        </View>
-      </View>
-
-      {/* Hero / Summary */}
-      <LinearGradient
-        colors={["#18181b", "#111827"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.hero}
-      >
-        <Text style={styles.heroTitle}>Order Summary</Text>
-        <View style={styles.summaryCard}>
-          <View style={styles.row}>
-            <Text style={styles.muted}>Coach</Text>
-            <Text style={styles.bold}>
-              {session?.coachName || session?.coachId}
-            </Text>
+    <SafeAreaView style={styles.safe}>
+      <Header />
+      <CourseBar />
+      <ScrollView contentContainerStyle={styles.container}>
+        {paymentStep === 1 ? <Step1 /> : <Step2 />}
+        <View style={{ height: 88 }} />
+      </ScrollView>
+      {paymentStep === 1 && (
+        <View style={styles.bottomBar}>
+          <View style={styles.totalBox}>
+            <Text style={styles.totalLabel}>Tổng thanh toán:</Text>
+            <Text style={styles.totalValue}>{course.price}</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.muted}>Mode</Text>
-            <Text style={styles.bold}>{session?.mode ?? "online"}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.muted}>Start</Text>
-            <Text style={styles.bold}>{formatDateTime(session?.startAt)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.muted}>End</Text>
-            <Text style={styles.bold}>{formatDateTime(session?.endAt)}</Text>
-          </View>
-        </View>
-      </LinearGradient>
-
-      {/* Payment Methods */}
-      <View style={{ padding: 16 }}>
-        <Text style={styles.sectionTitle}>Payment Method</Text>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Pressable
-            onPress={() => setMethod("payos")}
-            style={[
-              styles.methodBtn,
-              method === "payos" && styles.methodActive,
-            ]}
+          <TouchableOpacity
+            onPress={handlePay}
+            style={[styles.primaryBtn, { flex: 1 }]}
+            activeOpacity={0.9}
+            disabled={isProcessing}
           >
-            <Ionicons
-              name="cash-outline"
-              size={18}
-              color={method === "payos" ? "#111827" : "#6b7280"}
-            />
-            <Text
-              style={[
-                styles.methodText,
-                method === "payos" && styles.methodTextActive,
-              ]}
-            >
-              PayOS (mock)
+            <Text style={styles.primaryBtnText}>
+              {isProcessing ? "Đang xử lý..." : `Thanh toán ${course.price}`}
             </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setMethod("card")}
-            style={[styles.methodBtn, method === "card" && styles.methodActive]}
-          >
-            <Ionicons
-              name="card-outline"
-              size={18}
-              color={method === "card" ? "#111827" : "#6b7280"}
-            />
-            <Text
-              style={[
-                styles.methodText,
-                method === "card" && styles.methodTextActive,
-              ]}
-            >
-              Card (mock)
-            </Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
-
-        {/* Optional mock card form */}
-        {method === "card" && (
-          <View style={styles.cardForm}>
-            <TextInput
-              placeholder="Card number (mock)"
-              placeholderTextColor="#9ca3af"
-              style={styles.input}
-            />
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <TextInput
-                placeholder="MM/YY"
-                placeholderTextColor="#9ca3af"
-                style={[styles.input, { flex: 1 }]}
-              />
-              <TextInput
-                placeholder="CVC"
-                placeholderTextColor="#9ca3af"
-                style={[styles.input, { flex: 1 }]}
-              />
-            </View>
-            <TextInput
-              placeholder="Tên chủ thẻ"
-              placeholderTextColor="#9ca3af"
-              style={styles.input}
-            />
-          </View>
-        )}
-
-        {/* Coupon */}
-        <Text style={styles.sectionTitle}>Promo Code</Text>
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <TextInput
-            value={coupon}
-            onChangeText={setCoupon}
-            placeholder="Enter code (e.g. PICKLE10)"
-            placeholderTextColor="#9ca3af"
-            style={[styles.input, { flex: 1 }]}
-            autoCapitalize="characters"
-          />
-          <Pressable
-            onPress={() => {
-              if (coupon.trim().toUpperCase() === "PICKLE10") {
-                Alert.alert("Đã áp dụng", "Giảm giá 10% đã được áp dụng.");
-              } else {
-                Alert.alert("Mã không hợp lệ", "Vui lòng thử mã khác.");
-              }
-            }}
-            style={styles.applyBtn}
-          >
-            <Text style={styles.applyText}>Áp dụng</Text>
-          </Pressable>
-        </View>
-
-        {/* Totals */}
-        <View style={styles.totals}>
-          <View style={styles.row}>
-            <Text style={styles.muted}>Giá</Text>
-            <Text style={styles.bold}>
-              ₫{(price * 25000).toLocaleString("vi-VN")}
-            </Text>
-          </View>
-          {fee > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.muted}>Phí</Text>
-              <Text style={styles.bold}>
-                ₫{(fee * 25000).toLocaleString("vi-VN")}
-              </Text>
-            </View>
-          )}
-          {discount > 0 && (
-            <View style={styles.row}>
-              <Text style={[styles.muted, { color: "#059669" }]}>Giảm giá</Text>
-              <Text style={[styles.bold, { color: "#059669" }]}>
-                - ₫{(discount * 25000).toLocaleString("vi-VN")}
-              </Text>
-            </View>
-          )}
-          <View style={[styles.row, { marginTop: 8 }]}>
-            <Text style={[styles.bold, { fontSize: 16 }]}>Tổng cộng</Text>
-            <Text style={[styles.bold, { fontSize: 16 }]}>
-              ₫{(total * 25000).toLocaleString("vi-VN")}
-            </Text>
-          </View>
-        </View>
-
-        {/* Pay button */}
-        <Pressable
-          onPress={onPay}
-          disabled={processing}
-          style={[styles.payBtn, processing && { opacity: 0.7 }]}
-        >
-          {processing ? (
-            <ActivityIndicator />
-          ) : (
-            <>
-              <Ionicons name="lock-closed-outline" size={16} color="#fff" />
-              <Text style={styles.payText}>Thanh toán ngay</Text>
-            </>
-          )}
-        </Pressable>
-
-        {/* Note */}
-        <Text style={{ color: "#6b7280", marginTop: 12, textAlign: "center" }}>
-          Đây là màn hình thanh toán mô phỏng. Trong thực tế, sẽ chuyển hướng
-          đến trang thanh toán PayOS sau khi tạo đơn hàng trên server.
-        </Text>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  backBtn: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "rgba(107, 114, 128, 0.1)",
-    width: 36,
-    alignItems: "center",
-  },
-  hero: {
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  heroTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-  summaryCard: {
-    backgroundColor: "#111827",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#27272a",
-    padding: 12,
-  },
-  row: {
+  safe: { flex: 1, backgroundColor: "#F9FAFB" },
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginVertical: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
   },
-  muted: { color: "#9ca3af" },
-  bold: { color: "#fff", fontWeight: "800" },
-
-  sectionTitle: {
-    fontWeight: "800",
-    color: "#111827",
-    marginTop: 16,
-    marginBottom: 8,
+  backBtn: { paddingVertical: 6, paddingHorizontal: 8 },
+  backText: { color: "#374151" },
+  title: { fontWeight: "700", color: "#111827" },
+  container: { padding: 16, gap: 16 },
+  courseBar: {
+    backgroundColor: "#ECFDF5",
+    borderColor: "#A7F3D0",
+    borderWidth: 1,
+    padding: 12,
   },
-  methodBtn: {
+  courseTitle: { fontWeight: "700", color: "#065F46" },
+  meta: { color: "#6B7280", fontSize: 12 },
+  rowGap8: { flexDirection: "row", alignItems: "center", gap: 8 },
+  rowGap12: { flexDirection: "row", alignItems: "center", gap: 12 },
+  rowBetween: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "#f9fafb",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+    justifyContent: "space-between",
   },
-  methodActive: { backgroundColor: "#fff", borderColor: "#111827" },
-  methodText: { color: "#374151", fontWeight: "700" },
-  methodTextActive: { color: "#111827" },
-
-  cardForm: { marginTop: 8, gap: 8 },
-  input: {
-    backgroundColor: "#f9fafb",
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#E5E7EB",
+    padding: 16,
+  },
+  cardTitle: { fontWeight: "700", color: "#111827", marginBottom: 8 },
+  radioRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 10,
+  },
+  radioRowActive: { borderColor: "#10B981", backgroundColor: "#ECFDF5" },
+  radioDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: "#D1D5DB",
+  },
+  radioDotActive: { borderColor: "#10B981", backgroundColor: "#10B981" },
+  radioLabel: { color: "#111827", fontWeight: "600" },
+  label: { color: "#374151", fontSize: 12, marginBottom: 4, fontWeight: "600" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     color: "#111827",
   },
-  applyBtn: {
-    backgroundColor: "#111827",
+  primaryBtn: {
+    backgroundColor: "#10B981",
     borderRadius: 10,
-    paddingHorizontal: 14,
-    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 12,
   },
-  applyText: { color: "#fff", fontWeight: "800" },
-
-  totals: {
-    marginTop: 12,
-    padding: 12,
+  primaryBtnText: { color: "#fff", fontWeight: "700" },
+  ghostBtn: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 12,
     backgroundColor: "#fff",
   },
-
-  payBtn: {
-    marginTop: 16,
-    backgroundColor: "#111827",
-    height: 48,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    gap: 8,
+  ghostBtnText: { color: "#111827", fontWeight: "600" },
+  bottomBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    padding: 12,
+    gap: 12,
   },
-  payText: { color: "#fff", fontWeight: "800" },
+  totalBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  totalLabel: { color: "#111827", fontWeight: "700" },
+  totalValue: { color: "#059669", fontWeight: "800", fontSize: 16 },
+  successIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#10B981",
+  },
+  successTitle: { color: "#065F46", fontWeight: "800" },
 });

@@ -1,640 +1,341 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Types
-type CoachingStyle =
-  | "beginner_friendly"
-  | "competitive"
-  | "technical"
-  | "game_based";
-
-type FocusArea = {
-  id: string;
+type Course = {
+  id: number;
   name: string;
-  standout: boolean;
+  description: string;
+  duration: string;
+  sessions: number;
+  location: string;
+  schedule: string;
+  level: string;
+  basePrice: number;
+  enrolledCount?: number;
+  maxStudents?: number;
+  status: "available" | "full" | "upcoming" | "ongoing" | "completed";
+  rating?: number;
 };
 
-type TeachingMethodology = {
-  approach: string;
-  philosophy: string;
-  techniques: string;
-  communicationStyle: string;
-};
-
-type TeachingData = {
-  styles: CoachingStyle[];
-  focusAreas: FocusArea[];
-  methodology: TeachingMethodology;
-  experience: {
-    years: string;
-    studentsCoached: string;
-    ageGroups: string[];
-  };
-};
-
-const COACHING_STYLES = [
+const MOCK_COURSES: Course[] = [
   {
-    id: "beginner_friendly" as const,
-    name: "Beginner Friendly",
-    description: "Patient, encouraging, focuses on fundamentals",
+    id: 1,
+    name: "Pickleball cơ bản",
+    description: "Kỹ thuật nền tảng",
+    duration: "8 tuần",
+    sessions: 16,
+    location: "Q.3",
+    schedule: "Thứ 3,5 - 19:00-20:30",
+    level: "Beginner",
+    basePrice: 500000,
+    enrolledCount: 6,
+    maxStudents: 8,
+    status: "ongoing",
+    rating: 4.8,
   },
   {
-    id: "competitive" as const,
-    name: "Competitive",
-    description: "Intense, strategic, performance-focused",
+    id: 2,
+    name: "Kỹ thuật nâng cao",
+    description: "Forehand/Backhand",
+    duration: "6 tuần",
+    sessions: 12,
+    location: "Q.1",
+    schedule: "Thứ 2,6 - 18:00-19:30",
+    level: "Intermediate",
+    basePrice: 700000,
+    enrolledCount: 8,
+    maxStudents: 8,
+    status: "full",
+    rating: 4.7,
   },
   {
-    id: "technical" as const,
-    name: "Technical",
-    description: "Detailed, mechanics-focused, analytical",
-  },
-  {
-    id: "game_based" as const,
-    name: "Game-Based",
-    description: "Learn through play, situational training",
+    id: 3,
+    name: "Chiến thuật thi đấu",
+    description: "Đánh đôi & chiến thuật",
+    duration: "4 tuần",
+    sessions: 8,
+    location: "Q.7",
+    schedule: "Thứ 7 - 15:00-17:00",
+    level: "Advanced",
+    basePrice: 900000,
+    enrolledCount: 0,
+    maxStudents: 6,
+    status: "upcoming",
   },
 ];
 
-const DEFAULT_FOCUS_AREAS: FocusArea[] = [
-  { id: "serving", name: "Power Serve", standout: true },
-  { id: "dinking", name: "Soft Dink", standout: true },
-  { id: "thirdshot", name: "Third Shot Drop", standout: true },
-  { id: "groundstrokes", name: "Groundstroke Accuracy", standout: false },
-  { id: "volleys", name: "Volley Placement", standout: false },
-  { id: "lob", name: "Lob Defense", standout: false },
-  { id: "strategy", name: "Stack Strategy", standout: true },
-  { id: "footwork", name: "Quick Footwork", standout: false },
-];
+export default function CoachTeachingScreen() {
+  const [search, setSearch] = useState("");
+  const [level, setLevel] = useState("all");
+  const [status, setStatus] = useState("all");
 
-const AGE_GROUPS = [
-  "Kids (5-12)",
-  "Teens (13-17)",
-  "Adults (18+)",
-  "Seniors (65+)",
-];
-
-export default function TeachingSpecialtyScreen() {
-  const insets = useSafeAreaInsets();
-  const { id } = useLocalSearchParams<{ id: string }>();
-
-  const [teachingData, setTeachingData] = useState<TeachingData>({
-    styles: ["beginner_friendly", "game_based"],
-    focusAreas: DEFAULT_FOCUS_AREAS,
-    methodology: {
-      approach:
-        "I believe in creating a positive learning environment where players feel comfortable making mistakes and trying new techniques.",
-      philosophy:
-        "Pickleball should be fun first! I focus on building confidence while teaching proper fundamentals and strategy.",
-      techniques:
-        "Progressive drilling, game-based learning, and situational practice",
-      communicationStyle:
-        "Encouraging and constructive, with clear demonstrations and immediate feedback",
-    },
-    experience: {
-      years: "3",
-      studentsCoached: "150+",
-      ageGroups: ["Adults (18+)", "Teens (13-17)"],
-    },
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
-
-  const toggleCoachingStyle = (style: CoachingStyle) => {
-    if (!isEditing) return;
-    setTeachingData((prev) => ({
-      ...prev,
-      styles: prev.styles.includes(style)
-        ? prev.styles.filter((s) => s !== style)
-        : [...prev.styles, style],
-    }));
-  };
-
-  const toggleFocusAreaStandout = (areaId: string) => {
-    if (!isEditing) return;
-    setTeachingData((prev) => ({
-      ...prev,
-      focusAreas: prev.focusAreas.map((area) =>
-        area.id === areaId ? { ...area, standout: !area.standout } : area,
-      ),
-    }));
-  };
-
-  const toggleAgeGroup = (ageGroup: string) => {
-    if (!isEditing) return;
-    setTeachingData((prev) => ({
-      ...prev,
-      experience: {
-        ...prev.experience,
-        ageGroups: prev.experience.ageGroups.includes(ageGroup)
-          ? prev.experience.ageGroups.filter((ag) => ag !== ageGroup)
-          : [...prev.experience.ageGroups, ageGroup],
-      },
-    }));
-  };
-
-  const updateMethodology = (field: keyof TeachingMethodology, value: any) => {
-    if (!isEditing) return;
-    setTeachingData((prev) => ({
-      ...prev,
-      methodology: {
-        ...prev.methodology,
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleSave = () => {
-    // In a real app, this would save to a backend
-    Alert.alert("Success", "Teaching specialty updated successfully!", [
-      { text: "OK", onPress: () => setIsEditing(false) },
-    ]);
-  };
+  const courses = useMemo(() => {
+    let list = MOCK_COURSES;
+    if (level !== "all")
+      list = list.filter((c) => c.level.toLowerCase() === level);
+    if (status !== "all") list = list.filter((c) => c.status === status);
+    if (search)
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.description.toLowerCase().includes(search.toLowerCase()),
+      );
+    return list;
+  }, [search, level, status]);
 
   return (
-    <View
-      style={{ flex: 1, backgroundColor: "#f8fafc", paddingTop: insets.top }}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Teaching Specialty</Text>
-        <TouchableOpacity
-          style={[styles.editButton, isEditing && styles.saveButton]}
-          onPress={isEditing ? handleSave : () => setIsEditing(true)}
-        >
-          <Text
-            style={[styles.editButtonText, isEditing && styles.saveButtonText]}
-          >
-            {isEditing ? "Save" : "Edit"}
-          </Text>
-        </TouchableOpacity>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Quản lý khóa học</Text>
+
+      <View style={styles.filters}>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Tìm kiếm khóa học..."
+          style={styles.input}
+        />
+        <View style={styles.row}>
+          <FilterChip
+            label="Tất cả trình độ"
+            active={level === "all"}
+            onPress={() => setLevel("all")}
+          />
+          <FilterChip
+            label="Cơ bản"
+            active={level === "beginner"}
+            onPress={() => setLevel("beginner")}
+          />
+          <FilterChip
+            label="Trung bình"
+            active={level === "intermediate"}
+            onPress={() => setLevel("intermediate")}
+          />
+          <FilterChip
+            label="Nâng cao"
+            active={level === "advanced"}
+            onPress={() => setLevel("advanced")}
+          />
+        </View>
+        <View style={styles.row}>
+          <FilterChip
+            label="Tất cả trạng thái"
+            active={status === "all"}
+            onPress={() => setStatus("all")}
+          />
+          <FilterChip
+            label="Còn chỗ"
+            active={status === "available"}
+            onPress={() => setStatus("available")}
+          />
+          <FilterChip
+            label="Sắp mở"
+            active={status === "upcoming"}
+            onPress={() => setStatus("upcoming")}
+          />
+          <FilterChip
+            label="Đang diễn ra"
+            active={status === "ongoing"}
+            onPress={() => setStatus("ongoing")}
+          />
+          <FilterChip
+            label="Đã đầy"
+            active={status === "full"}
+            onPress={() => setStatus("full")}
+          />
+          <FilterChip
+            label="Đã hoàn thành"
+            active={status === "completed"}
+            onPress={() => setStatus("completed")}
+          />
+        </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Coaching Styles */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Coaching Style</Text>
-          <Text style={styles.sectionSubtitle}>
-            Select the styles that best describe your coaching approach
-          </Text>
-
-          <View style={styles.stylesGrid}>
-            {COACHING_STYLES.map((style) => (
-              <TouchableOpacity
-                key={style.id}
-                style={[
-                  styles.styleCard,
-                  teachingData.styles.includes(style.id) &&
-                    styles.styleCardSelected,
-                  !isEditing && styles.styleCardDisabled,
-                ]}
-                onPress={() => toggleCoachingStyle(style.id)}
-                disabled={!isEditing}
-              >
-                <View
-                  style={[
-                    styles.styleIcon,
-                    teachingData.styles.includes(style.id) &&
-                      styles.styleIconSelected,
-                  ]}
-                >
-                  <Ionicons
-                    name="person"
-                    size={20}
-                    color={
-                      teachingData.styles.includes(style.id)
-                        ? "#fff"
-                        : "#64748b"
-                    }
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.styleName,
-                    teachingData.styles.includes(style.id) &&
-                      styles.styleNameSelected,
-                  ]}
-                >
-                  {style.name}
-                </Text>
-                <Text
-                  style={[
-                    styles.styleDescription,
-                    teachingData.styles.includes(style.id) &&
-                      styles.styleDescriptionSelected,
-                  ]}
-                >
-                  {style.description}
-                </Text>
-                {teachingData.styles.includes(style.id) && (
-                  <View style={styles.checkmark}>
-                    <Ionicons name="checkmark" size={16} color="#fff" />
-                  </View>
-                )}
+      <View style={{ gap: 12 }}>
+        {courses.map((c) => (
+          <View key={c.id} style={styles.card}>
+            <View style={styles.rowBetween}>
+              <Text style={styles.courseTitle}>{c.name}</Text>
+              <Text style={[styles.badge, getStatusStyle(c.status)]}>
+                {getStatusText(c.status)}
+              </Text>
+            </View>
+            <Text style={styles.meta}>{c.description}</Text>
+            <View style={[styles.rowBetween, { marginTop: 6 }]}>
+              <Text style={styles.meta}>
+                {c.duration} • {c.sessions} buổi • {c.schedule}
+              </Text>
+              <Text style={styles.meta}>{c.location}</Text>
+            </View>
+            <View style={[styles.rowBetween, { marginTop: 8 }]}>
+              <Text style={styles.price}>
+                {formatPrice(c.basePrice)}đ/người
+              </Text>
+              <Text style={styles.meta}>
+                {c.enrolledCount}/{c.maxStudents} học viên
+              </Text>
+            </View>
+            <View style={styles.actions}>
+              <TouchableOpacity style={styles.primary} activeOpacity={0.9}>
+                <Text style={styles.primaryText}>Quản lý</Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Areas of Focus */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Standout Techniques</Text>
-          <Text style={styles.sectionSubtitle}>
-            Select your standout techniques
-          </Text>
-
-          <View style={styles.focusAreasGrid}>
-            {teachingData.focusAreas.map((area) => (
-              <TouchableOpacity
-                key={area.id}
-                style={[
-                  styles.techniqueChip,
-                  area.standout && styles.techniqueChipSelected,
-                  !isEditing && styles.techniqueChipDisabled,
-                ]}
-                onPress={() => toggleFocusAreaStandout(area.id)}
-                disabled={!isEditing}
-              >
-                <Text
-                  style={[
-                    styles.techniqueText,
-                    area.standout && styles.techniqueTextSelected,
-                  ]}
-                >
-                  {area.name}
-                </Text>
-                {area.standout && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
+              <TouchableOpacity style={styles.ghost} activeOpacity={0.9}>
+                <Text style={styles.ghostText}>Xem chi tiết</Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Teaching Methodology */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Teaching Methodology</Text>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Teaching Approach</Text>
-            <TextInput
-              style={[
-                styles.input,
-                styles.textArea,
-                !isEditing && styles.inputDisabled,
-              ]}
-              value={teachingData.methodology.approach}
-              onChangeText={(text) => updateMethodology("approach", text)}
-              multiline
-              numberOfLines={3}
-              editable={isEditing}
-              placeholder="Describe your teaching approach..."
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Coaching Philosophy</Text>
-            <TextInput
-              style={[
-                styles.input,
-                styles.textArea,
-                !isEditing && styles.inputDisabled,
-              ]}
-              value={teachingData.methodology.philosophy}
-              onChangeText={(text) => updateMethodology("philosophy", text)}
-              multiline
-              numberOfLines={3}
-              editable={isEditing}
-              placeholder="What's your coaching philosophy?"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Techniques & Methods</Text>
-            <TextInput
-              style={[
-                styles.input,
-                styles.textArea,
-                !isEditing && styles.inputDisabled,
-              ]}
-              value={teachingData.methodology.techniques}
-              onChangeText={(text) => updateMethodology("techniques", text)}
-              multiline
-              numberOfLines={2}
-              editable={isEditing}
-              placeholder="List your teaching techniques..."
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Communication Style</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.inputDisabled]}
-              value={teachingData.methodology.communicationStyle}
-              onChangeText={(text) =>
-                updateMethodology("communicationStyle", text)
-              }
-              editable={isEditing}
-              placeholder="How do you communicate with students?"
-            />
-          </View>
-        </View>
-
-        {/* Experience */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Teaching Experience</Text>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Years of Experience</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.inputDisabled]}
-              value={teachingData.experience.years}
-              onChangeText={(text) =>
-                setTeachingData((prev) => ({
-                  ...prev,
-                  experience: { ...prev.experience, years: text },
-                }))
-              }
-              editable={isEditing}
-              placeholder="3"
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Students Coached</Text>
-            <TextInput
-              style={[styles.input, !isEditing && styles.inputDisabled]}
-              value={teachingData.experience.studentsCoached}
-              onChangeText={(text) =>
-                setTeachingData((prev) => ({
-                  ...prev,
-                  experience: { ...prev.experience, studentsCoached: text },
-                }))
-              }
-              editable={isEditing}
-              placeholder="150+"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Age Groups You Teach</Text>
-            <View style={styles.ageGroupsContainer}>
-              {AGE_GROUPS.map((group) => (
-                <TouchableOpacity
-                  key={group}
-                  style={[
-                    styles.ageGroupChip,
-                    teachingData.experience.ageGroups.includes(group) &&
-                      styles.ageGroupChipSelected,
-                    !isEditing && styles.ageGroupChipDisabled,
-                  ]}
-                  onPress={() => toggleAgeGroup(group)}
-                  disabled={!isEditing}
-                >
-                  <Text
-                    style={[
-                      styles.ageGroupText,
-                      teachingData.experience.ageGroups.includes(group) &&
-                        styles.ageGroupTextSelected,
-                    ]}
-                  >
-                    {group}
-                  </Text>
-                </TouchableOpacity>
-              ))}
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </View>
+        ))}
+        {courses.length === 0 && (
+          <View style={styles.emptyBox}>
+            <Text style={styles.meta}>Không tìm thấy khóa học</Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
+function FilterChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active?: boolean;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.9}
+      style={[styles.chip, active && styles.chipActive]}
+    >
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function getStatusText(status: Course["status"]) {
+  switch (status) {
+    case "ongoing":
+      return "Đang diễn ra";
+    case "available":
+      return "Còn chỗ";
+    case "completed":
+      return "Đã hoàn thành";
+    case "full":
+      return "Đã đầy";
+    case "upcoming":
+      return "Sắp mở";
+    default:
+      return "Đang mở";
+  }
+}
+
+function getStatusStyle(status: Course["status"]) {
+  switch (status) {
+    case "ongoing":
+      return { backgroundColor: "#DBEAFE", color: "#1D4ED8" };
+    case "available":
+      return { backgroundColor: "#ECFDF5", color: "#065F46" };
+    case "completed":
+      return { backgroundColor: "#F3F4F6", color: "#374151" };
+    case "full":
+      return { backgroundColor: "#FEE2E2", color: "#991B1B" };
+    case "upcoming":
+      return { backgroundColor: "#EFF6FF", color: "#1E3A8A" };
+    default:
+      return { backgroundColor: "#F3F4F6", color: "#374151" };
+  }
+}
+
+function formatPrice(price: number) {
+  try {
+    return new Intl.NumberFormat("vi-VN").format(price);
+  } catch {
+    return String(price);
+  }
+}
+
 const styles = StyleSheet.create({
-  header: {
+  container: { padding: 16, gap: 16 },
+  title: { fontWeight: "700", color: "#111827" },
+  filters: { gap: 10 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    padding: 10,
+    backgroundColor: "#fff",
+  },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+  chipActive: { backgroundColor: "#10B981", borderColor: "#10B981" },
+  chipText: { color: "#111827", fontWeight: "600" },
+  chipTextActive: { color: "#fff" },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
+    gap: 6,
+  },
+  rowBetween: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f1f5f9",
+  courseTitle: { color: "#111827", fontWeight: "700" },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    overflow: "hidden",
+    fontSize: 11,
+  },
+  meta: { color: "#6B7280", fontSize: 12 },
+  price: { color: "#065F46", fontWeight: "700" },
+  actions: { flexDirection: "row", gap: 8, marginTop: 8 },
+  primary: {
+    backgroundColor: "#10B981",
+    borderRadius: 10,
     alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1e293b",
-  },
-  editButton: {
-    backgroundColor: "#f1f5f9",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  saveButton: {
-    backgroundColor: "#10b981",
-  },
-  editButtonText: {
-    color: "#64748b",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  saveButtonText: {
-    color: "#fff",
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  section: {
-    marginTop: 20,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 4,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: "#64748b",
-    marginBottom: 16,
-  },
-  stylesGrid: {
-    flexDirection: "column",
-    gap: 12,
-  },
-  styleCard: {
-    backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: "#e2e8f0",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  styleCardSelected: {
-    backgroundColor: "#eff6ff",
-    borderColor: "#3b82f6",
-  },
-  styleCardDisabled: {
-    opacity: 0.7,
-  },
-  styleIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f1f5f9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  styleIconSelected: {
-    backgroundColor: "#3b82f6",
-  },
-  styleName: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1e293b",
-    flex: 1,
-  },
-  styleNameSelected: {
-    color: "#1e40af",
-  },
-  styleDescription: {
-    fontSize: 12,
-    color: "#64748b",
-    flex: 2,
-  },
-  styleDescriptionSelected: {
-    color: "#3730a3",
-  },
-  checkmark: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#3b82f6",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
-  focusAreasGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  techniqueChip: {
-    backgroundColor: "#f8fafc",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  techniqueChipSelected: {
-    backgroundColor: "#3b82f6",
-    borderColor: "#3b82f6",
-  },
-  techniqueChipDisabled: {
-    opacity: 0.7,
-  },
-  techniqueText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#64748b",
-  },
-  techniqueTextSelected: {
-    color: "#fff",
-  },
-  formGroup: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 14,
-    color: "#1f2937",
+    flex: 1,
+  },
+  primaryText: { color: "#fff", fontWeight: "700" },
+  ghost: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 10,
+    flex: 1,
     backgroundColor: "#fff",
   },
-  inputDisabled: {
-    backgroundColor: "#f9fafb",
-    color: "#6b7280",
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: "top",
-  },
-  ageGroupsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  ageGroupChip: {
-    backgroundColor: "#f8fafc",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  ghostText: { color: "#111827", fontWeight: "600" },
+  emptyBox: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  ageGroupChipSelected: {
-    backgroundColor: "#eff6ff",
-    borderColor: "#3b82f6",
-  },
-  ageGroupChipDisabled: {
-    opacity: 0.7,
-  },
-  ageGroupText: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#64748b",
-  },
-  ageGroupTextSelected: {
-    color: "#3b82f6",
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
   },
 });

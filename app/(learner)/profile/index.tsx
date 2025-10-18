@@ -1,146 +1,88 @@
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-type Props = Record<string, never>;
-type Achievement = {
-  id: string;
-  title: string;
-  icon: string;
-  unlocked: boolean;
-};
-const achievements: Achievement[] = [
-  { id: "a1", title: "First Drill", icon: "🎯", unlocked: true },
-  { id: "a2", title: "Week Streak", icon: "🔥", unlocked: true },
-  { id: "a3", title: "Perfect Form", icon: "✨", unlocked: false },
-  { id: "a4", title: "AI Master", icon: "🤖", unlocked: false },
-];
-
-const Profile: React.FC<Props> = () => {
+export default function ProfileScreen() {
+  const router = useRouter();
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header card */}
-      <View style={styles.headerCard}>
-        <View style={styles.avatarLarge}>
-          <Text style={styles.avatarLargeText}>LH</Text>
-        </View>
-        <Text style={styles.name}>Lâm Tiến Hưng</Text>
-        <Text style={styles.role}>Người chơi trung cấp</Text>
-      </View>
-
-      {/* Progress stats */}
-      <View style={styles.card}>
-        <View style={styles.cardTitleRow}>
-          <Ionicons name="stats-chart" size={20} color="#059669" />
-          <Text style={styles.cardTitle}>Thống kê tiến độ</Text>
-        </View>
-        <View style={styles.gridTwo}>
-          <View style={[styles.statCell, { backgroundColor: "#EFF6FF" }]}>
-            <Text style={[styles.statNumber, { color: "#2563EB" }]}>24</Text>
-            <Text style={styles.statLabel}>Bài học đã hoàn thành</Text>
-          </View>
-          <View style={[styles.statCell, { backgroundColor: "#F5F3FF" }]}>
-            <Text style={[styles.statNumber, { color: "#7C3AED" }]}>15</Text>
-            <Text style={styles.statLabel}>Bài tập đã hoàn thành</Text>
-          </View>
-          <View style={[styles.statCell, { backgroundColor: "#FFF7ED" }]}>
-            <Text style={[styles.statNumber, { color: "#EA580C" }]}>6</Text>
-            <Text style={styles.statLabel}>Buổi huấn luyện</Text>
-          </View>
-          <View style={[styles.statCell, { backgroundColor: "#ECFDF5" }]}>
-            <Text style={[styles.statNumber, { color: "#059669" }]}>7</Text>
-            <Text style={styles.statLabel}>Chuỗi ngày học</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Achievements */}
-      <View style={styles.card}>
-        <View style={styles.cardTitleRow}>
-          <Ionicons name="trophy" size={20} color="#F59E0B" />
-          <Text style={styles.cardTitle}>Thành tựu</Text>
-        </View>
-        <View style={styles.gridFour}>
-          {achievements.map((a) => (
-            <View
-              key={a.id}
-              style={[
-                styles.achvCell,
-                a.unlocked ? styles.achvUnlocked : styles.achvLocked,
-              ]}
-            >
-              <Text style={styles.achvIcon}>{a.icon}</Text>
-              <Text style={styles.achvTitle}>{a.title}</Text>
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={[styles.card, { gap: 12 }]}>
+          <View style={styles.rowGap12}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>LH</Text>
             </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.name}>Lâm Tiên Hưng</Text>
+              <Text style={styles.meta}>SE170216</Text>
+              <View style={styles.badgesRow}>
+                <View style={[styles.badge, styles.badgeNeutral]}>
+                  <Text style={[styles.badgeText, { color: "#111827" }]}>
+                    Trung cấp
+                  </Text>
+                </View>
+                <View style={[styles.badge, styles.badgePrimary]}>
+                  <Text style={styles.badgeText}>Học viên</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          {[
+            {
+              key: "info",
+              label: "Thông tin cá nhân",
+              to: "/(learner)/menu/account",
+            },
+            {
+              key: "enrolled",
+              label: "Khóa học đã đăng ký",
+              to: "/(learner)/my-courses",
+            },
+            {
+              key: "achievements",
+              label: "Thành tựu",
+              to: "/(learner)/profile",
+            },
+            { key: "settings", label: "Cài đặt", to: "/(learner)/profile" },
+          ].map((m, i) => (
+            <TouchableOpacity
+              key={m.key}
+              style={styles.menuItem}
+              activeOpacity={0.8}
+              onPress={() => router.push(m.to as any)}
+            >
+              <View style={styles.menuLeft}>
+                <View style={styles.menuIcon} />
+                <Text style={styles.menuText}>{m.label}</Text>
+              </View>
+              <View style={styles.chev} />
+            </TouchableOpacity>
           ))}
         </View>
-      </View>
 
-      {/* Actions */}
-      <View style={styles.actionList}>
-        <View style={styles.actionItem}>
-          <Ionicons name="person" size={20} color="#374151" />
-          <Text style={styles.actionText}>Chỉnh sửa hồ sơ</Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-        </View>
-        <View style={styles.actionItem}>
-          <Ionicons name="calendar" size={20} color="#374151" />
-          <Text style={styles.actionText}>Lịch đã đặt</Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-        </View>
-        <View style={styles.actionItem}>
-          <Ionicons name="videocam" size={20} color="#374151" />
-          <Text style={styles.actionText}>Lịch sử buổi học</Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-        </View>
-        <View style={styles.actionItem}>
-          <Ionicons name="settings" size={20} color="#374151" />
-          <Text style={styles.actionText}>Cài đặt</Text>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-        </View>
-      </View>
-    </ScrollView>
+        <TouchableOpacity
+          style={[styles.ghostBtn, { marginTop: 8 }]}
+          activeOpacity={0.9}
+        >
+          <Text style={styles.ghostBtnText}>Đăng xuất</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
-
-export default Profile;
+}
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 96,
-    gap: 16,
-  },
-  headerCard: {
-    backgroundColor: "#10B981",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-  },
-  avatarLarge: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  avatarLargeText: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#059669",
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 4,
-  },
-  role: {
-    color: "#ECFDF5",
-  },
+  safe: { flex: 1, backgroundColor: "#F9FAFB" },
+  container: { padding: 16, gap: 16 },
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -148,82 +90,52 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     padding: 16,
   },
-  cardTitleRow: {
+  rowGap12: { flexDirection: "row", alignItems: "center", gap: 12 },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#10B981",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { color: "#fff", fontSize: 20, fontWeight: "800" },
+  name: { fontSize: 18, fontWeight: "700", color: "#111827" },
+  meta: { color: "#6B7280", fontSize: 12 },
+  badgesRow: { flexDirection: "row", gap: 8, marginTop: 6 },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+  },
+  badgePrimary: { backgroundColor: "#10B981" },
+  badgeNeutral: { backgroundColor: "#E5E7EB" },
+  badgeText: { color: "#fff", fontSize: 12, fontWeight: "600" },
+  menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontWeight: "600",
-    color: "#111827",
-  },
-  gridTwo: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  statCell: {
-    flexBasis: "48%",
-    borderRadius: 10,
+    justifyContent: "space-between",
     paddingVertical: 12,
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 2,
-  },
-  statLabel: {
-    color: "#6B7280",
-    fontSize: 12,
-  },
-  gridFour: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  achvCell: {
-    flexBasis: "23%",
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  achvUnlocked: {
-    backgroundColor: "#FEF3C7",
-  },
-  achvLocked: {
-    backgroundColor: "#F3F4F6",
-    opacity: 0.6,
-  },
-  achvIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  achvTitle: {
-    fontSize: 10,
-    fontWeight: "600",
-    textAlign: "center",
-    color: "#111827",
-  },
-  actionList: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  actionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
-  actionText: {
-    flex: 1,
-    fontWeight: "600",
-    color: "#111827",
+  menuLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  menuIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#6B7280",
   },
+  menuText: { color: "#111827" },
+  chev: { width: 16, height: 16, borderRadius: 8, backgroundColor: "#D1D5DB" },
+  ghostBtn: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 10,
+    alignItems: "center",
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+  },
+  ghostBtnText: { color: "#111827", fontWeight: "600" },
 });
