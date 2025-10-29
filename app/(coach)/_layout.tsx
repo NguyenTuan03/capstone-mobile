@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
+
 export default function CoachTabs() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#111827", // text/icon active
-        tabBarInactiveTintColor: "#9CA3AF", // text/icon inactive
+        tabBarActiveTintColor: "#111827",
+        tabBarInactiveTintColor: "#9CA3AF",
         tabBarLabelStyle: { fontSize: 12, fontWeight: "600", marginBottom: 4 },
         tabBarStyle: {
           position: "absolute",
@@ -18,7 +19,6 @@ export default function CoachTabs() {
           marginBottom: 12,
           borderRadius: 24,
           paddingVertical: 6,
-          // shadow
           ...Platform.select({
             ios: {
               shadowColor: "#000",
@@ -71,9 +71,9 @@ export default function CoachTabs() {
         }}
       />
       <Tabs.Screen
-        name="earnings/index"
+        name="course"
         options={{
-          title: "Thu nhập",
+          title: "Khóa học",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "cash" : "cash-outline"}
@@ -84,9 +84,9 @@ export default function CoachTabs() {
         }}
       />
       <Tabs.Screen
-        name="menu"
+        name="content"
         options={{
-          title: "Menu",
+          title: "Nội dung",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "menu" : "menu-outline"}
@@ -97,7 +97,13 @@ export default function CoachTabs() {
         }}
       />
       <Tabs.Screen
-        name="drill"
+        name="menu"
+        options={{
+          href: null, // Ẩn khỏi tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
         options={{
           href: null, // Ẩn khỏi tab bar
         }}

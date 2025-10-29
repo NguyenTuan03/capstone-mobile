@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function CoachStudentsScreen() {
+export default function ContentScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#059669" />
@@ -10,15 +10,15 @@ export default function CoachStudentsScreen() {
         contentContainerStyle={styles.content}
       >
         <View style={styles.iconContainer}>
-          <Ionicons name="people" size={80} color="#D1D5DB" />
+          <Ionicons name="folder-open" size={80} color="#D1D5DB" />
         </View>
-        <Text style={styles.title}>Phân tích học viên</Text>
+        <Text style={styles.title}>Kho nội dung</Text>
         <Text style={styles.description}>
-          Tính năng phân tích học viên đang được phát triển
+          Tính năng kho nội dung đang được phát triển
         </Text>
         <Text style={styles.subDescription}>
-          Bạn sẽ có thể theo dõi tiến độ, xem thống kê và quản lý học viên của
-          mình tại đây
+          Bạn sẽ có thể quản lý bài tập, quiz, và video hướng dẫn của mình tại
+          đây
         </Text>
       </ScrollView>
     </View>
