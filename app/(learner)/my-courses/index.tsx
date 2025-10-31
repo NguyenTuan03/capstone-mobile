@@ -8,9 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MyCoursesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const enrolled = [
     {
       id: 1,
@@ -26,7 +28,12 @@ export default function MyCoursesScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.pageTitle}>Khóa học của tôi</Text>
 

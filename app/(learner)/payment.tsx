@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function PaymentScreen() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function PaymentScreen() {
   const [paymentStep, setPaymentStep] = useState<1 | 2>(1);
   const [method, setMethod] = useState<"card" | "momo" | "bank">("card");
   const [isProcessing, setIsProcessing] = useState(false);
+  const insets = useSafeAreaInsets();
   const [form, setForm] = useState({
     cardNumber: "",
     cardName: "",
@@ -41,7 +43,7 @@ export default function PaymentScreen() {
   };
 
   const Header = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top }]}>
       <TouchableOpacity
         onPress={() => (paymentStep === 1 ? router.back() : setPaymentStep(1))}
         style={styles.backBtn}

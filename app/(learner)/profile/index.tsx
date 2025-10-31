@@ -1,3 +1,5 @@
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import {
   SafeAreaView,
@@ -7,11 +9,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.container}>
         <View style={[styles.card, { gap: 12 }]}>
           <View style={styles.rowGap12}>
@@ -33,6 +42,74 @@ export default function ProfileScreen() {
               </View>
             </View>
           </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          {/* Card 1 */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={{
+              flex: 1,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 16,
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOpacity: 0.1,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <FontAwesome
+              name="calendar"
+              size={32}
+              color="#2563eb"
+              style={{ marginBottom: 8 }}
+            />
+            <Text
+              style={{ fontSize: 16, fontWeight: "500", textAlign: "center" }}
+            >
+              Lịch học
+            </Text>
+          </TouchableOpacity>
+
+          {/* Card 2 */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={{
+              flex: 1,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 16,
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOpacity: 0.1,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="trophy-award"
+              size={32}
+              color="#ca8a04"
+              style={{ marginBottom: 8 }}
+            />
+            <Text
+              style={{ fontSize: 16, fontWeight: "500", textAlign: "center" }}
+            >
+              Thành tựu
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.card}>

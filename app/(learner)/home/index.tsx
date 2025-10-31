@@ -1,8 +1,15 @@
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.container}>
         {/* Welcome Card */}
         <View style={[styles.card, styles.welcomeCard]}>

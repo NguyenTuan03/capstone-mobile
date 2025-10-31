@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -8,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type Assignment = {
   id: number;
@@ -132,6 +134,7 @@ const MEET_LINKS: Record<string, string> = {
 
 export default function LessonScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id, lessonId } = useLocalSearchParams<{
     id: string;
     lessonId: string;
@@ -204,14 +207,19 @@ export default function LessonScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <View style={styles.headerRow}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtn}
           activeOpacity={0.8}
         >
-          <Text style={styles.backText}>Quay lại</Text>
+          <Ionicons name="arrow-back-outline" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{lesson.title}</Text>
         <View style={{ width: 64 }} />
