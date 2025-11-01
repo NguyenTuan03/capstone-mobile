@@ -1,558 +1,566 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import { VideoView, useVideoPlayer } from "expo-video";
+import { Video as ExpoAVVideo, ResizeMode } from "expo-av";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Animated,
   Dimensions,
   Platform,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
 
-const { width, height } = Dimensions.get("window");
-const VIDEO_HEIGHT = height * 0.5;
+type Mode = "overlay" | "split";
 
-export default function AIAnalysisScreen() {
-  const params = useLocalSearchParams();
-  const { studentName = "Nguyễn Văn A" } = params;
+const { height } = Dimensions.get("window");
+const H_OVERLAY = height * 0.46;
+const H_SPLIT = height * 0.28;
 
-  const analysisData = {
-    student: {
-      name: studentName,
-      videoUrl: "student_video.mp4",
-      thumbnail: "🎾",
-      label: "Video Học viên",
-    },
-    coach: {
-      name: "Huấn Luyện Viên",
-      videoUrl: "coach_video.mp4",
-      thumbnail: "👨‍🏫",
-      label: "Video Mẫu",
-    },
-    aiAnalysis: {
-      score: 85,
-      strengths: [
-        "Tư thế cầm vợt đúng kỹ thuật",
-        "Footwork khá tốt",
-        "Timing ổn định",
-      ],
-      improvements: [
-        "Cần cải thiện follow-through",
-        "Tăng tốc độ swing",
-        "Chú ý vị trí đứng",
-      ],
-    },
+const POLL_MS = 500; // giảm tần suất cập nhật -> đỡ lag
+const END_EPS = 0.25; // giây
+
+export default function CompareScreen() {
+  const [mode, setMode] = useState<Mode>("overlay");
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string>("");
+
+  // ready flags
+  const [coachReady, setCoachReady] = useState(false);
+  const [learnerReady, setLearnerReady] = useState(false);
+
+  // progress (ms)
+  const [coachPos, setCoachPos] = useState(0);
+  const [coachDur, setCoachDur] = useState(0);
+  const [learnerPos, setLearnerPos] = useState(0);
+  const [learnerDur, setLearnerDur] = useState(0);
+
+  // opacity (overlay)
+  const [opacity, setOpacity] = useState(0.5);
+  const animatedOpacity = useRef(new Animated.Value(0.5)).current;
+  const onOpacityChange = (v: number) => {
+    animatedOpacity.setValue(v);
+    setOpacity(v);
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-      <View style={styles.headerTitleContainer}>
-        <Ionicons name="analytics" size={20} color="#FFFFFF" />
-        <Text style={styles.headerTitle}>AI Coach Analysis</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.closeButton}
-        onPress={() => router.back()}
+  // refs
+  const coachRef = useRef<any>(null); // expo-video player
+  const learnerRef = useRef<any>(null); // expo-video player
+  const overlayRef = useRef<ExpoAVVideo | null>(null); // expo-av (layer trên)
+  const wantsPlayRef = useRef(false);
+
+  // sources
+  const coachSrc =
+    "https://pickaball-public-bucket.s3.us-east-1.amazonaws.com/videos/coach.mp4";
+  const learnerSrc =
+    "https://pickaball-public-bucket.s3.us-east-1.amazonaws.com/videos/learner.mp4";
+
+  // --------- bootstrap: HEAD check ----------
+  useEffect(() => {
+    (async () => {
+      try {
+        const [a, b] = await Promise.all([
+          fetch(coachSrc, { method: "HEAD" }),
+          fetch(learnerSrc, { method: "HEAD" }),
+        ]);
+        if (!a.ok || !b.ok) throw new Error("Video not accessible");
+        setLoading(false);
+      } catch (e: any) {
+        setErr(e?.message ?? "Unknown error");
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // --------- expo-video players ----------
+  const coach = useVideoPlayer(coachSrc, (p: any) => {
+    p.loop = false;
+    p.muted = false;
+    p.pause();
+    coachRef.current = p;
+  });
+  const learner = useVideoPlayer(learnerSrc, (p: any) => {
+    p.loop = false;
+    p.muted = false;
+    p.pause();
+    learnerRef.current = p;
+  });
+
+  // mark ready + progress poll (nhẹ nhàng, 500ms)
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (coach) {
+        if (coach.duration > 0 && !coachReady) setCoachReady(true);
+        setCoachPos(coach.currentTime * 1000);
+        setCoachDur(coach.duration * 1000);
+      }
+      if (learner) {
+        if (learner.duration > 0 && !learnerReady) setLearnerReady(true);
+        setLearnerPos(learner.currentTime * 1000);
+        setLearnerDur(learner.duration * 1000);
+      }
+
+      // tự dừng khi đến cuối (không replay)
+      if (isPlaying) {
+        const coachEnd =
+          coach?.duration > 0 && coach.duration - coach.currentTime <= END_EPS;
+        const learnerEnd =
+          learner?.duration > 0 &&
+          learner.duration - learner.currentTime <= END_EPS;
+        if (coachEnd || learnerEnd) {
+          wantsPlayRef.current = false;
+          setIsPlaying(false);
+          coach?.pause();
+          learner?.pause();
+          overlayRef.current?.pauseAsync();
+        }
+      }
+    }, POLL_MS);
+    return () => clearInterval(id);
+  }, [coach, learner, isPlaying, coachReady, learnerReady]);
+
+  // --------- transport ----------
+  const togglePlay = async () => {
+    try {
+      if (isPlaying) {
+        wantsPlayRef.current = false;
+        coach?.pause();
+        learner?.pause();
+        await overlayRef.current?.pauseAsync();
+        setIsPlaying(false);
+        return;
+      }
+
+      // nếu ở cuối -> tua về đầu từng video (độc lập)
+      if (coach?.duration > 0 && coach.duration - coach.currentTime <= END_EPS)
+        coach.currentTime = 0;
+      if (
+        learner?.duration > 0 &&
+        learner.duration - learner.currentTime <= END_EPS
+      )
+        learner.currentTime = 0;
+
+      wantsPlayRef.current = true;
+
+      coach?.play();
+      learner?.play();
+
+      if (mode === "overlay") {
+        // overlayRef đang hiển thị COACH, nên bám theo thời gian coach
+        const coachMs = (coach?.currentTime ?? 0) * 1000;
+        await overlayRef.current?.setPositionAsync(coachMs);
+        await overlayRef.current?.playAsync();
+        await overlayRef.current?.setRateAsync(1.0, true);
+      }
+      setIsPlaying(true);
+    } catch {
+      Alert.alert("Lỗi", "Không thể play/pause");
+    }
+  };
+
+  const nudge = async (sec: number) => {
+    const c = coach?.currentTime ?? 0;
+    const l = learner?.currentTime ?? 0;
+    const cNew = Math.max(0, Math.min(c + sec, coach?.duration ?? c));
+    const lNew = Math.max(0, Math.min(l + sec, learner?.duration ?? l));
+    if (coach) coach.currentTime = cNew;
+    if (learner) learner.currentTime = lNew;
+    if (mode === "overlay") {
+      await overlayRef.current?.setPositionAsync(
+        (coach?.currentTime ?? 0) * 1000,
+      );
+    }
+  };
+
+  // --------- sliders (ĐỘC LẬP) ----------
+  const onCoachSlide = async (ratio: number) => {
+    if (!coach) return;
+    const t = ratio * coach.duration;
+    coach.currentTime = t;
+    if (mode === "overlay") {
+      await overlayRef.current?.setPositionAsync(t * 1000); // overlay bám coach
+    }
+  };
+
+  const onLearnerSlide = async (ratio: number) => {
+    if (!learner) return;
+    const t = ratio * learner.duration;
+    learner.currentTime = t;
+    // không đụng tới coach, cũng không đụng overlay
+  };
+
+  // --------- utils ----------
+  const fmt = (ms: number) => {
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${m}:${ss.toString().padStart(2, "0")}`;
+  };
+
+  // --------- UI ----------
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
       >
-        <Ionicons name="close" size={24} color="#FFFFFF" />
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderSplitVideoView = () => (
-    <View style={styles.splitVideoContainer}>
-      {/* Student Video - Left Side */}
-      <View style={styles.videoHalf}>
-        <View style={styles.videoPlaceholder}>
-          <Text style={styles.videoEmoji}>🎾</Text>
-          <View style={styles.playButtonSmall}>
-            <Ionicons name="play" size={24} color="#FFFFFF" />
-          </View>
-        </View>
-
-        {/* Student Label */}
-        <View style={[styles.videoLabel, styles.studentLabel]}>
-          <Ionicons name="person" size={14} color="#FFFFFF" />
-          <Text style={styles.videoLabelTextSmall}>Video Học viên</Text>
-        </View>
-
-        {/* Student Name */}
-        <View style={styles.nameBadgeSmall}>
-          <Text style={styles.nameTextSmall}>{analysisData.student.name}</Text>
-        </View>
+        <ActivityIndicator size="large" color="#8B5CF6" />
+        <Text style={{ color: "#9CA3AF", marginTop: 8 }}>
+          Đang kiểm tra video…
+        </Text>
       </View>
-
-      {/* Divider Line */}
-      <View style={styles.videoDivider} />
-
-      {/* Coach Video - Right Side */}
-      <View style={styles.videoHalf}>
-        <View style={styles.videoPlaceholder}>
-          <Text style={styles.videoEmoji}>👨‍🏫</Text>
-          <View style={styles.playButtonSmall}>
-            <Ionicons name="play" size={24} color="#FFFFFF" />
-          </View>
-        </View>
-
-        {/* Coach Label */}
-        <View style={[styles.videoLabel, styles.coachLabel]}>
-          <Ionicons name="school" size={14} color="#FFFFFF" />
-          <Text style={styles.videoLabelTextSmall}>Video Mẫu</Text>
-        </View>
-
-        {/* Coach Name */}
-        <View style={styles.nameBadgeSmall}>
-          <Text style={styles.nameTextSmall}>HLV</Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderComparisonView = () => (
-    <View style={styles.comparisonContainer}>
-      <Text style={styles.comparisonTitle}>So sánh kỹ thuật</Text>
-
-      {/* Single Container with Split View */}
-      <View style={styles.videoComparisonWrapper}>
-        {renderSplitVideoView()}
-
-        {/* Video Controls at Bottom */}
-        <View style={styles.videoControls}>
-          <TouchableOpacity style={styles.controlButton}>
-            <Ionicons name="play-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.controlButton}>
-            <Ionicons name="play" size={32} color="#FFFFFF" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.controlButton}>
-            <Ionicons name="play-forward" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Progress Bar */}
-        <View style={styles.videoProgressBar}>
-          <View style={[styles.progressFill, { width: "30%" }]} />
-          <View style={styles.progressHandle} />
-        </View>
-
-        <Text style={styles.videoTimeText}>0:00 / 0:03</Text>
-      </View>
-
-      {/* Swap Button */}
-      <TouchableOpacity style={styles.swapButton}>
-        <Ionicons name="swap-horizontal" size={20} color="#FFFFFF" />
-        <Text style={styles.swapButtonText}>Hoán đổi video</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderAIAnalysis = () => (
-    <View style={styles.analysisSection}>
-      <View style={styles.analysisHeader}>
-        <View style={styles.aiIcon}>
-          <Ionicons name="sparkles" size={24} color="#8B5CF6" />
-        </View>
-        <Text style={styles.analysisTitle}>Phân tích AI</Text>
-        <View style={styles.scoreBadge}>
-          <Text style={styles.scoreText}>{analysisData.aiAnalysis.score}</Text>
-          <Text style={styles.scoreLabel}>/100</Text>
-        </View>
-      </View>
-
-      {/* Strengths */}
-      <View style={styles.analysisBlock}>
-        <View style={styles.blockHeader}>
-          <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-          <Text style={styles.blockTitle}>Điểm mạnh</Text>
-        </View>
-        {analysisData.aiAnalysis.strengths.map((item, index) => (
-          <View key={index} style={styles.analysisItem}>
-            <View style={styles.bulletGreen} />
-            <Text style={styles.analysisText}>{item}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Improvements */}
-      <View style={styles.analysisBlock}>
-        <View style={styles.blockHeader}>
-          <Ionicons name="trending-up" size={20} color="#F59E0B" />
-          <Text style={styles.blockTitle}>Cần cải thiện</Text>
-        </View>
-        {analysisData.aiAnalysis.improvements.map((item, index) => (
-          <View key={index} style={styles.analysisItem}>
-            <View style={styles.bulletOrange} />
-            <Text style={styles.analysisText}>{item}</Text>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-
-  const renderActionButtons = () => (
-    <View style={styles.actionButtons}>
-      <TouchableOpacity style={styles.analyzeButton}>
-        <Ionicons name="refresh" size={20} color="#FFFFFF" />
-        <Text style={styles.analyzeButtonText}>Phân tích với AI Coach</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.downloadButton}>
-        <Ionicons name="download" size={20} color="#8B5CF6" />
-        <Text style={styles.downloadButtonText}>Tải báo cáo</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {renderHeader()}
-
       <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={styles.headerInfo}>
-          <Text style={styles.subtitle}>
-            Phân tích kỹ thuật cho {studentName}
-          </Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>So sánh kỹ thuật</Text>
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              style={[styles.tab, mode === "overlay" && styles.tabActive]}
+              onPress={() => setMode("overlay")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  mode === "overlay" && styles.tabTextActive,
+                ]}
+              >
+                Overlay
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, mode === "split" && styles.tabActive]}
+              onPress={() => setMode("split")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  mode === "split" && styles.tabTextActive,
+                ]}
+              >
+                Split
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {err ? (
+            <Text style={{ color: "#FCA5A5", marginTop: 6 }}>❌ {err}</Text>
+          ) : null}
         </View>
 
-        {renderComparisonView()}
-        {renderAIAnalysis()}
-        {renderActionButtons()}
+        {/* CARD */}
+        <View style={styles.card}>
+          {mode === "overlay" ? (
+            <View
+              style={{
+                height: H_OVERLAY,
+                backgroundColor: "#000",
+                position: "relative",
+              }}
+            >
+              {/* Learner dưới (expo-video) */}
+              <VideoView
+                player={learner}
+                style={styles.fill}
+                contentFit="contain"
+                nativeControls={false}
+              />
+              <View style={[styles.tag, styles.left, styles.student]}>
+                <Ionicons name="person" size={14} color="#fff" />
+                <Text style={styles.tagText}>Learner</Text>
+              </View>
 
-        <View style={{ height: 100 }} />
+              {/* Coach trên (expo-av) */}
+              <Animated.View
+                style={[styles.fill, { opacity: animatedOpacity }]}
+                pointerEvents="none"
+              >
+                <ExpoAVVideo
+                  ref={overlayRef}
+                  source={{ uri: coachSrc }}
+                  style={styles.full}
+                  resizeMode={ResizeMode.CONTAIN}
+                  shouldPlay={false}
+                  isLooping={false}
+                  isMuted={false}
+                  onLoad={async () => {
+                    // sync vị trí ban đầu = thời gian của coach hiện tại
+                    const ms = (coach?.currentTime ?? 0) * 1000;
+                    await overlayRef.current?.setPositionAsync(ms);
+                    if (wantsPlayRef.current) {
+                      await overlayRef.current?.playAsync();
+                      await overlayRef.current?.setRateAsync(1.0, true);
+                    }
+                    await overlayRef.current?.setStatusAsync({
+                      progressUpdateIntervalMillis: POLL_MS,
+                    });
+                  }}
+                  onPlaybackStatusUpdate={(st: any) => {
+                    if (st?.didJustFinish) {
+                      wantsPlayRef.current = false;
+                      setIsPlaying(false);
+                      coach?.pause();
+                      learner?.pause();
+                      overlayRef.current?.pauseAsync();
+                    }
+                  }}
+                />
+              </Animated.View>
+              <Animated.View
+                style={[
+                  styles.tag,
+                  styles.right,
+                  styles.coach,
+                  { opacity: animatedOpacity },
+                ]}
+              >
+                <Ionicons name="school" size={14} color="#fff" />
+                <Text style={styles.tagText}>Coach</Text>
+              </Animated.View>
+
+              {/* Opacity + 2 sliders độc lập */}
+              <View style={styles.overlayPanel}>
+                <View style={styles.opacityHdr}>
+                  <Ionicons name="layers" size={16} color="#fff" />
+                  <Text style={styles.opacityText}>Độ trong suốt</Text>
+                </View>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={opacity}
+                  onValueChange={onOpacityChange}
+                  minimumTrackTintColor="#8B5CF6"
+                  maximumTrackTintColor="rgba(255,255,255,.3)"
+                  thumbTintColor="#fff"
+                />
+                <Text style={styles.small}>Coach</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={coachDur > 0 ? coachPos / coachDur : 0}
+                  onSlidingComplete={onCoachSlide}
+                  minimumTrackTintColor="#34D399"
+                  maximumTrackTintColor="rgba(255,255,255,.3)"
+                  thumbTintColor="#fff"
+                />
+                <Text style={styles.small}>Learner</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={learnerDur > 0 ? learnerPos / learnerDur : 0}
+                  onSlidingComplete={onLearnerSlide}
+                  minimumTrackTintColor="#60A5FA"
+                  maximumTrackTintColor="rgba(255,255,255,.3)"
+                  thumbTintColor="#fff"
+                />
+              </View>
+            </View>
+          ) : (
+            // SPLIT MODE
+            <View style={{ gap: 10 }}>
+              {/* COACH */}
+              <View style={styles.splitBox}>
+                <VideoView
+                  player={coach}
+                  style={styles.full}
+                  contentFit="contain"
+                />
+                <View style={[styles.tag, styles.left, styles.coach]}>
+                  <Ionicons name="school" size={14} color="#fff" />
+                  <Text style={styles.tagText}>Coach</Text>
+                </View>
+              </View>
+              <View style={{ paddingHorizontal: 10 }}>
+                <Text style={styles.small}>Coach</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={coachDur > 0 ? coachPos / coachDur : 0}
+                  onSlidingComplete={onCoachSlide}
+                  minimumTrackTintColor="#34D399"
+                  maximumTrackTintColor="rgba(255,255,255,.3)"
+                  thumbTintColor="#fff"
+                />
+              </View>
+              {/* LEARNER */}
+              <View style={styles.splitBox}>
+                <VideoView
+                  player={learner}
+                  style={styles.full}
+                  contentFit="contain"
+                />
+                <View style={[styles.tag, styles.left, styles.student]}>
+                  <Ionicons name="person" size={14} color="#fff" />
+                  <Text style={styles.tagText}>Learner</Text>
+                </View>
+              </View>
+              <View style={{ paddingHorizontal: 10 }}>
+                <Text style={styles.small}>Learner</Text>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={0}
+                  maximumValue={1}
+                  value={learnerDur > 0 ? learnerPos / learnerDur : 0}
+                  onSlidingComplete={onLearnerSlide}
+                  minimumTrackTintColor="#60A5FA"
+                  maximumTrackTintColor="rgba(255,255,255,.3)"
+                  thumbTintColor="#fff"
+                />
+              </View>
+            </View>
+          )}
+
+          {/* Transport chung */}
+          <View style={styles.transport}>
+            <TouchableOpacity onPress={() => nudge(-5)} style={styles.transBtn}>
+              <Ionicons name="play-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={togglePlay}
+              style={[styles.transBtn, styles.playBtn]}
+            >
+              <Ionicons
+                name={isPlaying ? "pause" : "play"}
+                size={32}
+                color="#fff"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => nudge(5)} style={styles.transBtn}>
+              <Ionicons name="play-forward" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Time readouts */}
+          <View style={styles.timeRow}>
+            <Text style={styles.time}>
+              Coach: {fmt(coachPos)} / {fmt(coachDur)}
+            </Text>
+            <Text style={styles.time}>
+              Learner: {fmt(learnerPos)} / {fmt(learnerDur)}
+            </Text>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111827",
-  },
+  container: { flex: 1, backgroundColor: "#0B1220" },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingTop: Platform.OS === "ios" ? 50 : 12,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    paddingTop: Platform.OS === "ios" ? 54 : 16,
+    paddingBottom: 10,
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  closeButton: {
-    padding: 4,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  headerInfo: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "rgba(139, 92, 246, 0.1)",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(139, 92, 246, 0.3)",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#D1D5DB",
-    textAlign: "center",
-  },
-  comparisonContainer: {
-    padding: 16,
-  },
-  comparisonTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  videoComparisonWrapper: {
-    backgroundColor: "#1F2937",
-    borderRadius: 16,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "#8B5CF6",
-    shadowColor: "#8B5CF6",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  splitVideoContainer: {
-    flexDirection: "row",
-    height: VIDEO_HEIGHT,
-  },
-  videoHalf: {
-    flex: 1,
-    position: "relative",
-  },
-  videoDivider: {
-    width: 2,
-    backgroundColor: "#8B5CF6",
-    shadowColor: "#8B5CF6",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-  },
-  videoPlaceholder: {
-    flex: 1,
-    backgroundColor: "#374151",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  videoEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  playButtonSmall: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(139, 92, 246, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  videoLabel: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    right: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  studentLabel: {
-    backgroundColor: "rgba(59, 130, 246, 0.9)",
-  },
-  coachLabel: {
-    backgroundColor: "rgba(16, 185, 129, 0.9)",
-  },
-  videoLabelTextSmall: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  nameBadgeSmall: {
-    position: "absolute",
-    bottom: 8,
-    left: 8,
-    right: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  nameTextSmall: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  videoControls: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    paddingVertical: 16,
-    gap: 24,
-  },
-  controlButton: {
-    padding: 8,
-  },
-  videoProgressBar: {
-    position: "relative",
-    height: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-    marginHorizontal: 16,
-    marginTop: 8,
-  },
-  progressFill: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: "#8B5CF6",
-  },
-  progressHandle: {
-    position: "absolute",
-    left: "30%",
-    top: -4,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#FFFFFF",
-    transform: [{ translateX: -6 }],
-  },
-  videoTimeText: {
-    fontSize: 11,
-    color: "#D1D5DB",
-    textAlign: "center",
-    paddingVertical: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-  },
-  swapButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(139, 92, 246, 0.3)",
-    borderWidth: 1,
-    borderColor: "#8B5CF6",
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginTop: 12,
-    gap: 8,
-  },
-  swapButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#A78BFA",
-  },
-  analysisSection: {
-    backgroundColor: "#1F2937",
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 16,
-  },
-  analysisHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  aiIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(139, 92, 246, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  analysisTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    flex: 1,
-  },
-  scoreBadge: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    paddingHorizontal: 12,
+  title: { color: "#fff", fontSize: 18, fontWeight: "700", marginBottom: 10 },
+  tabs: { flexDirection: "row", gap: 8 },
+  tab: {
     paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#3F3F46",
     borderRadius: 20,
   },
-  scoreText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#10B981",
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: "#6EE7B7",
-    marginLeft: 2,
-  },
-  analysisBlock: {
-    marginBottom: 20,
-  },
-  blockHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 8,
-  },
-  blockTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  analysisItem: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 10,
-    paddingLeft: 8,
-  },
-  bulletGreen: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#10B981",
-    marginTop: 6,
-    marginRight: 10,
-  },
-  bulletOrange: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#F59E0B",
-    marginTop: 6,
-    marginRight: 10,
-  },
-  analysisText: {
-    flex: 1,
-    fontSize: 14,
-    color: "#D1D5DB",
-    lineHeight: 20,
-  },
-  actionButtons: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  analyzeButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#8B5CF6",
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  analyzeButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  downloadButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(139, 92, 246, 0.2)",
-    borderWidth: 1.5,
+  tabActive: {
+    backgroundColor: "rgba(139,92,246,.25)",
     borderColor: "#8B5CF6",
-    paddingVertical: 14,
+  },
+  tabText: { color: "#A1A1AA", fontWeight: "600" },
+  tabTextActive: { color: "#EDE9FE" },
+
+  card: {
+    marginHorizontal: 12,
+    backgroundColor: "#111827",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#374151",
+    overflow: "hidden",
+  },
+
+  // overlay
+  fill: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
+  full: { width: "100%", height: "100%" },
+  overlayPanel: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    bottom: 10,
+    backgroundColor: "rgba(0,0,0,.85)",
     borderRadius: 12,
-    gap: 8,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "rgba(139,92,246,.5)",
   },
-  downloadButtonText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#A78BFA",
+  opacityHdr: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: 6,
   },
+  opacityText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  slider: { width: "100%", height: 36 },
+  small: { color: "#CBD5E1", fontSize: 11, marginBottom: -4, marginTop: 6 },
+
+  tag: {
+    position: "absolute",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  left: { top: 10, left: 10 },
+  right: { top: 10, right: 10 },
+  coach: { backgroundColor: "rgba(16,185,129,.95)" },
+  student: { backgroundColor: "rgba(59,130,246,.95)" },
+  tagText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+
+  // split
+  splitBox: {
+    height: H_SPLIT,
+    backgroundColor: "#000",
+    marginHorizontal: 10,
+    borderRadius: 12,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+
+  // transport
+  transport: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 26,
+    paddingVertical: 14,
+    backgroundColor: "rgba(0,0,0,.6)",
+  },
+  transBtn: { padding: 8 },
+  playBtn: { backgroundColor: "rgba(139,92,246,.45)", borderRadius: 28 },
+
+  timeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingBottom: 12,
+  },
+  time: { color: "#A7B0C0", fontSize: 12 },
 });
