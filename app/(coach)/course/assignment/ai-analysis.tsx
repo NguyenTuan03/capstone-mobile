@@ -1,8 +1,11 @@
+import * as geminiService from "@/services/api/ai/gemini";
+import { extractFrames } from "@/utils/video";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
-import { VideoView, useVideoPlayer } from "expo-video";
 import { Video as ExpoAVVideo, ResizeMode } from "expo-av";
-import React, { useEffect, useRef, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { VideoView, useVideoPlayer } from "expo-video";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -30,6 +33,7 @@ export default function CompareScreen() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string>("");
+  const { submissionId, studentName } = useLocalSearchParams();
 
   // ready flags
   const [coachReady, setCoachReady] = useState(false);
@@ -48,6 +52,11 @@ export default function CompareScreen() {
     animatedOpacity.setValue(v);
     setOpacity(v);
   };
+
+  const [aiAnalysisResults, setAiAnalysisResults] = useState<any>(null);
+  const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
+  const [isAnalyzingAI, setIsAnalyzingAI] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
 
   // refs
   const coachRef = useRef<any>(null); // expo-video player
@@ -201,6 +210,80 @@ export default function CompareScreen() {
     const m = Math.floor(s / 60);
     const ss = s % 60;
     return `${m}:${ss.toString().padStart(2, "0")}`;
+  };
+
+  const handleAIAnalysis = async () => {
+    if (!selectedSubmission) return;
+
+    setIsAnalyzingAI(true);
+    setAiAnalysisError(null);
+    setAiAnalysisResults(null);
+
+    try {
+      // Load coach video from public folder
+      const coachVideoResponse = await fetch("/assets/videos/coach-demo.mp4");
+      const coachVideoBlob = await coachVideoResponse.blob();
+      const coachVideoFile = new File([coachVideoBlob], "coach-demo.mp4", {
+        type: "video/mp4",
+      });
+
+      // Load learner video from submission
+      const learnerVideoResponse = await fetch(selectedSubmission.videoUrl);
+      const learnerVideoBlob = await learnerVideoResponse.blob();
+      const learnerVideoFile = new File(
+        [learnerVideoBlob],
+        "learner-video.mp4",
+        {
+          type: "video/mp4",
+        },
+      );
+
+      const extractKeyFrames = async (file: File) => {
+        const video = document.createElement("video");
+        video.src = URL.createObjectURL(file);
+        await new Promise((resolve) => {
+          video.onloadedmetadata = resolve;
+        });
+        const duration = video.duration;
+        URL.revokeObjectURL(video.src);
+        const timestamps = [
+          duration * 0.25,
+          duration * 0.5,
+          duration * 0.75,
+        ].map((t) => parseFloat(t.toFixed(2)));
+        const frames = await extractFrames(file, timestamps);
+        return { frames, timestamps };
+      };
+
+      const [coachData, learnerData] = await Promise.all([
+        extractKeyFrames(coachVideoFile),
+        extractKeyFrames(learnerVideoFile),
+      ]);
+
+      const analysisResult = await geminiService.compareVideos(
+        coachData.frames,
+        coachData.timestamps,
+        learnerData.frames,
+        learnerData.timestamps,
+      );
+      console.log("analysisResult", analysisResult);
+      setAiAnalysisResults(analysisResult);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        if (err.message.includes("load video")) {
+          setAiAnalysisError(
+            "Lỗi khi tải một trong các video. Vui lòng đảm bảo cả hai đều là tệp video hợp lệ và thử lại.",
+          );
+        } else {
+          setAiAnalysisError(err.message);
+        }
+      } else {
+        setAiAnalysisError("Đã xảy ra lỗi không xác định khi so sánh video.");
+      }
+    } finally {
+      setIsAnalyzingAI(false);
+    }
   };
 
   // --------- UI ----------
@@ -458,6 +541,20 @@ export default function CompareScreen() {
           </View>
         </View>
       </ScrollView>
+      <View>
+        <TouchableOpacity
+          onPress={() => handleAIAnalysis()}
+          style={{
+            backgroundColor: "white",
+            padding: 10,
+            margin: 10,
+            borderRadius: 8,
+            alignItems: "center",
+          }}
+        >
+          <Text>Phan Tich Video voi AI coach</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

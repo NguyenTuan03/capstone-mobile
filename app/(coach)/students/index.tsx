@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet, ScrollView, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CoachStudentsScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#059669" />
       <ScrollView
         style={styles.scrollView}
@@ -21,7 +22,7 @@ export default function CoachStudentsScreen() {
           mình tại đây
         </Text>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
