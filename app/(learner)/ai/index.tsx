@@ -1,6 +1,9 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AIScreen() {
+  const insets = useSafeAreaInsets();
   const records = [
     {
       id: 1,
@@ -18,10 +21,29 @@ export default function AIScreen() {
     },
   ];
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>AI có thể phân tích:</Text>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="video-check"
+              size={24}
+              color="black"
+            />
+            <Text style={styles.cardTitle}>AI có thể phân tích:</Text>
+          </View>
           <View style={{ gap: 6 }}>
             <Text style={styles.item}>• Kỹ thuật giao bóng (serve)</Text>
             <Text style={styles.item}>• Cú đánh trái (forehand)</Text>
@@ -66,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
   },
-  cardTitle: { fontWeight: "700", color: "#111827", marginBottom: 8 },
+  cardTitle: { fontWeight: "700", color: "#111827", marginLeft: 8 },
   item: { color: "#374151" },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
   analysisCard: {

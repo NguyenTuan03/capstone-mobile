@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CoursesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const courses = [
     {
       id: 1,
@@ -32,7 +34,12 @@ export default function CoursesScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      style={[
+        styles.safe,
+        { paddingTop: insets.top, paddingBottom: insets.bottom + 50 },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.container}>
         {/* Search & Filter */}
         <View style={styles.searchRow}>

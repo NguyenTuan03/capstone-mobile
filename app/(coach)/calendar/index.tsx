@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import {
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function CoachCalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(6);

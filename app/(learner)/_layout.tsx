@@ -55,6 +55,24 @@ export default function LearnerTabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="course/[id]/index"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="course/[id]/lesson"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="payment"
+        options={{
+          href: null, // Ẩn khỏi tab bar
+        }}
+      />
     </Tabs>
   );
 }

@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   SafeAreaView,
@@ -57,6 +58,11 @@ export default function CourseDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <View style={{ marginTop: 50, marginLeft: 30 }}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back-outline" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>{course.title}</Text>
         <Text style={styles.meta}>{course.coach}</Text>
