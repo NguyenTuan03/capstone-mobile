@@ -229,6 +229,7 @@ export default function CompareScreen() {
 
       // Load learner video from submission
       const learnerVideoResponse = await fetch(selectedSubmission.videoUrl);
+      console.log("learnerVideoResponse:", learnerVideoResponse);
       const learnerVideoBlob = await learnerVideoResponse.blob();
       const learnerVideoFile = new File(
         [learnerVideoBlob],
@@ -322,7 +323,7 @@ export default function CompareScreen() {
                   mode === "overlay" && styles.tabTextActive,
                 ]}
               >
-                Overlay
+                Xếp chồng
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -335,7 +336,7 @@ export default function CompareScreen() {
                   mode === "split" && styles.tabTextActive,
                 ]}
               >
-                Split
+                Tách
               </Text>
             </TouchableOpacity>
           </View>
@@ -552,9 +553,10 @@ export default function CompareScreen() {
             alignItems: "center",
           }}
         >
-          <Text>Phan Tich Video voi AI coach</Text>
+          <Text>Phân Tích Video với AI coach</Text>
         </TouchableOpacity>
       </View>
+      <View></View>
     </View>
   );
 }

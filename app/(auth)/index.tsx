@@ -1,7 +1,13 @@
 import AppForm from "@/components/common/AppForm";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { Href, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+
+const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
+
+console.log("API_URL:", API_URL);
 
 export default function AuthScreen() {
   const [submitting, setSubmitting] = useState(false);
@@ -11,16 +17,29 @@ export default function AuthScreen() {
   const handleLogin = async (values: Record<string, string>) => {
     setError(null);
     setSubmitting(true);
+    try {
+      const res = await axios.post(`${API_URL}/v1/auth/login`, {
+        email: values.email,
+        password: values.password,
+      });
+      const { accessToken, refreshToken, user } = res.data.metadata;
 
-    // Giả lập loading time
-    setTimeout(() => {
-      if (values.password === "c") {
+      await AsyncStorage.setItem("token", accessToken);
+      await AsyncStorage.setItem("refreshToken", refreshToken);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+
+      if (user.role.name === "COACH") {
         router.push("/(coach)/home" as Href);
-      } else {
+      }
+      if (user.role.name === "LEARNER") {
         router.push("/(learner)/home" as Href);
       }
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError("Đăng nhập thất bại, vui lòng thử lại.");
+    } finally {
       setSubmitting(false);
-    }, 500);
+    }
   };
 
   return (

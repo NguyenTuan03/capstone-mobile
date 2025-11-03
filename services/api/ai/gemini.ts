@@ -2,7 +2,7 @@ import { CombinedAnalysisResult, VideoComparisonResult } from "@/types/ai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const apiKey = process.env.NEXT_PUBLIC_API_KEY;
-console.log("API key:", apiKey);
+
 if (!apiKey) {
   throw new Error(
     "NEXT_PUBLIC_API_KEY environment variable is not set. Please add it to your .env.local file.",
