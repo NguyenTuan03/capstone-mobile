@@ -47,7 +47,7 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="calendar/index"
         options={{
-          title: "Lịch học",
+          title: "Lịch dạy",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "calendar" : "calendar-outline"}
@@ -99,13 +99,13 @@ export default function CoachTabs() {
       <Tabs.Screen
         name="menu"
         options={{
-          href: null, // Ẩn khỏi tab bar
+          href: null,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          href: null, // Ẩn khỏi tab bar
+          href: null,
         }}
       />
     </Tabs>

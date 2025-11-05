@@ -1,7 +1,10 @@
+import { post } from "@/services/http/httpService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -10,42 +13,48 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateCourseScreen() {
-  const [courseName, setCourseName] = useState("");
-  const [level, setLevel] = useState("intermediate");
-  const [courseType, setCourseType] = useState("group");
-  const [totalSessions, setTotalSessions] = useState("8");
-  const [sessionsPerWeek, setSessionsPerWeek] = useState("2");
-  const [startDate, setStartDate] = useState("23/10/2025");
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  const [schedules, setSchedules] = useState([]);
-
-  const priceOptions = [
-    "500k",
-    "1 triệu",
-    "1.5 triệu",
-    "2 triệu",
-    "2.5 triệu",
-    "3 triệu",
-    "5 triệu",
-    "10 triệu",
-  ];
-
-  const renderSectionHeader = (
-    icon: keyof typeof Ionicons.glyphMap,
-    title: string,
-  ) => (
-    <View style={styles.sectionHeader as any}>
-      <Ionicons name={icon} size={20} color="#059669" />
-      <Text style={styles.sectionTitle as any}>{title}</Text>
-    </View>
+  const [subjectName, setSubjectName] = useState("");
+  const [level, setLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">(
+    "BEGINNER",
   );
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCreateSubject = async () => {
+    if (!subjectName.trim()) {
+      Alert.alert("Lỗi", "Tên môn học là bắt buộc.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        name: subjectName,
+        description,
+        level,
+        status: "DRAFT",
+      };
+
+      console.log("Payload gửi lên API:", payload);
+
+      const res = await post("/v1/subjects", payload);
+
+      Alert.alert("Thành công", "Tạo môn học mới thành công!");
+      router.back();
+    } catch (error: any) {
+      console.error("Lỗi khi tạo môn học:", error);
+      Alert.alert("Lỗi", "Không thể tạo môn học. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <SafeAreaView>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -53,330 +62,136 @@ export default function CreateCourseScreen() {
         >
           <Ionicons name="close" size={24} color="#111827" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tạo Khóa Học Mới</Text>
+        <Text style={styles.headerTitle}>Tạo Môn Học Mới</Text>
         <View style={styles.placeholder} />
       </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Course Name & Level */}
+      <ScrollView>
         <View style={styles.section}>
           <View style={styles.row}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>
-                Tên khóa học <Text style={styles.required}>*</Text>
+                Tên môn học <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={[styles.input, !courseName && styles.inputError]}
+                style={[styles.input, !subjectName && styles.inputError]}
                 placeholder="VD: Pickleball cơ bản cho người mới bắt đầu"
-                value={courseName}
-                onChangeText={setCourseName}
+                value={subjectName}
+                onChangeText={setSubjectName}
                 placeholderTextColor="#9CA3AF"
               />
-              {!courseName && (
-                <Text style={styles.errorText}>Tên khóa học là bắt buộc</Text>
+              {!subjectName && (
+                <Text style={styles.errorText}>Tên môn học là bắt buộc</Text>
               )}
             </View>
           </View>
-
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Mô tả môn học</Text>
+            <TextInput
+              style={[
+                styles.input,
+                !description && styles.inputError,
+                { borderColor: "green" },
+              ]}
+              placeholder="VD: Pickleball cơ bản cho người mới bắt đầu"
+              value={description}
+              onChangeText={setDescription}
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Trình độ</Text>
             <View style={styles.segmentControl}>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  level === "beginner" && styles.segmentButtonActive,
-                ]}
-                onPress={() => setLevel("beginner")}
-              >
-                <Text
+              {["BEGINNER", "INTERMEDIATE", "ADVANCED"].map((lvl) => (
+                <TouchableOpacity
+                  key={lvl}
                   style={[
-                    styles.segmentText,
-                    level === "beginner" && styles.segmentTextActive,
+                    styles.segmentButton,
+                    level === lvl && styles.segmentButtonActive,
                   ]}
+                  onPress={() => setLevel(lvl as any)}
                 >
-                  Cơ bản
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  level === "intermediate" && styles.segmentButtonActive,
-                ]}
-                onPress={() => setLevel("intermediate")}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    level === "intermediate" && styles.segmentTextActive,
-                  ]}
-                >
-                  Trung bình
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.segmentButton,
-                  level === "advanced" && styles.segmentButtonActive,
-                ]}
-                onPress={() => setLevel("advanced")}
-              >
-                <Text
-                  style={[
-                    styles.segmentText,
-                    level === "advanced" && styles.segmentTextActive,
-                  ]}
-                >
-                  Nâng cao
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      level === lvl && styles.segmentTextActive,
+                    ]}
+                  >
+                    {lvl === "BEGINNER"
+                      ? "Cơ bản"
+                      : lvl === "INTERMEDIATE"
+                        ? "Trung bình"
+                        : "Nâng cao"}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </View>
 
-        {/* Course Type */}
-        <View style={styles.section}>
-          {renderSectionHeader("people", "Loại hình khóa học")}
-
-          <TouchableOpacity
-            style={[
-              styles.typeCard,
-              courseType === "individual" && styles.typeCardActive,
-            ]}
-            onPress={() => setCourseType("individual")}
-          >
-            <View style={styles.typeCardContent}>
-              <Text style={styles.typeCardTitle}>Cá nhân (1 người)</Text>
-              <Text style={styles.typeCardDesc}>
-                Huấn luyện 1-1, hiệu quả cao nhất
-              </Text>
-            </View>
-            {courseType === "individual" && (
-              <Ionicons name="checkmark-circle" size={24} color="#059669" />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.typeCard,
-              courseType === "group" && styles.typeCardActive,
-            ]}
-            onPress={() => setCourseType("group")}
-          >
-            <View style={styles.typeCardContent}>
-              <Text style={styles.typeCardTitle}>Nhóm (2-6 người)</Text>
-              <Text style={styles.typeCardDesc}>
-                Học theo nhóm, chi phí tiết kiệm
-              </Text>
-            </View>
-            {courseType === "group" && (
-              <Ionicons name="checkmark-circle" size={24} color="#059669" />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Schedule */}
-        <View style={styles.section}>
-          {renderSectionHeader("calendar", "Lịch học và thời lượng")}
-
-          <View style={styles.row}>
-            <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-              <Text style={styles.label}>
-                Tổng số buổi học <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={totalSessions}
-                onChangeText={setTotalSessions}
-                keyboardType="numeric"
-                placeholder="8"
-              />
-            </View>
-            <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-              <Text style={styles.label}>
-                Số buổi mỗi tuần <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.pickerContainer}>
-                <Text style={styles.pickerText}>2 buổi/tuần</Text>
-                <Ionicons name="chevron-down" size={20} color="#6B7280" />
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Ngày bắt đầu <Text style={styles.required}>*</Text>
-            </Text>
-            <TouchableOpacity style={styles.dateInput}>
-              <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-              <Text style={styles.dateText}>{startDate}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Ngày kết thúc dự kiến:</Text>
-              <Text style={styles.summaryValue}>20/11/2025</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tổng thời gian học:</Text>
-              <Text style={styles.summaryValue}>4 tuần</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Add Schedule Slots */}
-        <View style={styles.section}>
-          <Text style={styles.sectionSubtitle}>Thêm lịch học</Text>
-
-          <View style={styles.scheduleForm}>
-            <View style={styles.row}>
-              <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
-                <Text style={styles.label}>Thứ</Text>
-                <View style={styles.pickerContainer}>
-                  <Text style={styles.pickerText}>Chọn thứ</Text>
-                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
-                </View>
-              </View>
-              <View
-                style={[styles.inputGroup, { flex: 1, marginHorizontal: 4 }]}
-              >
-                <Text style={styles.label}>Bắt đầu</Text>
-                <View style={styles.pickerContainer}>
-                  <Text style={styles.pickerText}>Chọn giờ</Text>
-                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
-                </View>
-              </View>
-              <View style={[styles.inputGroup, { flex: 1, marginLeft: 8 }]}>
-                <Text style={styles.label}>Kết thúc</Text>
-                <View style={styles.pickerContainer}>
-                  <Text style={styles.pickerText}>Chọn giờ</Text>
-                  <Ionicons name="chevron-down" size={20} color="#6B7280" />
-                </View>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="add" size={20} color="#FFFFFF" />
-              <Text style={styles.addButtonText}>Thêm</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Warning Box */}
-          <View style={styles.warningBox}>
-            <Ionicons name="warning" size={20} color="#D97706" />
-            <View style={styles.warningContent}>
-              <Text style={styles.warningTitle}>
-                Lịch các khóa học đang diễn ra
-              </Text>
-              <View style={styles.conflictItem}>
-                <Ionicons name="calendar" size={16} color="#D97706" />
-                <Text style={styles.conflictText}>Thứ 2 14:00 - 15:30</Text>
-              </View>
-              <View style={styles.conflictItem}>
-                <Ionicons name="calendar" size={16} color="#D97706" />
-                <Text style={styles.conflictText}>Thứ 4 14:00 - 15:30</Text>
-              </View>
-              <Text style={styles.warningNote}>
-                * Vui lòng tránh chọn thời gian trùng với lịch đã có
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Mô tả khóa học</Text>
-          <TextInput
-            style={styles.textArea}
-            multiline
-            numberOfLines={4}
-            placeholder="Mô tả chi tiết về nội dung và mục tiêu của khóa học này..."
-            value={description}
-            onChangeText={setDescription}
-            placeholderTextColor="#9CA3AF"
-            textAlignVertical="top"
-          />
-        </View>
-
-        {/* Pricing */}
-        <View style={styles.section}>
-          {renderSectionHeader("cash", "Giá khóa học")}
-
-          <Text style={styles.label}>
-            Giá khóa học <Text style={styles.required}>*</Text> (Nhóm 4 người)
-          </Text>
-          <View style={styles.priceGrid}>
-            {priceOptions.map((priceOption) => (
-              <TouchableOpacity
-                key={priceOption}
-                style={[
-                  styles.priceButton,
-                  price === priceOption && styles.priceButtonActive,
-                ]}
-                onPress={() => setPrice(priceOption)}
-              >
-                <Text
-                  style={[
-                    styles.priceButtonText,
-                    price === priceOption && styles.priceButtonTextActive,
-                  ]}
-                >
-                  {priceOption}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={styles.inputGroup}>
-            <TextInput
-              style={[styles.input, !price && styles.inputError]}
-              placeholder="Hoặc nhập giá tùy chỉnh"
-              value={price}
-              onChangeText={setPrice}
-              keyboardType="numeric"
-              placeholderTextColor="#9CA3AF"
-            />
-            {!price && (
-              <Text style={styles.errorText}>Giá khóa học là bắt buộc</Text>
-            )}
-          </View>
-
-          <View style={styles.infoBox}>
-            <Ionicons name="information-circle" size={18} color="#3B82F6" />
-            <Text style={styles.infoText}>
-              Bước giá: 100,000đ. Bạn có thể chọn nhanh các mức giá phổ biến
-              hoặc nhập giá tùy chỉnh.
-            </Text>
-          </View>
-        </View>
-
-        {/* Preview Button */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.previewButton}>
-            <Ionicons name="eye-outline" size={20} color="#059669" />
-            <Text style={styles.previewButtonText}>Xem trước khóa học</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Bottom Spacing */}
-        <View style={{ height: 120 }} />
-      </ScrollView>
-
-      {/* Fixed Bottom Actions */}
-      <View style={styles.bottomActions}>
         <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => router.back()}
+          onPress={handleCreateSubject}
+          disabled={loading}
+          style={[
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: loading ? "#86efac" : "#10b981",
+              borderRadius: 12,
+              marginHorizontal: 16,
+              marginTop: 24,
+              paddingVertical: 14,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 3.84,
+              elevation: 4,
+              transform: [{ scale: loading ? 0.98 : 1 }],
+            },
+          ]}
+          activeOpacity={0.85}
         >
-          <Text style={styles.cancelButtonText}>Hủy</Text>
+          {loading ? (
+            <>
+              <ActivityIndicator
+                size="small"
+                color="#fff"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 16,
+                  fontWeight: "600",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Đang tạo...
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color="#fff"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 16,
+                  fontWeight: "600",
+                  letterSpacing: 0.5,
+                }}
+              >
+                Tạo Môn Học
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={styles.submitButtonText}>Tạo khóa học</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
