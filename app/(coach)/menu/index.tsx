@@ -16,14 +16,6 @@ export default function CoachMenuScreen() {
           onPress={() => router.push("/(coach)/menu/analytics" as any)}
         />
         <MenuItem
-          label="Thông báo"
-          onPress={() => router.push("/(coach)/menu/notifications" as any)}
-        />
-        <MenuItem
-          label="Kết nối"
-          onPress={() => router.push("/(coach)/menu/integrations" as any)}
-        />
-        <MenuItem
           label="Khối buổi học"
           onPress={() => router.push("/(coach)/menu/session-blocks" as any)}
         />
@@ -32,8 +24,12 @@ export default function CoachMenuScreen() {
           onPress={() => router.push("/(coach)/menu/teaching" as any)}
         />
         <MenuItem
-          label="Payouts"
+          label="Thanh toán"
           onPress={() => router.push("/(coach)/menu/payouts" as any)}
+        />
+        <MenuItem
+          label="Môn học"
+          onPress={() => router.push("/(coach)/menu/subject" as any)}
         />
       </View>
     </View>

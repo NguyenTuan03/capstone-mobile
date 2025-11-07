@@ -102,12 +102,6 @@ export default function CoachTabs() {
           href: null,
         }}
       />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }
