@@ -36,9 +36,7 @@ export default function CreateCourseScreen() {
         name: subjectName,
         description,
         level,
-        status: "DRAFT",
       };
-
       console.log("Payload gửi lên API:", payload);
 
       const res = await post("/v1/subjects", payload);

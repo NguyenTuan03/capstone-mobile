@@ -21,15 +21,6 @@ export default function CoachHomeScreen() {
     >
       <StatusBar barStyle="light-content" backgroundColor="#059669" />
       <ScrollView style={styles.scrollView}>
-        {/* Settings Shortcut */}
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => router.push("/(coach)/settings" as any)}
-        >
-          <Ionicons name="settings" size={18} color="#059669" />
-          <Text style={styles.settingsButtonText}>Cài đặt</Text>
-          <Ionicons name="chevron-forward" size={16} color="#059669" />
-        </TouchableOpacity>
         {/* Welcome Card */}
         <View style={styles.welcomeCard}>
           <View style={styles.welcomeHeader}>

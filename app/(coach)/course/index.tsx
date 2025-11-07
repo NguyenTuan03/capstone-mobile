@@ -260,19 +260,12 @@ export default function CoachCourseScreen() {
       </ScrollView>
 
       {/* Create Course Button */}
-      {/* <TouchableOpacity
-        style={[styles.createButton, { bottom: insets.bottom + 80 }]}
-        onPress={() => router.push("/(coach)/course/create" as any)}
-      >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-        <Text style={styles.createButtonText}>Tạo khóa học</Text>
-      </TouchableOpacity> */}
       <TouchableOpacity
         style={[styles.createButton, { bottom: insets.bottom + 80 }]}
         onPress={() => router.push("/(coach)/course/create" as any)}
       >
         <Ionicons name="add" size={24} color="#FFFFFF" />
-        <Text style={styles.createButtonText}>Tạo môn học</Text>
+        <Text style={styles.createButtonText}>Tạo khóa học</Text>
       </TouchableOpacity>
     </View>
   );
