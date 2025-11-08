@@ -48,7 +48,9 @@
           "calendarPermission": "The app needs to access your calendar."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
