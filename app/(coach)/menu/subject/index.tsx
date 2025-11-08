@@ -5,10 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import axios from "axios";
 import { get } from "@/services/http/httpService";
 import { Subject } from "@/types/subject";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +20,35 @@ const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 const CoachSubjectScreen = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+
+  const handleOpenMenu = (subject: any) => {
+    setSelectedSubject(subject);
+    setModalVisible(true);
+  };
+
+  const handleEdit = (s: Subject | null) => {
+    if (!s) return;
+    setModalVisible(false);
+    router.push({
+      pathname: "/(coach)/menu/subject/edit" as any,
+      params: {
+        subjectId: s.id,
+        subjectName: s.name,
+        subjectDescription: s.description,
+        subjectLevel: s.level,
+      },
+    });
+  };
+
+  const handleDelete = () => {
+    // setSubjects((prev) =>
+    //   prev.filter((item) => item.id !== selectedSubject.id)
+    // );
+    setModalVisible(false);
+  };
 
   const fetchSubjects = async () => {
     try {
@@ -66,10 +96,9 @@ const CoachSubjectScreen = () => {
           marginBottom: 20,
         }}
       >
-        Danh sách môn học của toi
+        Danh sách môn học của tôi
       </Text>
 
-      {/* Nút tạo môn học */}
       <TouchableOpacity
         style={{
           flexDirection: "row",
@@ -140,13 +169,77 @@ const CoachSubjectScreen = () => {
                   {subject.name}
                 </Text>
                 <Text style={{ fontSize: 14, color: "#666" }}>
-                  {subject.description || "Không có mô tả"}
+                  {subject.description ||
+                    "Không có mô tả chi tiết cho môn học này."}
                 </Text>
+                <TouchableOpacity
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    padding: 6,
+                  }}
+                  onPress={() => handleOpenMenu(subject)}
+                >
+                  <Feather name="more-vertical" size={22} color="#000" />
+                </TouchableOpacity>
               </TouchableOpacity>
             ))
           )}
         </ScrollView>
       )}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.3)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View
+            style={{
+              width: 220,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              paddingVertical: 10,
+              shadowColor: "#000",
+              shadowOpacity: 0.2,
+              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 5,
+              elevation: 5,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => handleEdit(selectedSubject)}
+              style={{
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Text style={{ fontSize: 16 }}>✏️ Chỉnh sửa</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleDelete}
+              style={{
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Text style={{ fontSize: 16, color: "red" }}>🗑️ Xóa</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };

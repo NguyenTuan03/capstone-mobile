@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function CreateCourseScreen() {
+export default function CreateSubjectScreen() {
   const [subjectName, setSubjectName] = useState("");
   const [level, setLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">(
     "BEGINNER",

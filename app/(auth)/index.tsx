@@ -42,6 +42,21 @@ export default function AuthScreen() {
     }
   };
 
+  //  const handleLogin = async (values: Record<string, string>) => {
+  //     setError(null);
+  //     setSubmitting(true);
+
+  //     // Giả lập loading time
+  //     setTimeout(() => {
+  //       if (values.password === "c") {
+  //         router.push("/(coach)/home" as Href);
+  //       } else {
+  //         router.push("/(learner)/home" as Href);
+  //       }
+  //       setSubmitting(false);
+  //     }, 500);
+  //   };
+
   return (
     <AppForm
       title="Chào mừng trở lại 👋"
