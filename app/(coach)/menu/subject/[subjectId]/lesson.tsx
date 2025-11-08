@@ -58,7 +58,7 @@ const CoachLessonScreen = () => {
             flex: 1,
           }}
         >
-          {subjectName || "aaaaa"}
+          {subjectName}
         </Text>
 
         <TouchableOpacity>
@@ -69,6 +69,7 @@ const CoachLessonScreen = () => {
           />
         </TouchableOpacity>
       </View>
+      <Text>Tạo bài học mới cho khóa học</Text>
       <Text>Nội dung môn học</Text>
       <ScrollView showsVerticalScrollIndicator={false}>
         {lessons.map((lesson) => (

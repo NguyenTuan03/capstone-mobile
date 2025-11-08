@@ -1,8 +1,11 @@
 import AppForm from "@/components/common/AppForm";
 import { useJWTAuthActions } from "@/services/jwt-auth/JWTAuthProvider";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text } from "react-native";
+
+const API_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 const Register = () => {
   const { signInUser } = useJWTAuthActions();
@@ -19,8 +22,11 @@ const Register = () => {
     setError(null);
     setSubmitting(true);
     try {
-      await signInUser({ email: values.email, password: values.password });
-      router.replace("/(tabs)");
+      const res = await axios.post(`${API_URL}/v1/auth/register`, {
+        email: values.email,
+        password: values.password,
+      });
+      router.replace("/(auth)");
     } catch {
       setError("Đăng ký thất bại");
     } finally {
